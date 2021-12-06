@@ -68,4 +68,4 @@ buy_account
 * t_transaction_info 
 * t_reverse_records_info // All transactions on DAS
 
-More details see [das_database.sql](https://github.com/DeAccountSystems/das_database/blob/main/dao/das_database.sql)
+More details see [das_database.sql](https://github.com/DeAccountSystems/das-database/blob/main/dao/das_database.sql)
