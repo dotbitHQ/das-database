@@ -178,6 +178,19 @@ func (a *AccountCellDataBuilder) getNewAccountCellDataBuilder() *molecule.Accoun
 func (a *AccountCellDataBuilder) GenWitness(p *AccountCellParam) ([]byte, []byte, error) {
 
 	switch p.Action {
+	case common.DasActionEditManager:
+		oldDataEntityOpt := a.getOldDataEntityOpt(p)
+		newBuilder := a.getNewAccountCellDataBuilder()
+
+		newAccountSaleCellData := newBuilder.Build()
+		newAccountSaleCellDataBytes := molecule.GoBytes2MoleculeBytes(newAccountSaleCellData.AsSlice())
+
+		newDataEntity := molecule.NewDataEntityBuilder().Entity(newAccountSaleCellDataBytes).
+			Version(DataEntityVersion2).Index(molecule.GoU32ToMoleculeU32(p.NewIndex)).Build()
+		newDataEntityOpt := molecule.NewDataEntityOptBuilder().Set(newDataEntity).Build()
+		tmp := molecule.NewDataBuilder().Old(*oldDataEntityOpt).New(newDataEntityOpt).Build()
+		witness := GenDasDataWitness(common.ActionDataTypeAccountCell, &tmp)
+		return witness, common.Blake2b(newAccountSaleCellData.AsSlice()), nil
 	case common.DasActionBuyAccount, common.DasActionTransferAccount:
 		oldDataEntityOpt := a.getOldDataEntityOpt(p)
 		newBuilder := a.getNewAccountCellDataBuilder()

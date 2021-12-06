@@ -18,11 +18,13 @@ type OfferCellBuilder struct {
 	ChannelLock   *molecule.Script
 }
 
-func OfferCellDataBuilderFromTx(tx *types.Transaction, dataType common.DataType) (*OfferCellBuilder, error) {
-	var resp OfferCellBuilder
+func OfferCellDataBuilderMapFromTx(tx *types.Transaction, dataType common.DataType) (map[string]*OfferCellBuilder, error) {
+	var respMap = make(map[string]*OfferCellBuilder)
 	err := GetWitnessDataFromTx(tx, func(actionDataType common.ActionDataType, dataBys []byte) (bool, error) {
 		switch actionDataType {
 		case common.ActionDataTypeOfferCell:
+			var resp OfferCellBuilder
+
 			dataEntityOpt, dataEntity, err := getDataEntityOpt(dataBys, dataType)
 			if err != nil {
 				return false, fmt.Errorf("getDataEntityOpt err: %s", err.Error())
@@ -52,17 +54,30 @@ func OfferCellDataBuilderFromTx(tx *types.Transaction, dataType common.DataType)
 				tmp := molecule.ScriptDefault()
 				resp.ChannelLock = &tmp
 			}
-			return false, nil
+			key := fmt.Sprintf("%s-%d", tx.Hash.Hex(), index)
+			respMap[key] = &resp
+			return true, nil
 		}
 		return true, nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("GetWitnessDataFromTx err: %s", err.Error())
 	}
-	if resp.OfferCellData == nil {
+	if len(respMap) == 0 {
 		return nil, fmt.Errorf("not exist offer cell")
 	}
-	return &resp, nil
+	return respMap, nil
+}
+
+func OfferCellDataBuilderFromTx(tx *types.Transaction, dataType common.DataType) (*OfferCellBuilder, error) {
+	respMap, err := OfferCellDataBuilderMapFromTx(tx, dataType)
+	if err != nil {
+		return nil, err
+	}
+	for k, _ := range respMap {
+		return respMap[k], nil
+	}
+	return nil, fmt.Errorf("not exist offer cell")
 }
 
 type OfferCellParam struct {

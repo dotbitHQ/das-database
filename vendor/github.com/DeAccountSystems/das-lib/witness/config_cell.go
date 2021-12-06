@@ -151,6 +151,13 @@ func (c *ConfigCellDataBuilder) BasicCapacity() (uint64, error) {
 	return 0, fmt.Errorf("ConfigCellAccount is nil")
 }
 
+func (c *ConfigCellDataBuilder) AccountCommonFee() (uint64, error) {
+	if c.ConfigCellAccount != nil {
+		return molecule.Bytes2GoU64(c.ConfigCellAccount.CommonFee().RawData())
+	}
+	return 0, fmt.Errorf("ConfigCellAccount is nil")
+}
+
 func (c *ConfigCellDataBuilder) PreparedFeeCapacity() (uint64, error) {
 	if c.ConfigCellAccount != nil {
 		return molecule.Bytes2GoU64(c.ConfigCellAccount.PreparedFeeCapacity().RawData())

@@ -83,7 +83,7 @@ func (d *DasCore) RunAsyncDasConfigCell(t time.Duration) {
 func (d *DasCore) AsyncDasConfigCell() error {
 	configCellContract, err := GetDasContractInfo(common.DasContractNameConfigCellType)
 	if err != nil {
-		return fmt.Errorf("GetDasContract err: %s", err.Error())
+		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 	}
 	// search
 	searchKey := &indexer.SearchKey{
@@ -97,6 +97,7 @@ func (d *DasCore) AsyncDasConfigCell() error {
 	if err != nil {
 		return fmt.Errorf("GetCells err: %s", err.Error())
 	}
+	fmt.Println(len(res.Objects))
 	// list
 	for _, v := range res.Objects {
 		configCellArgs := common.Bytes2Hex(v.Output.Type.Args)
@@ -159,4 +160,36 @@ func (d *DasCore) ConfigCellDataBuilderByTypeArgsList(list ...common.ConfigCellT
 		}
 	}
 	return &builder, nil
+}
+
+// GetDasConfigCellByBlockNumber not available
+func (d *DasCore) GetDasConfigCellByBlockNumber(blockNumber uint64, configCellArgs common.ConfigCellTypeArgs) (*witness.ConfigCellDataBuilder, error) {
+	configCellContract, err := GetDasContractInfo(common.DasContractNameConfigCellType)
+	if err != nil {
+		return nil, fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+	searchKey := &indexer.SearchKey{
+		Script:     configCellContract.OutPut.Lock,
+		ScriptType: indexer.ScriptTypeLock,
+		Filter: &indexer.CellsFilter{
+			Script:     configCellContract.ToScript(common.Hex2Bytes(configCellArgs)),
+			BlockRange: &[2]uint64{0, blockNumber},
+		},
+	}
+	txs, err := d.client.GetTransactions(d.ctx, searchKey, indexer.SearchOrderDesc, 1, "")
+	if err != nil {
+		return nil, fmt.Errorf("GetTransactions err: %s", err.Error())
+	}
+	if len(txs.Objects) > 0 {
+		res, err := d.client.GetTransaction(d.ctx, txs.Objects[0].TxHash)
+		if err != nil {
+			return nil, fmt.Errorf("GetTransaction err: %s", err.Error())
+		}
+		builder, err := witness.ConfigCellDataBuilderByTypeArgs(res.Transaction, configCellArgs)
+		if err != nil {
+			return nil, fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+		}
+		return builder, nil
+	}
+	return nil, fmt.Errorf("not exits [%s] before [%d]", configCellArgs, blockNumber)
 }
