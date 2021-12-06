@@ -196,6 +196,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		resp.Err = fmt.Errorf("OfferCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
+	offerOutpoint := common.OutPointStruct2String(req.Tx.Inputs[offerBuilder.Index].PreviousOutput)
 
 	// buyer account cell
 	buyerBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
@@ -282,7 +283,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionAcceptOffer:", buyerBuilder.AccountId, len(rebateList))
 
-	if err := b.dbDao.AcceptOffer(accountInfo, tradeDealInfo, transactionInfoBuy, transactionInfoSale, rebateList, recordsInfos); err != nil {
+	if err = b.dbDao.AcceptOffer(accountInfo, offerOutpoint, tradeDealInfo, transactionInfoBuy, transactionInfoSale, rebateList, recordsInfos); err != nil {
 		log.Error("AcceptOffer err:", err.Error(), toolib.JsonString(transactionInfoBuy), toolib.JsonString(transactionInfoSale))
 		resp.Err = fmt.Errorf("AcceptOffer err: %s", err.Error())
 		return
