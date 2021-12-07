@@ -67,9 +67,9 @@ func (d *DbDao) EditOffer(oldOutpoint string, offerInfo TableOfferInfo, transact
 	})
 }
 
-func (d *DbDao) CancelOffer(oldOutpoint string, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) CancelOffer(oldOutpoints []string, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("outpoint = ?", oldOutpoint).Delete(&TableOfferInfo{}).Error; err != nil {
+		if err := tx.Where("outpoint IN ?", oldOutpoints).Delete(&TableOfferInfo{}).Error; err != nil {
 			return err
 		}
 

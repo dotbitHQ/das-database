@@ -142,29 +142,29 @@ func (b *BlockParser) ActionCancelOffer(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionCancelOffer:", req.BlockNumber, req.TxHash)
 
-	oldBuilder, err := witness.OfferCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
+	oldBuilderMap, err := witness.OfferCellDataBuilderMapFromTx(req.Tx, common.DataTypeOld)
 	if err != nil {
-		resp.Err = fmt.Errorf("OfferCellDataBuilderFromTx err: %s", err.Error())
+		resp.Err = fmt.Errorf("OfferCellDataBuilderMapFromTx err: %s", err.Error())
 		return
 	}
-	oldOutpoint := common.OutPoint2String(req.Tx.Inputs[oldBuilder.Index].PreviousOutput.TxHash.Hex(), uint(oldBuilder.Index))
-	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[oldBuilder.Index].PreviousOutput.Index].Lock.Args)
-
+	var oldOutpoints []string
+	for _, v := range oldBuilderMap {
+		oldOutpoint := common.OutPoint2String(req.Tx.Inputs[v.Index].PreviousOutput.TxHash.Hex(), uint(v.Index))
+		oldOutpoints = append(oldOutpoints, oldOutpoint)
+	}
+	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
-		Account:        oldBuilder.Account,
 		Action:         common.DasActionCancelOffer,
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      oCT,
 		Address:        oA,
 		Capacity:       req.Tx.OutputsCapacity(),
-		Outpoint:       common.OutPoint2String(req.TxHash, uint(oldBuilder.Index)),
+		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
-	log.Info("ActionCancelOffer:", oldBuilder.Account)
-
-	if err = b.dbDao.CancelOffer(oldOutpoint, transactionInfo); err != nil {
+	if err = b.dbDao.CancelOffer(oldOutpoints, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("CancelOffer err: %s", err.Error())
 		return
 	}
