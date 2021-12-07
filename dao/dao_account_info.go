@@ -90,9 +90,16 @@ func (d *DbDao) FindAccountInfoByAccount(account string) (accountInfo TableAccou
 	return
 }
 
-// ConfirmProposal
-func (d *DbDao) ConfirmProposal(accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo) error {
+func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
+		if len(incomeCellInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{"block_number", "capacity", "block_timestamp"}),
+			}).Create(&incomeCellInfos).Error; err != nil {
+				return err
+			}
+		}
+
 		if len(accountInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
 				DoUpdates: clause.AssignmentColumns([]string{"block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id", "registered_at", "expired_at", "status"}),

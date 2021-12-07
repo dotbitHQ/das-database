@@ -21,7 +21,7 @@ type TableTradeInfo struct {
 	BlockTimestamp   uint64                `json:"block_timestamp" gorm:"column:block_timestamp"`
 	PriceCkb         uint64                `json:"price_ckb" gorm:"column:price_ckb"`
 	PriceUsd         decimal.Decimal       `json:"price_usd" gorm:"column:price_usd"`
-	Status           AccountStatus         `json:"status" gorm:"column:status"`                         // 0: normal 1: on sale 2: on auction
+	Status           AccountStatus         `json:"status" gorm:"column:status"` // 0: normal 1: on sale 2: on auction
 	CreatedAt        time.Time             `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt        time.Time             `json:"updated_at" gorm:"column:updated_at"`
 }
@@ -42,7 +42,6 @@ type SaleAccount struct {
 	Account string `json:"account" gorm:"column:account"`
 }
 
-// StartAccountSale 上架
 func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTradeInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "manager", "manager_chain_type", "manager_algorithm_id", "owner", "owner_algorithm_id", "owner_chain_type", "outpoint", "status").Where("account = ?", accountInfo.Account).
@@ -66,7 +65,6 @@ func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTr
 	})
 }
 
-// EditAccountSale 改价
 func (d *DbDao) EditAccountSale(tradeInfo TableTradeInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "description", "block_timestamp", "price_ckb", "price_usd").
@@ -84,7 +82,6 @@ func (d *DbDao) EditAccountSale(tradeInfo TableTradeInfo, transactionInfo TableT
 	})
 }
 
-// CancelAccountSale 下架
 func (d *DbDao) CancelAccountSale(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "status").Where("account = ?", accountInfo.Account).
@@ -106,9 +103,16 @@ func (d *DbDao) CancelAccountSale(accountInfo TableAccountInfo, transactionInfo 
 	})
 }
 
-// BuyAccount 购买账号
-func (d *DbDao) BuyAccount(accountInfo TableAccountInfo, dealInfo TableTradeDealInfo, transactionInfoBuy, transactionInfoSale TableTransactionInfo, rebateInfos []TableRebateInfo, recordsInfos []TableRecordsInfo) error {
+func (d *DbDao) BuyAccount(incomeCellInfos []TableIncomeCellInfo, accountInfo TableAccountInfo, dealInfo TableTradeDealInfo, transactionInfoBuy, transactionInfoSale TableTransactionInfo, rebateInfos []TableRebateInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
+		if len(incomeCellInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{"block_number", "capacity", "block_timestamp"}),
+			}).Create(&incomeCellInfos).Error; err != nil {
+				return err
+			}
+		}
+
 		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id", "status").
 			Where("account = ?", accountInfo.Account).Updates(accountInfo).Error; err != nil {
 			return err

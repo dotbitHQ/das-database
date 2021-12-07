@@ -20,7 +20,6 @@ import (
 var log = mylog.NewLogger("block_parser", mylog.LevelDebug)
 var IsLatestBlockNumber bool
 
-// BlockParser 区块交易解析器
 type BlockParser struct {
 	dasCore              *core.DasCore
 	mapTransactionHandle map[common.DasAction]FuncTransactionHandle
@@ -163,7 +162,6 @@ func (b *BlockParser) checkFork(parentHash string) (bool, error) {
 	return false, nil
 }
 
-
 func (b *BlockParser) parsingBlockData(block *types.Block) error {
 	for _, tx := range block.Transactions {
 		txHash := tx.Hash.Hex()
@@ -201,7 +199,6 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 	}
 	return nil
 }
-
 
 func (b *BlockParser) parserConcurrencyMode() error {
 	log.Info("parserConcurrencyMode:", b.currentBlockNumber, b.concurrencyNum)

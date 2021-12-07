@@ -73,7 +73,6 @@ func (d *DbDao) FindIncomeCellInfoListByOutpoint(outpoint string) (incomeCellInf
 	return
 }
 
-// ConsolidateIncome 奖励合并
 func (d *DbDao) ConsolidateIncome(outpoints []string, incomeCellInfos []TableIncomeCellInfo, transactionInfos []TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("outpoint IN ?", outpoints).Delete(&TableIncomeCellInfo{}).Error; err != nil {
@@ -100,7 +99,6 @@ func (d *DbDao) ConsolidateIncome(outpoints []string, incomeCellInfos []TableInc
 	})
 }
 
-// RenewAccount 续费账户记录
 func (d *DbDao) RenewAccount(outpoints []string, incomeCellInfos []TableIncomeCellInfo, accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&TableIncomeCellInfo{}).Where("outpoint IN ?", outpoints).

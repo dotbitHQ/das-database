@@ -183,6 +183,29 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionAcceptOffer:", req.BlockNumber, req.TxHash)
 
+	// add income cell infos
+	incomeContract, err := core.GetDasContractInfo(common.DasContractNameIncomeCellType)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+		return
+	}
+	var incomeCellInfos []dao.TableIncomeCellInfo
+	for i, v := range req.Tx.Outputs {
+		if v.Type == nil {
+			continue
+		}
+		if v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
+				BlockNumber:    req.BlockNumber,
+				Action:         common.DasActionAcceptOffer,
+				Outpoint:       common.OutPoint2String(req.TxHash, uint(i)),
+				Capacity:       v.Capacity,
+				BlockTimestamp: req.BlockTimestamp,
+				Status:         dao.IncomeCellStatusUnMerge,
+			})
+		}
+	}
+
 	// seller account cell
 	sellerBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
 	if err != nil {
@@ -288,7 +311,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionAcceptOffer:", buyerBuilder.AccountId, len(rebateList))
 
-	if err = b.dbDao.AcceptOffer(accountInfo, offerOutpoint, tradeDealInfo, transactionInfoBuy, transactionInfoSale, rebateList, recordsInfos); err != nil {
+	if err = b.dbDao.AcceptOffer(incomeCellInfos, accountInfo, offerOutpoint, tradeDealInfo, transactionInfoBuy, transactionInfoSale, rebateList, recordsInfos); err != nil {
 		log.Error("AcceptOffer err:", err.Error(), toolib.JsonString(transactionInfoBuy), toolib.JsonString(transactionInfoSale))
 		resp.Err = fmt.Errorf("AcceptOffer err: %s", err.Error())
 		return

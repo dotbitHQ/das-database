@@ -1,6 +1,6 @@
 server:
   is_update: false
-  net: 1 # 1: mannet 2: testnet
+  net: 1 # 1: mainnet 2: testnet
   http_server_addr: ":9090"
 notice:
   webhook_lark_err: ""

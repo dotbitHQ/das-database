@@ -9,7 +9,7 @@ import (
 )
 
 /*
-* 注册交易解析方法
+* das database parser map handle
  */
 func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle = make(map[string]FuncTransactionHandle)
