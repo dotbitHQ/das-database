@@ -11,13 +11,13 @@ type TableTransactionInfo struct {
 	BlockNumber    uint64           `json:"block_number" gorm:"column:block_number"`
 	Account        string           `json:"account" gorm:"column:account"`
 	Action         string           `json:"action" gorm:"column:action"`
-	ServiceType    int              `json:"service_type" gorm:"column:service_type"`       // 1: register 2: trade',
+	ServiceType    int              `json:"service_type" gorm:"column:service_type"` // 1: register 2: trade',
 	ChainType      common.ChainType `json:"chain_type" gorm:"column:chain_type"`
 	Address        string           `json:"address" gorm:"column:address"`
 	Capacity       uint64           `json:"capacity" gorm:"column:capacity"`
 	Outpoint       string           `json:"outpoint" gorm:"column:outpoint"`
 	BlockTimestamp uint64           `json:"block_timestamp" gorm:"column:block_timestamp"`
-	Status         int              `json:"status" gorm:"column:status"`                   // 0: normal -1: rejected
+	Status         int              `json:"status" gorm:"column:status"` // 0: normal -1: rejected
 	CreatedAt      time.Time        `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt      time.Time        `json:"updated_at" gorm:"column:updated_at"`
 }
@@ -25,8 +25,8 @@ type TableTransactionInfo struct {
 const (
 	TableNameTransactionInfo = "t_transaction_info"
 
-	ServiceTypeRegister    = 1 // 注册
-	ServiceTypeTransaction = 2 // 交易
+	ServiceTypeRegister    = 1
+	ServiceTypeTransaction = 2
 )
 
 func (t *TableTransactionInfo) TableName() string {
@@ -38,13 +38,13 @@ type TxAction = int
 const (
 	ActionUndefined          TxAction = 99
 	ActionWithdrawFromWallet TxAction = 0
-	ActionConsolidateIncome  TxAction = 1  // merge reward
+	ActionConsolidateIncome  TxAction = 1 // merge reward
 	ActionStartAccountSale   TxAction = 2
 	ActionEditAccountSale    TxAction = 3
 	ActionCancelAccountSale  TxAction = 4
 	ActionBuyAccount         TxAction = 5
 	ActionSaleAccount        TxAction = 6
-	ActionTransferBalance    TxAction = 7  // active balance
+	ActionTransferBalance    TxAction = 7 // active balance
 
 	ActionDeclareReverseRecord   TxAction = 8  // set reverse records
 	ActionRedeclareReverseRecord TxAction = 9  // edit reverse records
@@ -57,10 +57,14 @@ const (
 	ActionRenewAccount       TxAction = 15
 	ActionAcceptOffer        TxAction = 16 // taker
 	ActionOfferAccepted      TxAction = 17 // maker
+	ActionEditOfferAdd       TxAction = 18 // add offer price
+	ActionEditOfferSub       TxAction = 19 // sub offer price
 
 	DasActionTransferBalance = "transfer_balance"
 	DasActionSaleAccount     = "sale_account"
 	DasActionOfferAccepted   = "offer_accepted"
+	DasActionEditOfferAdd    = "offer_edit_add"
+	DasActionEditOfferSub    = "offer_edit_sub"
 )
 
 func FormatTxAction(action string) TxAction {
@@ -101,6 +105,10 @@ func FormatTxAction(action string) TxAction {
 		return ActionAcceptOffer
 	case DasActionOfferAccepted:
 		return ActionOfferAccepted
+	case DasActionEditOfferAdd:
+		return ActionEditOfferAdd
+	case DasActionEditOfferSub:
+		return ActionEditOfferSub
 	}
 
 	return ActionUndefined
@@ -144,6 +152,10 @@ func FormatActionType(actionType TxAction) string {
 		return common.DasActionAcceptOffer
 	case ActionOfferAccepted:
 		return DasActionOfferAccepted
+	case ActionEditOfferAdd:
+		return DasActionEditOfferAdd
+	case ActionEditOfferSub:
+		return DasActionEditOfferSub
 	}
 
 	return ""

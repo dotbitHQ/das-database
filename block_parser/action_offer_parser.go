@@ -101,13 +101,18 @@ func (b *BlockParser) ActionEditOffer(req FuncTransactionHandleReq) (resp FuncTr
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		Account:        builder.Account,
-		Action:         common.DasActionEditOffer,
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      oCT,
 		Address:        oA,
-		Capacity:       req.Tx.Outputs[builder.Index].Capacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		BlockTimestamp: req.BlockTimestamp,
+	}
+	if oldBuilder.Price <= builder.Price {
+		transactionInfo.Action = dao.DasActionEditOfferAdd
+		transactionInfo.Capacity = builder.Price - oldBuilder.Price
+	} else {
+		transactionInfo.Action = dao.DasActionEditOfferSub
+		transactionInfo.Capacity = oldBuilder.Price - builder.Price
 	}
 
 	log.Info("ActionEditOffer:", builder.Account)
