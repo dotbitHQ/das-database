@@ -291,8 +291,8 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		SellAddress:    transactionInfoSale.Address,
 		BuyChainType:   transactionInfoBuy.ChainType,
 		BuyAddress:     transactionInfoBuy.Address,
-		PriceCkb:       transactionInfoBuy.Capacity,
-		PriceUsd:       tokenInfo.GetPriceUsd(transactionInfoBuy.Capacity),
+		PriceCkb:       offerBuilder.Price,
+		PriceUsd:       tokenInfo.GetPriceUsd(offerBuilder.Price),
 		BlockTimestamp: req.BlockTimestamp,
 	}
 	var recordsInfos []dao.TableRecordsInfo
