@@ -153,8 +153,8 @@ func (b *BlockParser) ActionCancelOffer(req FuncTransactionHandleReq) (resp Func
 		oldOutpoints = append(oldOutpoints, oldOutpoint)
 	}
 	var account string
-	if len(oldOutpoints) > 0 {
-		account = oldBuilderMap[oldOutpoints[0]].Account
+	if len(oldBuilderMap) > 0 {
+		account = oldBuilderMap[common.OutPoint2String(req.TxHash, 0)].Account
 	}
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
