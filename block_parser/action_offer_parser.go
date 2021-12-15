@@ -265,6 +265,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      oCT,
 		Address:        oA,
+		Capacity:       offerBuilder.Price,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
