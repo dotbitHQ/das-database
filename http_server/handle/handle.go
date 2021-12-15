@@ -50,7 +50,15 @@ func GetClientIp(ctx *gin.Context) string {
 func (h *HttpHandle) IsLatestBlockNumber(ctx *gin.Context) {
 	log.Info("IsLatestBlockNumber", GetClientIp(ctx))
 
+	blockNumber, err := h.ckbClient.GetTipBlockNumber()
+	if err != nil {
+		log.Error("ckbClient GetTipBlockNumber err: %s", err.Error())
+		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "search block number err"))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, api_code.ApiRespOKData(map[string]interface{}{
+		"blockNumber":         blockNumber,
 		"isLatestBlockNumber": block_parser.IsLatestBlockNumber,
 	}))
 }
