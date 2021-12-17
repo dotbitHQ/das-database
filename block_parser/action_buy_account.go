@@ -81,15 +81,16 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 
 	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
 	accountInfo := dao.TableAccountInfo{
-		BlockNumber:      req.BlockNumber,
-		Outpoint:         common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
-		Account:          account,
-		OwnerChainType:   oCT,
-		Owner:            oA,
-		OwnerAlgorithmId: oID,
-		ManagerChainType: oCT,
-		Manager:          oA,
-		Status:           dao.AccountStatusNormal,
+		BlockNumber:        req.BlockNumber,
+		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
+		Account:            account,
+		OwnerChainType:     oCT,
+		Owner:              oA,
+		OwnerAlgorithmId:   oID,
+		ManagerChainType:   oCT,
+		Manager:            oA,
+		ManagerAlgorithmId: oID,
+		Status:             dao.AccountStatusNormal,
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
