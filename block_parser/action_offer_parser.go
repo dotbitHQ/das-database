@@ -267,7 +267,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		ChainType:      oCT,
 		Address:        oA,
 		Capacity:       0,
-		Outpoint:       common.OutPoint2String(req.TxHash, 1),
+		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
 	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[sellerBuilder.Index].PreviousOutput.Index].Lock.Args)
@@ -278,7 +278,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      oCT,
 		Address:        oA,
-		Outpoint:       common.OutPoint2String(req.TxHash, 0),
+		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
 	}
 	for i := 1; i < len(req.Tx.Outputs); i++ {
@@ -291,7 +291,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
 	tradeDealInfo := dao.TableTradeDealInfo{
 		BlockNumber:    req.BlockNumber,
-		Outpoint:       transactionInfoBuy.Outpoint,
+		Outpoint:       transactionInfoSale.Outpoint,
 		Account:        buyerBuilder.Account,
 		DealType:       dao.DealTypeOffer,
 		SellChainType:  transactionInfoSale.ChainType,
