@@ -1,6 +1,6 @@
 # github.com/Andrew-M-C/go.emoji v0.0.0-20211011074904-61cf526972e1
 github.com/Andrew-M-C/go.emoji/official
-# github.com/DeAccountSystems/das-lib v0.0.0-20211206100810-05810475e98d
+# github.com/DeAccountSystems/das-lib v0.0.0-20211217030453-68629c8a6761
 ## explicit
 github.com/DeAccountSystems/das-lib/common
 github.com/DeAccountSystems/das-lib/core
@@ -20,7 +20,7 @@ github.com/cpuguy83/go-md2man/v2/md2man
 github.com/deckarep/golang-set
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
-# github.com/ethereum/go-ethereum v1.10.12
+# github.com/ethereum/go-ethereum v1.10.13
 ## explicit
 github.com/ethereum/go-ethereum/common
 github.com/ethereum/go-ethereum/common/hexutil
@@ -110,7 +110,7 @@ github.com/parnurzeal/gorequest
 github.com/pkg/errors
 # github.com/russross/blackfriday/v2 v2.0.1
 github.com/russross/blackfriday/v2
-# github.com/scorpiotzh/mylog v1.0.8
+# github.com/scorpiotzh/mylog v1.0.9
 ## explicit
 github.com/scorpiotzh/mylog
 # github.com/scorpiotzh/toolib v1.0.8

@@ -23,16 +23,22 @@ const (
 )
 
 const (
-	TronMessageHeader = "\x19TRON Signed Message:\n32"
-	EthMessageHeader  = "\x19Ethereum Signed Message:\n32"
+	TronMessageHeader = "\x19TRON Signed Message:\n%d"
+	EthMessageHeader  = "\x19Ethereum Signed Message:\n%d"
 )
 
 const (
-	DasAccountSuffix   = ".bit"
-	DasLockArgsLen     = 42
-	DasAccountIdLen    = 20
-	HashBytesLen       = 32
-	ExpireTimeEndIndex = HashBytesLen + DasAccountIdLen*2 + 8
+	DasAccountSuffix = ".bit"
+	DasLockArgsLen   = 42
+	DasAccountIdLen  = 20
+	HashBytesLen     = 32
+
+	ExpireTimeLen    = 8
+	NextAccountIdLen = 20
+
+	ExpireTimeEndIndex      = HashBytesLen + DasAccountIdLen + NextAccountIdLen + ExpireTimeLen
+	NextAccountIdStartIndex = HashBytesLen + DasAccountIdLen
+	NextAccountIdEndIndex   = NextAccountIdStartIndex + NextAccountIdLen
 )
 
 func (c ChainType) String() string {

@@ -12,6 +12,7 @@ type AccountCellDataBuilder struct {
 	Index             uint32
 	Version           uint32
 	AccountId         string
+	NextAccountId     string
 	Account           string
 	Status            uint8
 	RegisteredAt      uint64
@@ -75,6 +76,11 @@ func AccountCellDataBuilderMapFromTx(tx *types.Transaction, dataType common.Data
 					return false, fmt.Errorf("GetAccountCellExpiredAtFromOutputData err: %s", err.Error())
 				}
 				resp.ExpiredAt = expiredAt
+				nextAccountId, err := common.GetAccountCellNextAccountIdFromOutputData(tx.OutputsData[index])
+				if err != nil {
+					return false, fmt.Errorf("GetAccountCellNextAccountIdFromOutputData err: %s", err.Error())
+				}
+				resp.NextAccountId = common.Bytes2Hex(nextAccountId)
 			}
 
 			switch version {
