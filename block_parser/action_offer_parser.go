@@ -179,7 +179,13 @@ func (b *BlockParser) ActionCancelOffer(req FuncTransactionHandleReq) (resp Func
 }
 
 func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[0].PreviousOutput.TxHash)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		return
+	}
+
+	if isCV, err := isCurrentVersionTx(res.Transaction, common.DASContractNameOfferCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
@@ -212,13 +218,8 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		}
 	}
 
-	// seller account cell
-	sellerBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
-	if err != nil {
-		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
-		return
-	}
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[sellerBuilder.Index].PreviousOutput.TxHash)
+	// res account cell
+	resAccount, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
 		return
@@ -271,7 +272,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[sellerBuilder.Index].PreviousOutput.Index].Lock.Args)
+	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(resAccount.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
 	transactionInfoSale := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		Account:        buyerBuilder.Account,
