@@ -5,6 +5,7 @@ import (
 	"github.com/DeAccountSystems/das-lib/common"
 	"github.com/DeAccountSystems/das-lib/molecule"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
+	"strings"
 )
 
 type ConfigCellDataBuilder struct {
@@ -19,6 +20,7 @@ type ConfigCellDataBuilder struct {
 	ConfigCellProposal          *molecule.ConfigCellProposal
 	ConfigCellApply             *molecule.ConfigCellApply
 	ConfigCellRelease           *molecule.ConfigCellRelease
+	ConfigCellRecordKeys        []string
 }
 
 func ConfigCellDataBuilderRefByTypeArgs(builder *ConfigCellDataBuilder, tx *types.Transaction, configCellTypeArgs common.ConfigCellTypeArgs) error {
@@ -108,6 +110,12 @@ func ConfigCellDataBuilderRefByTypeArgs(builder *ConfigCellDataBuilder, tx *type
 			return fmt.Errorf("ConfigCellProposalFromSlice err: %s", err.Error())
 		}
 		builder.ConfigCellProposal = ConfigCellProposal
+	case common.ConfigCellTypeArgsRecordNamespace:
+		dataLength, err := molecule.Bytes2GoU32(configCellDataBys[:4])
+		if err != nil {
+			return fmt.Errorf("key name space len err: %s", err.Error())
+		}
+		builder.ConfigCellRecordKeys = strings.Split(string(configCellDataBys[4:dataLength-4]), string([]byte{0x00}))
 	}
 	return nil
 }

@@ -165,6 +165,13 @@ func GetAccountCellExpiredAtFromOutputData(data []byte) (uint64, error) {
 	return expireTime, nil
 }
 
+func GetAccountCellNextAccountIdFromOutputData(data []byte) ([]byte, error) {
+	if size := len(data); size < NextAccountIdEndIndex {
+		return nil, fmt.Errorf("invalid data, len not enough, your: %d, want: %d", size, NextAccountIdEndIndex)
+	}
+	return data[NextAccountIdStartIndex:NextAccountIdEndIndex], nil
+}
+
 func Capacity2Str(capacity uint64) string {
 	capacityRat := new(big.Rat).SetInt(new(big.Int).SetUint64(capacity))
 	oneCkbRat := new(big.Rat).SetInt(new(big.Int).SetUint64(OneCkb))
