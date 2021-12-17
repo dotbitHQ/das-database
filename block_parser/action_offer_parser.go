@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
 	"github.com/DeAccountSystems/das-lib/core"
+	"github.com/DeAccountSystems/das-lib/molecule"
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/scorpiotzh/toolib"
 	"github.com/shopspring/decimal"
@@ -240,7 +241,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 
 	// inviter channel
 	offerPrice, _ := decimal.NewFromString(fmt.Sprintf("%d", offerBuilder.Price))
-	rebateList, err := b.getRebateInfoList(offerPrice, buyerBuilder.Account, &req)
+	rebateList, err := b.getOfferRebateInfoList(offerPrice, buyerBuilder.Account, &req)
 	if err != nil {
 		resp.Err = fmt.Errorf("getRebateInfoList err: %s", err.Error())
 		return
@@ -324,4 +325,75 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	}
 
 	return
+}
+
+func (b *BlockParser) getOfferRebateInfoList(salePrice decimal.Decimal, account string, req *FuncTransactionHandleReq) ([]dao.TableRebateInfo, error) {
+	var list []dao.TableRebateInfo
+	offerCellBuilder, err := witness.OfferCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
+	if err != nil {
+		return list, fmt.Errorf("OfferCellDataBuilderMapFromTx err: %s", err.Error())
+	}
+
+	builder, err := witness.ConfigCellDataBuilderByTypeArgs(req.Tx, common.ConfigCellTypeArgsProfitRate)
+	if err != nil {
+		return list, fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+	}
+	saleBuyerInviter, _ := builder.ProfitRateSaleBuyerInviter()
+	saleBuyerChannel, _ := builder.ProfitRateSaleBuyerChannel()
+	decInviter := decimal.NewFromInt(int64(saleBuyerInviter)).Div(decimal.NewFromInt(common.PercentRateBase))
+	decChannel := decimal.NewFromInt(int64(saleBuyerChannel)).Div(decimal.NewFromInt(common.PercentRateBase))
+
+	inviterScript := offerCellBuilder.InviterLock
+	channelScript := offerCellBuilder.ChannelLock
+	if inviterScript == nil {
+		tmp := molecule.ScriptDefault()
+		inviterScript = &tmp
+	}
+	if channelScript == nil {
+		tmp := molecule.ScriptDefault()
+		channelScript = &tmp
+	}
+	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(inviterScript.Args().RawData())
+	if oA == "" {
+		oCT = common.ChainTypeCkb
+		oA = common.Bytes2Hex(inviterScript.Args().RawData())
+	}
+	list = append(list, dao.TableRebateInfo{
+		BlockNumber:      req.BlockNumber,
+		Outpoint:         common.OutPoint2String(req.TxHash, 0),
+		InviteeAccount:   account,
+		InviteeChainType: 0,
+		InviteeAddress:   "",
+		RewardType:       dao.RewardTypeInviter,
+		Reward:           salePrice.Mul(decInviter).BigInt().Uint64(),
+		Action:           common.DasActionAcceptOffer,
+		ServiceType:      dao.ServiceTypeTransaction,
+		InviterArgs:      common.Bytes2Hex(inviterScript.Args().RawData()),
+		InviterAccount:   "",
+		InviterChainType: oCT,
+		InviterAddress:   oA,
+		BlockTimestamp:   req.BlockTimestamp,
+	})
+	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(channelScript.Args().RawData())
+	if oA == "" {
+		oCT = common.ChainTypeCkb
+		oA = common.Bytes2Hex(channelScript.Args().RawData())
+	}
+	list = append(list, dao.TableRebateInfo{
+		BlockNumber:      req.BlockNumber,
+		Outpoint:         common.OutPoint2String(req.TxHash, 0),
+		InviteeAccount:   account,
+		InviteeChainType: 0,
+		InviteeAddress:   "",
+		RewardType:       dao.RewardTypeChannel,
+		Reward:           salePrice.Mul(decChannel).BigInt().Uint64(),
+		Action:           common.DasActionAcceptOffer,
+		ServiceType:      dao.ServiceTypeTransaction,
+		InviterArgs:      common.Bytes2Hex(channelScript.Args().RawData()),
+		InviterAccount:   "",
+		InviterChainType: oCT,
+		InviterAddress:   oA,
+		BlockTimestamp:   req.BlockTimestamp,
+	})
+	return list, nil
 }
