@@ -8,8 +8,6 @@ import (
 	"time"
 )
 
-var zapLogger *zap.Logger
-var zapSugarLogger *zap.SugaredLogger
 var encoderConfig = zapcore.EncoderConfig{
 	TimeKey:        "timer",
 	LevelKey:       "level",
@@ -24,17 +22,11 @@ var encoderConfig = zapcore.EncoderConfig{
 	EncodeCaller:   zapcore.ShortCallerEncoder,
 }
 
-var fileOut = &lumberjack.Logger{
-	Filename:   "./logs/mylog.log", // log path
-	MaxSize:    100,                // log file size, M
-	MaxBackups: 30,                 // backups num
-	MaxAge:     7,                  // log save days
-	LocalTime:  true,
-	Compress:   false,
+func encodeTime(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(t.Format("2006-01-02 15:04:05.999999999"))
 }
 
-func init() {
-	var err error
+func initLog() *zap.SugaredLogger {
 	zapConfig := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zapcore.DebugLevel),
 		Development:       false,
@@ -45,21 +37,28 @@ func init() {
 		ErrorOutputPaths:  []string{"stdout"},
 		DisableCaller:     false,
 	}
-	zapLogger, err = zapConfig.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		panic(err)
+	zapLogger, _ := zapConfig.Build(zap.AddCallerSkip(1))
+	return zapLogger.Sugar()
+}
+
+func NewLogger(name string, level int) *logger {
+	return &logger{
+		name:  name,
+		level: level,
+		log:   initLog(),
 	}
-	zapSugarLogger = zapLogger.Sugar()
 }
 
-func encodeTime(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString(t.Format("2006-01-02 15:04:05.999999999"))
-}
-
-func InitMyLog(out *lumberjack.Logger) {
-	// log cutting
-	if out != nil {
-		fileOut = out
+func initDefaultLog(fileOut *lumberjack.Logger) *zap.SugaredLogger {
+	if fileOut == nil {
+		fileOut = &lumberjack.Logger{
+			Filename:   "./logs/mylog.log", // log path
+			MaxSize:    100,                // log file size, M
+			MaxBackups: 30,                 // backups num
+			MaxAge:     7,                  // log save days
+			LocalTime:  true,
+			Compress:   false,
+		}
 	}
 	// zap log
 	core := zapcore.NewCore(
@@ -72,6 +71,14 @@ func InitMyLog(out *lumberjack.Logger) {
 	)
 	// log
 	caller := zap.AddCaller()
-	zapLogger = zap.New(core, caller, zap.AddCallerSkip(1))
-	zapSugarLogger = zapLogger.Sugar()
+	zapLogger := zap.New(core, caller, zap.AddCallerSkip(1))
+	return zapLogger.Sugar()
+}
+
+func NewLoggerDefault(name string, level int, fileOut *lumberjack.Logger) *logger {
+	return &logger{
+		name:  name,
+		level: level,
+		log:   initDefaultLog(fileOut),
+	}
 }

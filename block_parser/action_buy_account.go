@@ -25,6 +25,29 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 
 	log.Info("ActionBuyAccount:", req.TxHash)
 
+	// add income cell infos
+	incomeContract, err := core.GetDasContractInfo(common.DasContractNameIncomeCellType)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+		return
+	}
+	var incomeCellInfos []dao.TableIncomeCellInfo
+	for i, v := range req.Tx.Outputs {
+		if v.Type == nil {
+			continue
+		}
+		if v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
+				BlockNumber:    req.BlockNumber,
+				Action:         common.DasActionBuyAccount,
+				Outpoint:       common.OutPoint2String(req.TxHash, uint(i)),
+				Capacity:       v.Capacity,
+				BlockTimestamp: req.BlockTimestamp,
+				Status:         dao.IncomeCellStatusUnMerge,
+			})
+		}
+	}
+
 	// sale cell
 	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
@@ -58,15 +81,16 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 
 	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
 	accountInfo := dao.TableAccountInfo{
-		BlockNumber:      req.BlockNumber,
-		Outpoint:         common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
-		Account:          account,
-		OwnerChainType:   oCT,
-		Owner:            oA,
-		OwnerAlgorithmId: oID,
-		ManagerChainType: oCT,
-		Manager:          oA,
-		Status:           dao.AccountStatusNormal,
+		BlockNumber:        req.BlockNumber,
+		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
+		Account:            account,
+		OwnerChainType:     oCT,
+		Owner:              oA,
+		OwnerAlgorithmId:   oID,
+		ManagerChainType:   oCT,
+		Manager:            oA,
+		ManagerAlgorithmId: oID,
+		Status:             dao.AccountStatusNormal,
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
@@ -126,7 +150,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 
 	log.Info("ActionBuyAccount:", account, len(rebateList))
 
-	if err := b.dbDao.BuyAccount(accountInfo, tradeDealInfo, transactionInfoBuy, transactionInfoSale, rebateList, recordsInfos); err != nil {
+	if err := b.dbDao.BuyAccount(incomeCellInfos, accountInfo, tradeDealInfo, transactionInfoBuy, transactionInfoSale, rebateList, recordsInfos); err != nil {
 		log.Error("BuyAccount err:", err.Error(), toolib.JsonString(transactionInfoBuy), toolib.JsonString(transactionInfoSale))
 		resp.Err = fmt.Errorf("BuyAccount err: %s", err.Error())
 		return

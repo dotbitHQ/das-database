@@ -21,6 +21,29 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 
 	log.Info("ActionConfirmProposal:", req.BlockNumber, req.TxHash)
 
+	// add income cell infos
+	incomeContract, err := core.GetDasContractInfo(common.DasContractNameIncomeCellType)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+		return
+	}
+	var incomeCellInfos []dao.TableIncomeCellInfo
+	for i, v := range req.Tx.Outputs {
+		if v.Type == nil {
+			continue
+		}
+		if v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
+				BlockNumber:    req.BlockNumber,
+				Action:         common.DasActionConfirmProposal,
+				Outpoint:       common.OutPoint2String(req.TxHash, uint(i)),
+				Capacity:       v.Capacity,
+				BlockTimestamp: req.BlockTimestamp,
+				Status:         dao.IncomeCellStatusUnMerge,
+			})
+		}
+	}
+
 	preMap, err := witness.PreAccountCellDataBuilderMapFromTx(req.Tx, common.DataTypeOld) //new account
 	if err != nil {
 		resp.Err = fmt.Errorf("PreAccountCellDataBuilderMapFromTx err: %s", err.Error())
@@ -37,14 +60,14 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 	var accountInfos []dao.TableAccountInfo
 	var transactionInfos []dao.TableTransactionInfo
 	var rebateInfos []dao.TableRebateInfo
-	// 账号基础存储费
+	// account basic store fee
 	configCell, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsAccount)
 	if err != nil {
 		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
 		return
 	}
 	basicCapacity, _ := configCell.BasicCapacity()
-	// 反佣比例
+	// rebate rate
 	configCellRate, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsProfitRate)
 	if err != nil {
 		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
@@ -149,8 +172,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		}
 	}
 
-
-	if err = b.dbDao.ConfirmProposal(accountInfos, transactionInfos, rebateInfos); err != nil {
+	if err = b.dbDao.ConfirmProposal(incomeCellInfos, accountInfos, transactionInfos, rebateInfos); err != nil {
 		log.Error("ConfirmProposal err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("ConfirmProposal err: %s ", err.Error())
 		return

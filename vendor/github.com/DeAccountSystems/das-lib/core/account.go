@@ -41,6 +41,7 @@ func dasAlgorithmIdAddressToArgs(dasAlgorithmId common.DasAlgorithmId, addr stri
 				return append(dasAlgorithmId.Bytes(), common.Hex2Bytes(strings.TrimPrefix(addrHex, common.TronPreFix))...), nil
 			}
 		}
+		return append(dasAlgorithmId.Bytes(), common.Hex2Bytes(strings.TrimPrefix(addr, common.TronPreFix))...), nil
 	}
 	return nil, fmt.Errorf("not exist DasAlgorithmId: %d", dasAlgorithmId)
 }

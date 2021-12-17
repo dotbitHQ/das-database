@@ -83,7 +83,7 @@ func (d *DasCore) RunAsyncDasConfigCell(t time.Duration) {
 func (d *DasCore) AsyncDasConfigCell() error {
 	configCellContract, err := GetDasContractInfo(common.DasContractNameConfigCellType)
 	if err != nil {
-		return fmt.Errorf("GetDasContract err: %s", err.Error())
+		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 	}
 	// search
 	searchKey := &indexer.SearchKey{
@@ -97,6 +97,7 @@ func (d *DasCore) AsyncDasConfigCell() error {
 	if err != nil {
 		return fmt.Errorf("GetCells err: %s", err.Error())
 	}
+	//fmt.Println(len(res.Objects))
 	// list
 	for _, v := range res.Objects {
 		configCellArgs := common.Bytes2Hex(v.Output.Type.Args)

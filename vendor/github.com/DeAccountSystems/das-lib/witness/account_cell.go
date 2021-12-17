@@ -12,6 +12,7 @@ type AccountCellDataBuilder struct {
 	Index             uint32
 	Version           uint32
 	AccountId         string
+	NextAccountId     string
 	Account           string
 	Status            uint8
 	RegisteredAt      uint64
@@ -75,6 +76,11 @@ func AccountCellDataBuilderMapFromTx(tx *types.Transaction, dataType common.Data
 					return false, fmt.Errorf("GetAccountCellExpiredAtFromOutputData err: %s", err.Error())
 				}
 				resp.ExpiredAt = expiredAt
+				nextAccountId, err := common.GetAccountCellNextAccountIdFromOutputData(tx.OutputsData[index])
+				if err != nil {
+					return false, fmt.Errorf("GetAccountCellNextAccountIdFromOutputData err: %s", err.Error())
+				}
+				resp.NextAccountId = common.Bytes2Hex(nextAccountId)
 			}
 
 			switch version {
@@ -178,6 +184,19 @@ func (a *AccountCellDataBuilder) getNewAccountCellDataBuilder() *molecule.Accoun
 func (a *AccountCellDataBuilder) GenWitness(p *AccountCellParam) ([]byte, []byte, error) {
 
 	switch p.Action {
+	case common.DasActionEditManager:
+		oldDataEntityOpt := a.getOldDataEntityOpt(p)
+		newBuilder := a.getNewAccountCellDataBuilder()
+
+		newAccountSaleCellData := newBuilder.Build()
+		newAccountSaleCellDataBytes := molecule.GoBytes2MoleculeBytes(newAccountSaleCellData.AsSlice())
+
+		newDataEntity := molecule.NewDataEntityBuilder().Entity(newAccountSaleCellDataBytes).
+			Version(DataEntityVersion2).Index(molecule.GoU32ToMoleculeU32(p.NewIndex)).Build()
+		newDataEntityOpt := molecule.NewDataEntityOptBuilder().Set(newDataEntity).Build()
+		tmp := molecule.NewDataBuilder().Old(*oldDataEntityOpt).New(newDataEntityOpt).Build()
+		witness := GenDasDataWitness(common.ActionDataTypeAccountCell, &tmp)
+		return witness, common.Blake2b(newAccountSaleCellData.AsSlice()), nil
 	case common.DasActionBuyAccount, common.DasActionTransferAccount:
 		oldDataEntityOpt := a.getOldDataEntityOpt(p)
 		newBuilder := a.getNewAccountCellDataBuilder()

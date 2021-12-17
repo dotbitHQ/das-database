@@ -2,6 +2,7 @@ package mylog
 
 import (
 	"fmt"
+	"go.uber.org/zap"
 	"runtime/debug"
 )
 
@@ -24,15 +25,9 @@ const (
 )
 
 type logger struct {
+	log   *zap.SugaredLogger
 	name  string
 	level int
-}
-
-func NewLogger(name string, level int) *logger {
-	return &logger{
-		name:  name,
-		level: level,
-	}
 }
 
 func (l *logger) ErrStack() {
@@ -44,7 +39,7 @@ func (l *logger) Debugf(format string, a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorDebug, l.name, fmt.Sprintf(format, a...))
-	zapSugarLogger.Debug(msg)
+	l.log.Debug(msg)
 }
 
 func (l *logger) Infof(format string, a ...interface{}) {
@@ -52,7 +47,7 @@ func (l *logger) Infof(format string, a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorInfo, l.name, fmt.Sprintf(format, a...))
-	zapSugarLogger.Info(msg)
+	l.log.Info(msg)
 }
 
 func (l *logger) Warnf(format string, a ...interface{}) {
@@ -60,7 +55,7 @@ func (l *logger) Warnf(format string, a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorWarn, l.name, fmt.Sprintf(format, a...))
-	zapSugarLogger.Warn(msg)
+	l.log.Warn(msg)
 }
 
 func (l *logger) Errorf(format string, a ...interface{}) {
@@ -68,7 +63,7 @@ func (l *logger) Errorf(format string, a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorError, l.name, fmt.Sprintf(format, a...))
-	zapSugarLogger.Error(msg)
+	l.log.Error(msg)
 }
 
 func (l *logger) Panicf(format string, a ...interface{}) {
@@ -76,7 +71,7 @@ func (l *logger) Panicf(format string, a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorPanic, l.name, fmt.Sprintf(format, a...))
-	zapSugarLogger.Panic(msg)
+	l.log.Panic(msg)
 }
 
 func (l *logger) Fatalf(format string, a ...interface{}) {
@@ -84,7 +79,7 @@ func (l *logger) Fatalf(format string, a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorFatal, l.name, fmt.Sprintf(format, a...))
-	zapSugarLogger.Fatal(msg)
+	l.log.Fatal(msg)
 }
 
 func (l *logger) Debug(a ...interface{}) {
@@ -92,7 +87,7 @@ func (l *logger) Debug(a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorDebug, l.name, fmt.Sprintln(a...))
-	zapSugarLogger.Debug(msg)
+	l.log.Debug(msg)
 }
 
 func (l *logger) Info(a ...interface{}) {
@@ -100,7 +95,7 @@ func (l *logger) Info(a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorInfo, l.name, fmt.Sprintln(a...))
-	zapSugarLogger.Info(msg)
+	l.log.Info(msg)
 }
 
 func (l *logger) Warn(a ...interface{}) {
@@ -108,7 +103,7 @@ func (l *logger) Warn(a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorWarn, l.name, fmt.Sprintln(a...))
-	zapSugarLogger.Warn(msg)
+	l.log.Warn(msg)
 }
 
 func (l *logger) Error(a ...interface{}) {
@@ -116,7 +111,7 @@ func (l *logger) Error(a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorError, l.name, fmt.Sprintln(a...))
-	zapSugarLogger.Error(msg)
+	l.log.Error(msg)
 }
 
 func (l *logger) Panic(a ...interface{}) {
@@ -124,7 +119,7 @@ func (l *logger) Panic(a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorPanic, l.name, fmt.Sprintln(a...))
-	zapSugarLogger.Panic(msg)
+	l.log.Panic(msg)
 }
 
 func (l *logger) Fatal(a ...interface{}) {
@@ -132,5 +127,5 @@ func (l *logger) Fatal(a ...interface{}) {
 		return
 	}
 	msg := fmt.Sprintf("\x1b[%dm▶ [%s] %s\x1b[0m", colorFatal, l.name, fmt.Sprintln(a...))
-	zapSugarLogger.Fatal(msg)
+	l.log.Fatal(msg)
 }

@@ -105,18 +105,23 @@ func (d *DasCore) FormatAddressToDasLockScript(chainType common.ChainType, addr 
 	}
 }
 
-func FormatAddressToHex(chainType common.ChainType, address string) string {
+func FormatAddressToHex(chainType common.ChainType, addr string) string {
 	switch chainType {
-	case common.ChainTypeCkb, common.ChainTypeBtc, common.ChainTypeEth:
-		return address
+	case common.ChainTypeCkb:
+		parseAddr, err := address.Parse(addr)
+		if err == nil {
+			return common.Bytes2Hex(parseAddr.Script.Args)
+		}
+	case common.ChainTypeBtc, common.ChainTypeEth:
+		return addr
 	case common.ChainTypeTron:
-		if strings.HasPrefix(address, common.TronBase58PreFix) {
-			if addr, err := common.TronBase58ToHex(address); err == nil {
+		if strings.HasPrefix(addr, common.TronBase58PreFix) {
+			if addr, err := common.TronBase58ToHex(addr); err == nil {
 				return addr
 			}
 		}
 	}
-	return address
+	return addr
 }
 
 func FormatHexAddressToNormal(chainType common.ChainType, address string) string {
@@ -131,4 +136,33 @@ func FormatHexAddressToNormal(chainType common.ChainType, address string) string
 		}
 	}
 	return address
+}
+
+func FormatOwnerManagerAddressToArgs(oCT, mCT common.ChainType, oA, mA string) []byte {
+	oA = FormatAddressToHex(oCT, oA)
+	mA = FormatAddressToHex(mCT, mA)
+	var args []byte
+	switch oCT {
+	case common.ChainTypeCkb:
+		args = append(args, common.DasAlgorithmIdCkb.Bytes()...)
+		args = append(args, common.Hex2Bytes(oA)...)
+	case common.ChainTypeEth:
+		args = append(args, common.DasAlgorithmIdEth712.Bytes()...)
+		args = append(args, common.Hex2Bytes(oA)...)
+	case common.ChainTypeTron:
+		args = append(args, common.DasAlgorithmIdTron.Bytes()...)
+		args = append(args, common.Hex2Bytes(strings.TrimPrefix(oA, common.TronPreFix))...)
+	}
+	switch mCT {
+	case common.ChainTypeCkb:
+		args = append(args, common.DasAlgorithmIdCkb.Bytes()...)
+		args = append(args, common.Hex2Bytes(mA)...)
+	case common.ChainTypeEth:
+		args = append(args, common.DasAlgorithmIdEth712.Bytes()...)
+		args = append(args, common.Hex2Bytes(mA)...)
+	case common.ChainTypeTron:
+		args = append(args, common.DasAlgorithmIdTron.Bytes()...)
+		args = append(args, common.Hex2Bytes(strings.TrimPrefix(mA, common.TronPreFix))...)
+	}
+	return args
 }

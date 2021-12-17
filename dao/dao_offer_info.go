@@ -67,9 +67,9 @@ func (d *DbDao) EditOffer(oldOutpoint string, offerInfo TableOfferInfo, transact
 	})
 }
 
-func (d *DbDao) CancelOffer(oldOutpoint string, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) CancelOffer(oldOutpoints []string, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("outpoint = ?", oldOutpoint).Delete(&TableOfferInfo{}).Error; err != nil {
+		if err := tx.Where("outpoint IN ?", oldOutpoints).Delete(&TableOfferInfo{}).Error; err != nil {
 			return err
 		}
 
@@ -83,8 +83,16 @@ func (d *DbDao) CancelOffer(oldOutpoint string, transactionInfo TableTransaction
 	})
 }
 
-func (d *DbDao) AcceptOffer(accountInfo TableAccountInfo, offerOutpoint string, tradeDealInfo TableTradeDealInfo, transactionInfoBuy, transactionInfoSale TableTransactionInfo, rebateInfos []TableRebateInfo, recordsInfos []TableRecordsInfo) error {
+func (d *DbDao) AcceptOffer(incomeCellInfos []TableIncomeCellInfo, accountInfo TableAccountInfo, offerOutpoint string, tradeDealInfo TableTradeDealInfo, transactionInfoBuy, transactionInfoSale TableTransactionInfo, rebateInfos []TableRebateInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
+		if len(incomeCellInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{"block_number", "capacity", "block_timestamp"}),
+			}).Create(&incomeCellInfos).Error; err != nil {
+				return err
+			}
+		}
+
 		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id", "status").
 			Where("account = ?", accountInfo.Account).Updates(accountInfo).Error; err != nil {
 			return err
