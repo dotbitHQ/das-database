@@ -28,6 +28,7 @@ func (b *BlockParser) ActionCancelAccountSale(req FuncTransactionHandleReq) (res
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber: req.BlockNumber,
 		Outpoint:    common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:   builder.AccountId,
 		Account:     builder.Account,
 		Status:      dao.AccountStatusNormal,
 	}
@@ -35,6 +36,7 @@ func (b *BlockParser) ActionCancelAccountSale(req FuncTransactionHandleReq) (res
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.AccountId,
 		Account:        builder.Account,
 		Action:         common.DasActionCancelAccountSale,
 		ServiceType:    dao.ServiceTypeTransaction,

@@ -5,7 +5,6 @@ import (
 	"das_database/timer"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 )
 
@@ -27,29 +26,28 @@ func (b *BlockParser) ActionEditAccountSale(req FuncTransactionHandleReq) (resp 
 	}
 
 	account := builder.Account()
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	description := builder.Description()
 	priceCkb, _ := builder.Price()
 	startedAt, _ := builder.StartedAt()
 
 	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
-	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
 	priceUsd := tokenInfo.GetPriceUsd(priceCkb)
 	tradeInfo := dao.TableTradeInfo{
-		BlockNumber:      req.BlockNumber,
-		Outpoint:         common.OutPoint2String(req.TxHash, uint(builder.Index)),
-		Account:          account,
-		OwnerAlgorithmId: oID,
-		OwnerChainType:   oCT,
-		OwnerAddress:     oA,
-		Description:      description,
-		StartedAt:        startedAt,
-		BlockTimestamp:   req.BlockTimestamp,
-		PriceCkb:         priceCkb,
-		PriceUsd:         priceUsd,
-		Status:           dao.AccountStatusOnSale,
+		BlockNumber:    req.BlockNumber,
+		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:      accountId,
+		Account:        account,
+		Description:    description,
+		StartedAt:      startedAt,
+		BlockTimestamp: req.BlockTimestamp,
+		PriceCkb:       priceCkb,
+		PriceUsd:       priceUsd,
+		Status:         dao.AccountStatusOnSale,
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionEditAccountSale,
 		ServiceType:    dao.ServiceTypeTransaction,

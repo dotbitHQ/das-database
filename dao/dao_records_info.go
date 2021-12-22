@@ -30,33 +30,6 @@ func (t *TableRecordsInfo) TableName() string {
 func (d *DbDao) CreateRecordsInfos(accountInfo TableAccountInfo, recordsInfos []TableRecordsInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint").
-			Where("account = ?", accountInfo.Account).Updates(accountInfo).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Where("account = ?", transactionInfo.Account).Delete(&TableRecordsInfo{}).Error; err != nil {
-			return err
-		}
-
-		if len(recordsInfos) > 0 {
-			if err := tx.Create(&recordsInfos).Error; err != nil {
-				return err
-			}
-		}
-
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
-		}).Create(&transactionInfo).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
-func (d *DbDao) CreateRecordsInfos2(accountInfo TableAccountInfo, recordsInfos []TableRecordsInfo, transactionInfo TableTransactionInfo) error {
-	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("block_number", "outpoint").
 			Where("account_id = ?", accountInfo.AccountId).
 			Updates(accountInfo).Error; err != nil {
 			return err

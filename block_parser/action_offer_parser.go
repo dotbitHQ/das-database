@@ -32,9 +32,11 @@ func (b *BlockParser) ActionMakeOffer(req FuncTransactionHandleReq) (resp FuncTr
 	}
 	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
 
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(builder.Account))
 	offerInfo := dao.TableOfferInfo{
 		BlockNumber:    req.BlockNumber,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:      accountId,
 		Account:        builder.Account,
 		AlgorithmId:    oID,
 		ChainType:      oCT,
@@ -47,6 +49,7 @@ func (b *BlockParser) ActionMakeOffer(req FuncTransactionHandleReq) (resp FuncTr
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        builder.Account,
 		Action:         common.DasActionMakeOffer,
 		ServiceType:    dao.ServiceTypeTransaction,
@@ -91,9 +94,11 @@ func (b *BlockParser) ActionEditOffer(req FuncTransactionHandleReq) (resp FuncTr
 	}
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
 
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(builder.Account))
 	offerInfo := dao.TableOfferInfo{
 		BlockNumber:    req.BlockNumber,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:      accountId,
 		Account:        builder.Account,
 		BlockTimestamp: req.BlockTimestamp,
 		Price:          builder.Price,
@@ -101,6 +106,7 @@ func (b *BlockParser) ActionEditOffer(req FuncTransactionHandleReq) (resp FuncTr
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        builder.Account,
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      oCT,
@@ -157,9 +163,11 @@ func (b *BlockParser) ActionCancelOffer(req FuncTransactionHandleReq) (resp Func
 	if len(oldBuilderMap) > 0 {
 		account = oldBuilderMap[common.OutPoint2String(req.TxHash, 0)].Account
 	}
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionCancelOffer,
 		ServiceType:    dao.ServiceTypeTransaction,
@@ -206,7 +214,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		if v.Type == nil {
 			continue
 		}
-		if v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+		if incomeContract.IsSameTypeId(v.Type.CodeHash) {
 			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
 				BlockNumber:    req.BlockNumber,
 				Action:         common.DasActionAcceptOffer,
@@ -252,6 +260,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(buyerBuilder.Index)),
+		AccountId:          buyerBuilder.AccountId,
 		Account:            buyerBuilder.Account,
 		OwnerChainType:     oCT,
 		Owner:              oA,
@@ -263,6 +272,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      buyerBuilder.AccountId,
 		Account:        buyerBuilder.Account,
 		Action:         dao.DasActionOfferAccepted,
 		ServiceType:    dao.ServiceTypeTransaction,
@@ -275,6 +285,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(resAccount.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
 	transactionInfoSale := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      buyerBuilder.AccountId,
 		Account:        buyerBuilder.Account,
 		Action:         common.DasActionAcceptOffer,
 		ServiceType:    dao.ServiceTypeTransaction,
@@ -294,6 +305,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	tradeDealInfo := dao.TableTradeDealInfo{
 		BlockNumber:    req.BlockNumber,
 		Outpoint:       transactionInfoSale.Outpoint,
+		AccountId:      buyerBuilder.AccountId,
 		Account:        buyerBuilder.Account,
 		DealType:       dao.DealTypeOffer,
 		SellChainType:  transactionInfoSale.ChainType,
@@ -308,12 +320,13 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	recordList := buyerBuilder.RecordList()
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
-			Account: buyerBuilder.Account,
-			Key:     v.Key,
-			Type:    v.Type,
-			Label:   v.Label,
-			Value:   v.Value,
-			Ttl:     strconv.FormatUint(uint64(v.TTL), 10),
+			AccountId: buyerBuilder.AccountId,
+			Account:   buyerBuilder.Account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
 		})
 	}
 

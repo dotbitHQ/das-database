@@ -36,13 +36,19 @@ func (t *TableOfferInfo) TableName() string {
 func (d *DbDao) MakeOffer(offerInfo TableOfferInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "account", "algorithm_id", "chain_type", "address", "block_timestamp", "price", "message", "inviter_args", "channel_args"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "algorithm_id", "chain_type", "address",
+				"price", "message", "inviter_args", "channel_args",
+			}),
 		}).Create(&offerInfo).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
@@ -53,13 +59,18 @@ func (d *DbDao) MakeOffer(offerInfo TableOfferInfo, transactionInfo TableTransac
 
 func (d *DbDao) EditOffer(oldOutpoint string, offerInfo TableOfferInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("block_number", "outpoint", "account", "block_timestamp", "price", "message").
+		if err := tx.Select(
+			"block_number", "outpoint", "account_id", "account",
+			"block_timestamp", "price", "message").
 			Where("outpoint = ?", oldOutpoint).Updates(offerInfo).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
@@ -75,7 +86,10 @@ func (d *DbDao) CancelOffer(oldOutpoints []string, transactionInfo TableTransact
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
@@ -88,14 +102,16 @@ func (d *DbDao) AcceptOffer(incomeCellInfos []TableIncomeCellInfo, accountInfo T
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(incomeCellInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"block_number", "capacity", "block_timestamp"}),
+				DoUpdates: clause.AssignmentColumns([]string{
+					"action", "capacity", "status",
+				}),
 			}).Create(&incomeCellInfos).Error; err != nil {
 				return err
 			}
 		}
 
 		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id", "status").
-			Where("account = ?", accountInfo.Account).Updates(accountInfo).Error; err != nil {
+			Where("account_id = ?", accountInfo.AccountId).Updates(accountInfo).Error; err != nil {
 			return err
 		}
 
@@ -104,32 +120,45 @@ func (d *DbDao) AcceptOffer(incomeCellInfos []TableIncomeCellInfo, accountInfo T
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "sell_chain_type", "sell_address", "buy_chain_type", "buy_address", "price_ckb", "price_usd"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "deal_type", "sell_chain_type", "sell_address",
+				"buy_chain_type", "buy_address", "price_ckb", "price_usd",
+			}),
 		}).Create(&tradeDealInfo).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&transactionInfoBuy).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&transactionInfoSale).Error; err != nil {
 			return err
 		}
 
 		if len(rebateInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"block_number", "invitee_account", "invitee_chain_type", "invitee_address", "reward", "block_timestamp"}),
+				DoUpdates: clause.AssignmentColumns([]string{
+					"invitee_id", "invitee_account", "invitee_chain_type", "invitee_address",
+					"reward", "action", "service_type", "inviter_args",
+					"inviter_id", "inviter_account", "inviter_chain_type", "inviter_address",
+				}),
 			}).Create(&rebateInfos).Error; err != nil {
 				return err
 			}
 		}
 
-		if err := tx.Where("account = ?", accountInfo.Account).Delete(&TableRecordsInfo{}).Error; err != nil {
+		if err := tx.Where("account_id = ?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
 

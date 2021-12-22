@@ -31,13 +31,18 @@ func (d *DbDao) DeclareReverseRecord(reverseInfo TableReverseInfo, txInfo TableT
 	return d.db.Transaction(func(tx *gorm.DB) error {
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"algorithm_id", "chain_type", "address", "account_id", "account", "capacity",
+			}),
 		}).Create(&reverseInfo).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&txInfo).Error; err != nil {
 			return err
 		}
@@ -54,13 +59,18 @@ func (d *DbDao) RedeclareReverseRecord(lastOutpoint string, reverseInfo TableRev
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"algorithm_id", "chain_type", "address", "account_id", "account", "capacity",
+			}),
 		}).Create(&reverseInfo).Error; err != nil {
 			return err
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&txInfo).Error; err != nil {
 			return err
 		}
@@ -77,7 +87,10 @@ func (d *DbDao) RetractReverseRecord(listOutpoint []string, txInfo TableTransact
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&txInfo).Error; err != nil {
 			return err
 		}

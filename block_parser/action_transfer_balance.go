@@ -45,7 +45,7 @@ func (b *BlockParser) ActionTransferBalance(req FuncTransactionHandleReq) (resp 
 		})
 	}
 
-	if err = b.dbDao.CreateTransactionInfoList2(transactionInfos); err != nil {
+	if err = b.dbDao.CreateTransactionInfoList(transactionInfos); err != nil {
 		log.Error("CreateTransactionInfoList err: ", err.Error(), toolib.JsonString(transactionInfos))
 		resp.Err = fmt.Errorf("CreateTransactionInfoList err: %s", err.Error())
 		return

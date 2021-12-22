@@ -32,6 +32,7 @@ func (b *BlockParser) ActionRetractReverseRecord(req FuncTransactionHandleReq) (
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[0].Lock.Args)
 	txInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      "",
 		Account:        "",
 		Action:         common.DasActionRetractReverseRecord,
 		ServiceType:    dao.ServiceTypeRegister,

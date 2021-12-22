@@ -79,7 +79,7 @@ func (b *BlockParser) ActionRenewAccount(req FuncTransactionHandleReq) (resp Fun
 
 	log.Info("ActionRenewAccount:", builder.Account, builder.ExpiredAt, transactionInfo.Capacity)
 
-	if err := b.dbDao.RenewAccount2(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo); err != nil {
+	if err := b.dbDao.RenewAccount(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo); err != nil {
 		log.Error("RenewAccount err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("RenewAccount err: %s", err.Error())
 	}

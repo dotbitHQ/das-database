@@ -63,7 +63,7 @@ func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionEditRecords:", account, transactionInfo.Address)
 
-	if err := b.dbDao.CreateRecordsInfos2(accountInfo, recordsInfos, transactionInfo); err != nil {
+	if err := b.dbDao.CreateRecordsInfos(accountInfo, recordsInfos, transactionInfo); err != nil {
 		log.Error("CreateRecordsInfos err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("CreateRecordsInfos err: %s", err.Error())
 	}

@@ -171,7 +171,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		}
 	}
 
-	if err = b.dbDao.ConfirmProposal2(incomeCellInfos, accountInfos, transactionInfos, rebateInfos); err != nil {
+	if err = b.dbDao.ConfirmProposal(incomeCellInfos, accountInfos, transactionInfos, rebateInfos); err != nil {
 		log.Error("ConfirmProposal err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("ConfirmProposal err: %s ", err.Error())
 		return

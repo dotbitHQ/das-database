@@ -40,7 +40,7 @@ func (b *BlockParser) ActionPreRegister(req FuncTransactionHandleReq) (resp Func
 		Capacity:       req.Tx.Outputs[0].Capacity,
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	if err := b.dbDao.CreateTransactionInfo2(transactionInfo); err != nil {
+	if err := b.dbDao.CreateTransactionInfo(transactionInfo); err != nil {
 		log.Error("CreateTransactionInfo err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("CreateTransactionInfo err: %s", err.Error())
 		return

@@ -30,30 +30,26 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[accBuilder.Index].Lock.Args)
-
 	accountInfo := dao.TableAccountInfo{
-		BlockNumber:        req.BlockNumber,
-		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
-		Account:            accBuilder.Account,
-		Status:             dao.AccountStatusOnSale,
-		OwnerAlgorithmId:   oID,
-		OwnerChainType:     oCT,
-		Owner:              oA,
-		ManagerAlgorithmId: mID,
-		ManagerChainType:   mCT,
-		Manager:            mA,
+		BlockNumber: req.BlockNumber,
+		Outpoint:    common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
+		AccountId:   accBuilder.AccountId,
+		Account:     accBuilder.Account,
+		Status:      dao.AccountStatusOnSale,
 	}
 
 	salePrice, _ := builder.Price()
 	startedAt, _ := builder.StartedAt()
 	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
 	salePriceUsd := tokenInfo.GetPriceUsd(salePrice)
-	oID, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
+	account := builder.Account()
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
+	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
 	tradeInfo := dao.TableTradeInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, uint(builder.Index)),
-		Account:          builder.Account(),
+		AccountId:        accountId,
+		Account:          account,
 		OwnerAlgorithmId: oID,
 		OwnerChainType:   oCT,
 		OwnerAddress:     oA,
@@ -66,6 +62,7 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      tradeInfo.AccountId,
 		Account:        tradeInfo.Account,
 		Action:         common.DasActionStartAccountSale,
 		ServiceType:    dao.ServiceTypeTransaction,

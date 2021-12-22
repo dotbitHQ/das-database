@@ -29,7 +29,7 @@ func (b *BlockParser) ActionApplyRegister(req FuncTransactionHandleReq) (resp Fu
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
-	if err := b.dbDao.CreateTransactionInfo2(transactionInfo); err != nil {
+	if err := b.dbDao.CreateTransactionInfo(transactionInfo); err != nil {
 		log.Error("CreateTransactionInfo err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("CreateTransactionInfo err: %s", err.Error())
 		return

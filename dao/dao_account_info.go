@@ -44,23 +44,6 @@ func (t *TableAccountInfo) TableName() string {
 func (d *DbDao) EditManager(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "manager_chain_type", "manager", "manager_algorithm_id").
-			Where("account = ?", accountInfo.Account).Updates(accountInfo).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
-		}).Create(&transactionInfo).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
-func (d *DbDao) EditManager2(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
-	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("block_number", "outpoint", "manager_chain_type", "manager", "manager_algorithm_id").
 			Where("account_id = ?", accountInfo.AccountId).Updates(accountInfo).Error; err != nil {
 			return err
 		}
@@ -79,33 +62,6 @@ func (d *DbDao) EditManager2(accountInfo TableAccountInfo, transactionInfo Table
 }
 
 func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
-	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id").
-			Where("account = ?", accountInfo.Account).Updates(accountInfo).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
-		}).Create(&transactionInfo).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Where("account = ?", accountInfo.Account).Delete(&TableRecordsInfo{}).Error; err != nil {
-			return err
-		}
-
-		if len(recordsInfos) > 0 {
-			if err := tx.Create(&recordsInfos).Error; err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-}
-
-func (d *DbDao) TransferAccount2(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id").
 			Where("account_id = ?", accountInfo.AccountId).
@@ -142,44 +98,6 @@ func (d *DbDao) FindAccountInfoByAccount(account string) (accountInfo TableAccou
 }
 
 func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo) error {
-	return d.db.Transaction(func(tx *gorm.DB) error {
-		if len(incomeCellInfos) > 0 {
-			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"block_number", "capacity", "block_timestamp"}),
-			}).Create(&incomeCellInfos).Error; err != nil {
-				return err
-			}
-		}
-
-		if len(accountInfos) > 0 {
-			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id", "registered_at", "expired_at", "status"}),
-			}).Create(&accountInfos).Error; err != nil {
-				return err
-			}
-		}
-
-		if len(transactionInfos) > 0 {
-			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
-			}).Create(&transactionInfos).Error; err != nil {
-				return err
-			}
-		}
-
-		if len(rebateInfos) > 0 {
-			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"reward"}),
-			}).Create(&rebateInfos).Error; err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-}
-
-func (d *DbDao) ConfirmProposal2(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(incomeCellInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{

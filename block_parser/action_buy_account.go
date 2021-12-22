@@ -36,7 +36,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		if v.Type == nil {
 			continue
 		}
-		if v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+		if incomeContract.IsSameTypeId(v.Type.CodeHash) {
 			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
 				BlockNumber:    req.BlockNumber,
 				Action:         common.DasActionBuyAccount,
@@ -71,6 +71,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		return
 	}
 	account := accBuilder.Account
+	accountId := accBuilder.AccountId
 	// inviter channel
 	salePrice, _ := decimal.NewFromString(fmt.Sprintf("%d", priceBuyCkb))
 	rebateList, err := b.getRebateInfoList(salePrice, account, &req)
@@ -83,6 +84,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
+		AccountId:          accountId,
 		Account:            account,
 		OwnerChainType:     oCT,
 		Owner:              oA,
@@ -94,6 +96,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionBuyAccount,
 		ServiceType:    dao.ServiceTypeTransaction,
@@ -106,6 +109,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
 	transactionInfoSale := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         dao.DasActionSaleAccount,
 		ServiceType:    dao.ServiceTypeTransaction,
@@ -125,6 +129,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	tradeDealInfo := dao.TableTradeDealInfo{
 		BlockNumber:    req.BlockNumber,
 		Outpoint:       transactionInfoBuy.Outpoint,
+		AccountId:      accountId,
 		Account:        account,
 		DealType:       dao.DealTypeSale,
 		SellChainType:  transactionInfoSale.ChainType,
@@ -139,12 +144,13 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	recordList := accBuilder.RecordList()
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
-			Account: account,
-			Key:     v.Key,
-			Type:    v.Type,
-			Label:   v.Label,
-			Value:   v.Value,
-			Ttl:     strconv.FormatUint(uint64(v.TTL), 10),
+			AccountId: accountId,
+			Account:   account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
 		})
 	}
 
@@ -190,9 +196,11 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		oCT = common.ChainTypeCkb
 		oA = common.Bytes2Hex(inviterScript.Args().RawData())
 	}
+	inviteeId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	list = append(list, dao.TableRebateInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, 0),
+		InviteeId:        inviteeId,
 		InviteeAccount:   account,
 		InviteeChainType: 0,
 		InviteeAddress:   "",
@@ -214,6 +222,7 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 	list = append(list, dao.TableRebateInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, 0),
+		InviteeId:        inviteeId,
 		InviteeAccount:   account,
 		InviteeChainType: 0,
 		InviteeAddress:   "",

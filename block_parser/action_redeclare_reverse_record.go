@@ -22,6 +22,7 @@ func (b *BlockParser) ActionRedeclareReverseRecord(req FuncTransactionHandleReq)
 	account := string(req.Tx.OutputsData[0])
 	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
 
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	reverseInfo := dao.TableReverseInfo{
 		BlockNumber:    req.BlockNumber,
 		BlockTimestamp: req.BlockTimestamp,
@@ -29,12 +30,14 @@ func (b *BlockParser) ActionRedeclareReverseRecord(req FuncTransactionHandleReq)
 		AlgorithmId:    oID,
 		ChainType:      oCT,
 		Address:        oA,
+		AccountId:      accountId,
 		Account:        account,
 		Capacity:       req.Tx.Outputs[0].Capacity,
 	}
 
 	txInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionRedeclareReverseRecord,
 		ServiceType:    dao.ServiceTypeRegister,

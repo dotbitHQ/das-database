@@ -52,7 +52,7 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionEditManager:", account, mId, mCT, mA, transactionInfo.Address)
 
-	if err := b.dbDao.EditManager2(accountInfo, transactionInfo); err != nil {
+	if err := b.dbDao.EditManager(accountInfo, transactionInfo); err != nil {
 		log.Error("EditManager err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("EditManager err: %s", err.Error())
 	}

@@ -55,7 +55,7 @@ func (b *BlockParser) ActionConsolidateIncome(req FuncTransactionHandleReq) (res
 		}
 	}
 
-	if err = b.dbDao.ConsolidateIncome2(inputsOutpoints, incomeCellInfos, transactionInfos); err != nil {
+	if err = b.dbDao.ConsolidateIncome(inputsOutpoints, incomeCellInfos, transactionInfos); err != nil {
 		log.Error("ConsolidateIncome err: ", err.Error())
 		resp.Err = fmt.Errorf("ConsolidateIncome err: %s", err.Error())
 		return

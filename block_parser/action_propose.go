@@ -49,7 +49,7 @@ func (b *BlockParser) ActionPropose(req FuncTransactionHandleReq) (resp FuncTran
 		})
 	}
 
-	if err = b.dbDao.CreateTransactionInfoList2(transactionInfos); err != nil {
+	if err = b.dbDao.CreateTransactionInfoList(transactionInfos); err != nil {
 		log.Error("CreateTransactionInfoList err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("CreateTransactionInfoList err: %s ", err.Error())
 		return
