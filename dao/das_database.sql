@@ -244,7 +244,7 @@ CREATE TABLE `t_trade_info`
     `block_timestamp`    bigint(20) unsigned                                            NOT NULL DEFAULT '0' COMMENT '',
     `price_ckb`          bigint(20) unsigned                                            NOT NULL DEFAULT '0' COMMENT '',
     `price_usd`          decimal(50, 8)                                                 NOT NULL DEFAULT '0.00000000' COMMENT '',
-    `profit_rate`        int(11) unsigned                                               NOT NULL DEFAULT '0' COMMENT '',
+    `profit_rate`        int(11) unsigned                                               NOT NULL DEFAULT '100' COMMENT '',
     `status`             smallint(6)                                                    NOT NULL DEFAULT '0' COMMENT '0: normal 1: on sale 2: on auction',
     `created_at`         timestamp                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
     `updated_at`         timestamp                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
