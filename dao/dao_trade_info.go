@@ -22,6 +22,7 @@ type TableTradeInfo struct {
 	BlockTimestamp   uint64                `json:"block_timestamp" gorm:"column:block_timestamp"`
 	PriceCkb         uint64                `json:"price_ckb" gorm:"column:price_ckb"`
 	PriceUsd         decimal.Decimal       `json:"price_usd" gorm:"column:price_usd"`
+	ProfitRate       uint32                `json:"profit_rate" gorm:"column:profit_rate"`
 	Status           AccountStatus         `json:"status" gorm:"column:status"` // 0: normal 1: on sale 2: on auction
 	CreatedAt        time.Time             `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt        time.Time             `json:"updated_at" gorm:"column:updated_at"`
@@ -54,7 +55,7 @@ func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTr
 		if err := tx.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{
 				"block_number", "outpoint", "owner_algorithm_id", "owner_chain_type", "owner_address",
-				"description", "started_at", "block_timestamp", "price_ckb", "price_usd", "status",
+				"description", "started_at", "block_timestamp", "price_ckb", "price_usd", "profit_rate", "status",
 			}),
 		}).Create(&tradeInfo).Error; err != nil {
 			return err
@@ -75,7 +76,7 @@ func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTr
 
 func (d *DbDao) EditAccountSale(tradeInfo TableTradeInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("block_number", "outpoint", "description", "block_timestamp", "price_ckb", "price_usd").
+		if err := tx.Select("block_number", "outpoint", "description", "block_timestamp", "price_ckb", "price_usd", "profit_rate").
 			Where("account_id = ?", tradeInfo.AccountId).
 			Updates(tradeInfo).Error; err != nil {
 			return err

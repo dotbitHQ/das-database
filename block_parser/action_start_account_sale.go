@@ -5,7 +5,6 @@ import (
 	"das_database/timer"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 )
 
@@ -30,6 +29,7 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
+
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber: req.BlockNumber,
 		Outpoint:    common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
@@ -37,28 +37,20 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		Account:     accBuilder.Account,
 		Status:      dao.AccountStatusOnSale,
 	}
-
-	salePrice, _ := builder.Price()
-	startedAt, _ := builder.StartedAt()
 	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
-	salePriceUsd := tokenInfo.GetPriceUsd(salePrice)
-	account := builder.Account()
-	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
-	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
+	priceUsd := tokenInfo.GetPriceUsd(builder.Price)
 	tradeInfo := dao.TableTradeInfo{
-		BlockNumber:      req.BlockNumber,
-		Outpoint:         common.OutPoint2String(req.TxHash, uint(builder.Index)),
-		AccountId:        accountId,
-		Account:          account,
-		OwnerAlgorithmId: oID,
-		OwnerChainType:   oCT,
-		OwnerAddress:     oA,
-		Description:      builder.Description(),
-		StartedAt:        startedAt * 1e3,
-		PriceCkb:         salePrice,
-		PriceUsd:         salePriceUsd,
-		BlockTimestamp:   req.BlockTimestamp,
-		Status:           dao.AccountStatusOnSale,
+		BlockNumber:    req.BlockNumber,
+		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:      accountInfo.AccountId,
+		Account:        accountInfo.Account,
+		Description:    builder.Description,
+		StartedAt:      builder.StartedAt * 1e3,
+		PriceCkb:       builder.Price,
+		PriceUsd:       priceUsd,
+		ProfitRate:     builder.BuyerInviterProfitRate,
+		BlockTimestamp: req.BlockTimestamp,
+		Status:         dao.AccountStatusOnSale,
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,

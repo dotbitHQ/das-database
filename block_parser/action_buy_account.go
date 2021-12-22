@@ -54,14 +54,9 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
 		return
 	}
-	saleBuilder, err := witness.AccountSaleCellDataBuilderFromTx(res.Transaction, common.DataTypeNew)
+	builder, err := witness.AccountSaleCellDataBuilderFromTx(res.Transaction, common.DataTypeNew)
 	if err != nil {
 		resp.Err = fmt.Errorf("AccountSaleCellDataBuilderFromTx err: %s", err.Error())
-		return
-	}
-	priceBuyCkb, err := saleBuilder.Price()
-	if err != nil {
-		resp.Err = fmt.Errorf("get price err: %s", err.Error())
 		return
 	}
 	// account cell
@@ -73,8 +68,8 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	account := accBuilder.Account
 	accountId := accBuilder.AccountId
 	// inviter channel
-	salePrice, _ := decimal.NewFromString(fmt.Sprintf("%d", priceBuyCkb))
-	rebateList, err := b.getRebateInfoList(salePrice, account, &req)
+	salePrice, _ := decimal.NewFromString(fmt.Sprintf("%d", builder.Price))
+	rebateList, err := b.getRebateInfoList(salePrice, account, builder.BuyerInviterProfitRate, &req)
 	if err != nil {
 		resp.Err = fmt.Errorf("getRebateInfoList err: %s", err.Error())
 		return
@@ -102,7 +97,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      oCT,
 		Address:        oA,
-		Capacity:       priceBuyCkb,
+		Capacity:       builder.Price,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
@@ -165,7 +160,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	return
 }
 
-func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account string, req *FuncTransactionHandleReq) ([]dao.TableRebateInfo, error) {
+func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account string, profitRate uint32, req *FuncTransactionHandleReq) ([]dao.TableRebateInfo, error) {
 	var list []dao.TableRebateInfo
 	actionDataBuilder, err := witness.ActionDataBuilderFromTx(req.Tx)
 	if err != nil {
@@ -176,9 +171,8 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 	if err != nil {
 		return list, fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
 	}
-	saleBuyerInviter, _ := builder.ProfitRateSaleBuyerInviter()
 	saleBuyerChannel, _ := builder.ProfitRateSaleBuyerChannel()
-	decInviter := decimal.NewFromInt(int64(saleBuyerInviter)).Div(decimal.NewFromInt(common.PercentRateBase))
+	decInviter := decimal.NewFromInt(int64(profitRate)).Div(decimal.NewFromInt(common.PercentRateBase))
 	decChannel := decimal.NewFromInt(int64(saleBuyerChannel)).Div(decimal.NewFromInt(common.PercentRateBase))
 
 	inviterScript, _ := actionDataBuilder.ActionBuyAccountInviterScript()
