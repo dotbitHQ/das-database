@@ -168,10 +168,32 @@ func (d *DbDao) CreateTransactionInfo(transactionInfo TableTransactionInfo) erro
 	}).Create(&transactionInfo).Error
 }
 
+func (d *DbDao) CreateTransactionInfo2(transactionInfo TableTransactionInfo) error {
+	return d.db.Clauses(clause.OnConflict{
+		DoUpdates: clause.AssignmentColumns([]string{
+			"account_id", "account", "service_type",
+			"chain_type", "address", "capacity", "status",
+		}),
+	}).Create(&transactionInfo).Error
+}
+
 func (d *DbDao) CreateTransactionInfoList(transactionInfos []TableTransactionInfo) error {
 	if len(transactionInfos) > 0 {
 		return d.db.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+		}).Create(&transactionInfos).Error
+	}
+
+	return nil
+}
+
+func (d *DbDao) CreateTransactionInfoList2(transactionInfos []TableTransactionInfo) error {
+	if len(transactionInfos) > 0 {
+		return d.db.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&transactionInfos).Error
 	}
 

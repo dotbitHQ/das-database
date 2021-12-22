@@ -28,25 +28,29 @@ func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp Func
 	}
 	var recordsInfos []dao.TableRecordsInfo
 	account := accBuilder.Account
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	recordList := accBuilder.RecordList()
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
-			Account: account,
-			Key:     v.Key,
-			Type:    v.Type,
-			Label:   v.Label,
-			Value:   v.Value,
-			Ttl:     strconv.FormatUint(uint64(v.TTL), 10),
+			AccountId: accountId,
+			Account:   account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
 		})
 	}
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber: req.BlockNumber,
 		Outpoint:    common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		Account:     account,
+		AccountId:   accountId,
 	}
 	_, _, _, mCT, _, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[accBuilder.Index].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionEditRecords,
 		ServiceType:    dao.ServiceTypeRegister,
@@ -59,7 +63,7 @@ func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionEditRecords:", account, transactionInfo.Address)
 
-	if err := b.dbDao.CreateRecordsInfos(accountInfo, recordsInfos, transactionInfo); err != nil {
+	if err := b.dbDao.CreateRecordsInfos2(accountInfo, recordsInfos, transactionInfo); err != nil {
 		log.Error("CreateRecordsInfos err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("CreateRecordsInfos err: %s", err.Error())
 	}

@@ -32,7 +32,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		if v.Type == nil {
 			continue
 		}
-		if v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+		if incomeContract.IsSameTypeId(v.Type.CodeHash) {
 			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
 				BlockNumber:    req.BlockNumber,
 				Action:         common.DasActionConfirmProposal,
@@ -61,20 +61,15 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 	var transactionInfos []dao.TableTransactionInfo
 	var rebateInfos []dao.TableRebateInfo
 	// account basic store fee
-	configCell, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsAccount)
+	configCell, err := b.dasCore.ConfigCellDataBuilderByTypeArgsList(common.ConfigCellTypeArgsAccount, common.ConfigCellTypeArgsProfitRate)
 	if err != nil {
 		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
 		return
 	}
 	basicCapacity, _ := configCell.BasicCapacity()
 	// rebate rate
-	configCellRate, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsProfitRate)
-	if err != nil {
-		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
-		return
-	}
-	profitRateInviter, _ := configCellRate.ProfitRateInviter()
-	profitRateChannel, _ := configCellRate.ProfitRateChannel()
+	profitRateInviter, _ := configCell.ProfitRateInviter()
+	profitRateChannel, _ := configCell.ProfitRateChannel()
 
 	log.Info("ActionConfirmProposal:", basicCapacity, profitRateInviter, profitRateChannel)
 
@@ -106,6 +101,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 
 			transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
 				BlockNumber:    req.BlockNumber,
+				AccountId:      v.AccountId,
 				Account:        v.Account,
 				Action:         common.DasActionConfirmProposal,
 				ServiceType:    dao.ServiceTypeRegister,
@@ -130,9 +126,11 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				inviterLock = &tmp
 			}
 			_, _, inviterOCT, _, inviterOA, _ := core.FormatDasLockToHexAddress(inviterLock.Args().RawData())
+			inviteeId := common.Bytes2Hex(common.GetAccountIdByAccount(preAcc.Account))
 			rebateInfos = append(rebateInfos, dao.TableRebateInfo{
 				BlockNumber:      req.BlockNumber,
 				Outpoint:         common.OutPoint2String(req.TxHash, uint(v.Index)),
+				InviteeId:        inviteeId,
 				InviteeAccount:   preAcc.Account,
 				InviteeChainType: inviteeOCT,
 				InviteeAddress:   inviteeOA,
@@ -157,6 +155,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			rebateInfos = append(rebateInfos, dao.TableRebateInfo{
 				BlockNumber:      req.BlockNumber,
 				Outpoint:         common.OutPoint2String(req.TxHash, uint(v.Index)),
+				InviteeId:        inviteeId,
 				InviteeAccount:   preAcc.Account,
 				InviteeChainType: inviteeOCT,
 				InviteeAddress:   inviteeOA,
@@ -172,7 +171,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		}
 	}
 
-	if err = b.dbDao.ConfirmProposal(incomeCellInfos, accountInfos, transactionInfos, rebateInfos); err != nil {
+	if err = b.dbDao.ConfirmProposal2(incomeCellInfos, accountInfos, transactionInfos, rebateInfos); err != nil {
 		log.Error("ConfirmProposal err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("ConfirmProposal err: %s ", err.Error())
 		return

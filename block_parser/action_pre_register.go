@@ -27,8 +27,10 @@ func (b *BlockParser) ActionPreRegister(req FuncTransactionHandleReq) (resp Func
 	log.Info("ActionPreRegister:", preBuilder.Account)
 
 	refundLock, _ := preBuilder.RefundLock()
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(preBuilder.Account))
 	var transactionInfo = dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        preBuilder.Account,
 		Action:         common.DasActionPreRegister,
 		ServiceType:    dao.ServiceTypeRegister,
@@ -38,7 +40,7 @@ func (b *BlockParser) ActionPreRegister(req FuncTransactionHandleReq) (resp Func
 		Capacity:       req.Tx.Outputs[0].Capacity,
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	if err := b.dbDao.CreateTransactionInfo(transactionInfo); err != nil {
+	if err := b.dbDao.CreateTransactionInfo2(transactionInfo); err != nil {
 		log.Error("CreateTransactionInfo err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("CreateTransactionInfo err: %s", err.Error())
 		return

@@ -26,9 +26,11 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 		return
 	}
 	account := accBuilder.Account
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	_, mId, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[accBuilder.Index].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionEditManager,
 		ServiceType:    dao.ServiceTypeRegister,
@@ -42,6 +44,7 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		Account:            account,
+		AccountId:          accountId,
 		ManagerChainType:   mCT,
 		Manager:            mA,
 		ManagerAlgorithmId: mId,
@@ -49,7 +52,7 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 
 	log.Info("ActionEditManager:", account, mId, mCT, mA, transactionInfo.Address)
 
-	if err := b.dbDao.EditManager(accountInfo, transactionInfo); err != nil {
+	if err := b.dbDao.EditManager2(accountInfo, transactionInfo); err != nil {
 		log.Error("EditManager err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("EditManager err: %s", err.Error())
 	}

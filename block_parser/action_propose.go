@@ -34,8 +34,10 @@ func (b *BlockParser) ActionPropose(req FuncTransactionHandleReq) (resp FuncTran
 
 	var transactionInfos []dao.TableTransactionInfo
 	for _, v := range preAccMap {
+		accountId := common.Bytes2Hex(common.GetAccountIdByAccount(v.Account))
 		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
+			AccountId:      accountId,
 			Account:        v.Account,
 			Action:         common.DasActionPropose,
 			ServiceType:    dao.ServiceTypeRegister,
@@ -47,7 +49,7 @@ func (b *BlockParser) ActionPropose(req FuncTransactionHandleReq) (resp FuncTran
 		})
 	}
 
-	if err = b.dbDao.CreateTransactionInfoList(transactionInfos); err != nil {
+	if err = b.dbDao.CreateTransactionInfoList2(transactionInfos); err != nil {
 		log.Error("CreateTransactionInfoList err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("CreateTransactionInfoList err: %s ", err.Error())
 		return

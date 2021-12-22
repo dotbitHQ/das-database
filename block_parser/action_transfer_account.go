@@ -27,6 +27,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		return
 	}
 	account := builder.Account
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 
 	oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
 	oldBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
@@ -43,6 +44,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 	_, _, oldChainType, _, oldAddress, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[oldBuilder.Index].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionTransferAccount,
 		ServiceType:    dao.ServiceTypeRegister,
@@ -55,6 +57,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:          accountId,
 		Account:            account,
 		OwnerChainType:     oCT,
 		Owner:              oA,
@@ -67,12 +70,13 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 	recordList := builder.RecordList()
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
-			Account: account,
-			Key:     v.Key,
-			Type:    v.Type,
-			Label:   v.Label,
-			Value:   v.Value,
-			Ttl:     strconv.FormatUint(uint64(v.TTL), 10),
+			AccountId: accountId,
+			Account:   account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
 		})
 	}
 

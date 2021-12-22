@@ -58,6 +58,26 @@ func (d *DbDao) EditManager(accountInfo TableAccountInfo, transactionInfo TableT
 	})
 }
 
+func (d *DbDao) EditManager2(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint", "manager_chain_type", "manager", "manager_algorithm_id").
+			Where("account_id = ?", accountInfo.AccountId).Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id").
@@ -72,6 +92,37 @@ func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo Ta
 		}
 
 		if err := tx.Where("account = ?", accountInfo.Account).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+
+		if len(recordsInfos) > 0 {
+			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) TransferAccount2(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id = ?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
 
@@ -119,6 +170,58 @@ func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountIn
 		if len(rebateInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
 				DoUpdates: clause.AssignmentColumns([]string{"reward"}),
+			}).Create(&rebateInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) ConfirmProposal2(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if len(incomeCellInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"action", "capacity", "status",
+				}),
+			}).Create(&incomeCellInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(accountInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"block_number", "outpoint",
+					"owner_chain_type", "owner", "owner_algorithm_id",
+					"manager_chain_type", "manager", "manager_algorithm_id",
+					"registered_at", "expired_at", "status",
+				}),
+			}).Create(&accountInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(transactionInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"account_id", "account", "service_type",
+					"chain_type", "address", "capacity", "status",
+				}),
+			}).Create(&transactionInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(rebateInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"invitee_id", "invitee_account", "invitee_chain_type", "invitee_address",
+					"reward", "action", "service_type", "inviter_args",
+					"inviter_id", "inviter_account", "inviter_chain_type", "inviter_address",
+				}),
 			}).Create(&rebateInfos).Error; err != nil {
 				return err
 			}

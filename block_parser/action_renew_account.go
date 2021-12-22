@@ -36,7 +36,7 @@ func (b *BlockParser) ActionRenewAccount(req FuncTransactionHandleReq) (resp Fun
 		if v.Type == nil {
 			continue
 		}
-		if v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+		if incomeContract.IsSameTypeId(v.Type.CodeHash) {
 			renewCapacity = v.Capacity
 			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
 				BlockNumber:    req.BlockNumber,
@@ -55,15 +55,18 @@ func (b *BlockParser) ActionRenewAccount(req FuncTransactionHandleReq) (resp Fun
 		return
 	}
 
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(builder.Account))
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber: req.BlockNumber,
 		Outpoint:    common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:   accountId,
 		Account:     builder.Account,
 		ExpiredAt:   builder.ExpiredAt,
 	}
 	_, _, oChainType, _, oAddress, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
 		Account:        builder.Account,
 		Action:         common.DasActionRenewAccount,
 		ServiceType:    dao.ServiceTypeRegister,
@@ -76,7 +79,7 @@ func (b *BlockParser) ActionRenewAccount(req FuncTransactionHandleReq) (resp Fun
 
 	log.Info("ActionRenewAccount:", builder.Account, builder.ExpiredAt, transactionInfo.Capacity)
 
-	if err := b.dbDao.RenewAccount(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo); err != nil {
+	if err := b.dbDao.RenewAccount2(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo); err != nil {
 		log.Error("RenewAccount err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("RenewAccount err: %s", err.Error())
 	}

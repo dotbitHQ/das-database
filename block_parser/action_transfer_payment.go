@@ -49,7 +49,7 @@ func (b *BlockParser) ActionTransferPayment(req FuncTransactionHandleReq) (resp 
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	if err := b.dbDao.CreateTransactionInfo(tx); err != nil {
+	if err := b.dbDao.CreateTransactionInfo2(tx); err != nil {
 		log.Error("CreateTransactionInfo err:", err.Error(), toolib.JsonString(tx))
 		resp.Err = fmt.Errorf("ActionTransferPayment err: %s", err.Error())
 		return

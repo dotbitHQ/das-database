@@ -20,11 +20,6 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionCreateIncome] = b.ActionCreateIncome
 	b.mapTransactionHandle[common.DasActionConsolidateIncome] = b.ActionConsolidateIncome
 
-	b.mapTransactionHandle[common.DasActionStartAccountSale] = b.ActionStartAccountSale
-	b.mapTransactionHandle[common.DasActionEditAccountSale] = b.ActionEditAccountSale
-	b.mapTransactionHandle[common.DasActionCancelAccountSale] = b.ActionCancelAccountSale
-	b.mapTransactionHandle[common.DasActionBuyAccount] = b.ActionBuyAccount
-
 	b.mapTransactionHandle[common.DasActionApplyRegister] = b.ActionApplyRegister
 	b.mapTransactionHandle[common.DasActionPreRegister] = b.ActionPreRegister
 	b.mapTransactionHandle[common.DasActionPropose] = b.ActionPropose
@@ -35,14 +30,19 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionRenewAccount] = b.ActionRenewAccount
 	b.mapTransactionHandle[common.DasActionTransferAccount] = b.ActionTransferAccount
 
-	b.mapTransactionHandle[common.DasActionDeclareReverseRecord] = b.ActionDeclareReverseRecord
-	b.mapTransactionHandle[common.DasActionRedeclareReverseRecord] = b.ActionRedeclareReverseRecord
-	b.mapTransactionHandle[common.DasActionRetractReverseRecord] = b.ActionRetractReverseRecord
+	b.mapTransactionHandle[common.DasActionStartAccountSale] = b.ActionStartAccountSale
+	b.mapTransactionHandle[common.DasActionEditAccountSale] = b.ActionEditAccountSale
+	b.mapTransactionHandle[common.DasActionCancelAccountSale] = b.ActionCancelAccountSale
+	b.mapTransactionHandle[common.DasActionBuyAccount] = b.ActionBuyAccount
 
 	b.mapTransactionHandle[common.DasActionMakeOffer] = b.ActionMakeOffer
 	b.mapTransactionHandle[common.DasActionEditOffer] = b.ActionEditOffer
 	b.mapTransactionHandle[common.DasActionCancelOffer] = b.ActionCancelOffer
 	b.mapTransactionHandle[common.DasActionAcceptOffer] = b.ActionAcceptOffer
+
+	b.mapTransactionHandle[common.DasActionDeclareReverseRecord] = b.ActionDeclareReverseRecord
+	b.mapTransactionHandle[common.DasActionRedeclareReverseRecord] = b.ActionRedeclareReverseRecord
+	b.mapTransactionHandle[common.DasActionRetractReverseRecord] = b.ActionRetractReverseRecord
 }
 
 func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {

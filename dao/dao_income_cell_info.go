@@ -99,6 +99,37 @@ func (d *DbDao) ConsolidateIncome(outpoints []string, incomeCellInfos []TableInc
 	})
 }
 
+func (d *DbDao) ConsolidateIncome2(outpoints []string, incomeCellInfos []TableIncomeCellInfo, transactionInfos []TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("outpoint IN ?", outpoints).Delete(&TableIncomeCellInfo{}).Error; err != nil {
+			return err
+		}
+
+		if len(incomeCellInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"action", "capacity", "status",
+				}),
+			}).Create(&incomeCellInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(transactionInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"account_id", "account", "service_type",
+					"chain_type", "address", "capacity", "status",
+				}),
+			}).Create(&transactionInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
 func (d *DbDao) RenewAccount(outpoints []string, incomeCellInfos []TableIncomeCellInfo, accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&TableIncomeCellInfo{}).Where("outpoint IN ?", outpoints).
@@ -120,6 +151,41 @@ func (d *DbDao) RenewAccount(outpoints []string, incomeCellInfos []TableIncomeCe
 
 		if err := tx.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{"block_number", "block_timestamp", "capacity"}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) RenewAccount2(outpoints []string, incomeCellInfos []TableIncomeCellInfo, accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("outpoint IN ?", outpoints).Delete(&TableIncomeCellInfo{}).Error; err != nil {
+			return err
+		}
+
+		if len(incomeCellInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"action", "capacity", "status",
+				}),
+			}).Create(&incomeCellInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Select("block_number", "outpoint", "expired_at").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
