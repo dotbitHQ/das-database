@@ -135,7 +135,7 @@ func (p *PreAccountCellDataBuilder) getOldDataEntityOpt(param *PreAccountCellPar
 	var oldDataEntity molecule.DataEntity
 	oldAccountCellDataBytes := molecule.GoBytes2MoleculeBytes(p.PreAccountCellData.AsSlice())
 	oldDataEntity = molecule.NewDataEntityBuilder().Entity(oldAccountCellDataBytes).
-		Version(DataEntityVersion2).Index(molecule.GoU32ToMoleculeU32(param.OldIndex)).Build()
+		Version(DataEntityVersion1).Index(molecule.GoU32ToMoleculeU32(param.OldIndex)).Build()
 	oldDataEntityOpt := molecule.NewDataEntityOptBuilder().Set(oldDataEntity).Build()
 	return &oldDataEntityOpt
 }

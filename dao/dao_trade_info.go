@@ -12,6 +12,7 @@ type TableTradeInfo struct {
 	Id               uint64                `json:"id" gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	BlockNumber      uint64                `json:"block_number" gorm:"column:block_number"`
 	Outpoint         string                `json:"outpoint" gorm:"column:outpoint"`
+	AccountId        string                `json:"account_id" gorm:"account_id"`
 	Account          string                `json:"account" gorm:"column:account"`
 	OwnerAlgorithmId common.DasAlgorithmId `json:"owner_algorithm_id" gorm:"column:owner_algorithm_id"`
 	OwnerChainType   common.ChainType      `json:"owner_chain_type" gorm:"column:owner_chain_type"`

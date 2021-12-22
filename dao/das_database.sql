@@ -27,8 +27,8 @@ CREATE TABLE `t_account_info`
     `created_at`            timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
     `updated_at`            timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE KEY `uk_account` (`account`) USING BTREE,
-    KEY `k_account_id` (`account_id`) USING BTREE,
+    UNIQUE KEY `uk_account_id` (`account_id`) USING BTREE,
+    KEY `account` (`account`) USING BTREE,
     KEY `k_oct_o` (`owner_chain_type`, `owner`) USING BTREE,
     KEY `k_mct_m` (`manager_chain_type`, `manager`) USING BTREE,
     KEY `k_confirm_proposal_hash` (`confirm_proposal_hash`) USING BTREE
@@ -87,6 +87,7 @@ CREATE TABLE `t_rebate_info`
     `id`                 bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
     `block_number`       bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
     `outpoint`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `invitee_id`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'account id of invitee',
     `invitee_account`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
     `invitee_chain_type` smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
     `invitee_address`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
@@ -104,6 +105,8 @@ CREATE TABLE `t_rebate_info`
     `updated_at`         timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_o_rt` (`outpoint`, `reward_type`) USING BTREE,
+    KEY `k_invitee_id` (`invitee_id`) USING BTREE,
+    KEY `k_inviter_id` (`inviter_id`) USING BTREE,
     KEY `k_invitee_account` (`invitee_account`) USING BTREE,
     KEY `k_inviter_account` (`inviter_account`) USING BTREE,
     KEY `k_ict_ia` (`invitee_chain_type`, `invitee_address`) USING BTREE
@@ -118,6 +121,7 @@ DROP TABLE IF EXISTS `t_records_info`;
 CREATE TABLE `t_records_info`
 (
     `id`         bigint(20) unsigned                                            NOT NULL AUTO_INCREMENT COMMENT '',
+    `account_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL DEFAULT '' COMMENT 'hash of account',
     `account`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL DEFAULT '' COMMENT '',
     `key`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL DEFAULT '',
     `type`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL DEFAULT '',
@@ -127,6 +131,7 @@ CREATE TABLE `t_records_info`
     `created_at` timestamp                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
     `updated_at` timestamp                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
+    KEY `k_account_id` (`account_id`) USING BTREE,
     KEY `k_account` (`account`) USING BTREE,
     KEY `k_value` (`value`(768)) USING BTREE
 ) ENGINE = InnoDB
@@ -199,6 +204,7 @@ CREATE TABLE `t_trade_deal_info`
     `id`              bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
     `block_number`    bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
     `outpoint`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `account_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'hash of account',
     `account`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
     `deal_type`       smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '0: sale 1: auction',
     `sell_chain_type` int(11)                                                       NOT NULL DEFAULT '0' COMMENT '',
@@ -212,6 +218,7 @@ CREATE TABLE `t_trade_deal_info`
     `updated_at`      timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_outpoint` (`outpoint`) USING BTREE,
+    KEY `k_account_id` (`account_id`) USING BTREE,
     KEY `k_sct_sa` (`sell_chain_type`, `sell_address`) USING BTREE,
     KEY `k_bct_ba` (`buy_chain_type`, `buy_address`) USING BTREE
 ) ENGINE = InnoDB
@@ -227,6 +234,7 @@ CREATE TABLE `t_trade_info`
     `id`                 bigint(20) unsigned                                            NOT NULL AUTO_INCREMENT COMMENT '',
     `block_number`       bigint(20) unsigned                                            NOT NULL DEFAULT '0' COMMENT '',
     `outpoint`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL DEFAULT '' COMMENT '',
+    `account_id`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL DEFAULT '' COMMENT 'hash of account',
     `account`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci  NOT NULL DEFAULT '' COMMENT '',
     `owner_algorithm_id` smallint(6)                                                    NOT NULL DEFAULT '0' COMMENT '',
     `owner_chain_type`   smallint(6)                                                    NOT NULL DEFAULT '0' COMMENT '',
@@ -240,7 +248,8 @@ CREATE TABLE `t_trade_info`
     `created_at`         timestamp                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
     `updated_at`         timestamp                                                      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE KEY `uk_account` (`account`) USING BTREE,
+    UNIQUE KEY `uk_account_id` (`account_id`) USING BTREE,
+    KEY `k_account` (`account`) USING BTREE,
     KEY `k_oct_oa` (`owner_chain_type`, `owner_address`) USING BTREE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
@@ -254,6 +263,7 @@ CREATE TABLE `t_transaction_info`
 (
     `id`              bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
     `block_number`    bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
+    `account_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'hash of account',
     `account`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
     `action`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
     `service_type`    smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '1: register 2: trade',
@@ -267,6 +277,7 @@ CREATE TABLE `t_transaction_info`
     `updated_at`      timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_a_o` (`action`, `outpoint`) USING BTREE,
+    KEY `k_ai_a` (`account_id`, `action`) USING BTREE,
     KEY `k_a_a` (`account`, `action`) USING BTREE,
     KEY `k_ct_a` (`chain_type`, `address`) USING BTREE,
     KEY `k_ct_a_a` (`chain_type`, `address`, `action`) USING BTREE,
@@ -288,6 +299,7 @@ CREATE TABLE `t_reverse_info`
     `algorithm_id`    SMALLINT(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
     `chain_type`      SMALLINT(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
     `address`         VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `account_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'hash of account',
     `account`         VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
     `capacity`        BIGINT(20)                                                    NOT NULL DEFAULT '0' COMMENT '',
     `created_at`      timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
@@ -295,7 +307,8 @@ CREATE TABLE `t_reverse_info`
     PRIMARY KEY (id),
     UNIQUE KEY uk_outpoint (outpoint),
     KEY k_address (chain_type, address),
-    KEY k_account (account)
+    KEY k_account (account),
+    KEY k_account_id (account_id)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='reverse records info';
@@ -309,6 +322,7 @@ CREATE TABLE `t_offer_info`
     `id`              bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
     `block_number`    bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
     `outpoint`        varchar(255)                                                  NOT NULL DEFAULT '' COMMENT '',
+    `account_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'hash of account',
     `account`         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
     `algorithm_id`    int(11)                                                       NOT NULL DEFAULT '0' COMMENT '',
     `chain_type`      int(11)                                                       NOT NULL DEFAULT '0' COMMENT '',
@@ -323,6 +337,7 @@ CREATE TABLE `t_offer_info`
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_outpoint` (`outpoint`),
     KEY `k_account` (`account`),
+    KEY `k_account_id` (`account_id`),
     KEY `k_ct_a` (`chain_type`, `address`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4

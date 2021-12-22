@@ -9,6 +9,7 @@ import (
 type TableTransactionInfo struct {
 	Id             uint64           `json:"id" gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	BlockNumber    uint64           `json:"block_number" gorm:"column:block_number"`
+	AccountId      string           `json:"account_id" gorm:"account_id"`
 	Account        string           `json:"account" gorm:"column:account"`
 	Action         string           `json:"action" gorm:"column:action"`
 	ServiceType    int              `json:"service_type" gorm:"column:service_type"` // 1: register 2: trade',

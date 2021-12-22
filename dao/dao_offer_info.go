@@ -11,6 +11,7 @@ type TableOfferInfo struct {
 	Id             uint64                `json:"id" gorm:"column:id;primary_key;AUTO_INCREMENT"`
 	BlockNumber    uint64                `json:"block_number" gorm:"column:block_number"`
 	Outpoint       string                `json:"outpoint" gorm:"column:outpoint"`
+	AccountId      string                `json:"account_id" gorm:"account_id"`
 	Account        string                `json:"account" gorm:"column:account"`
 	AlgorithmId    common.DasAlgorithmId `json:"algorithm_id" gorm:"column:algorithm_id"`
 	ChainType      common.ChainType      `json:"chain_type" gorm:"column:chain_type"`

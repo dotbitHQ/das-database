@@ -14,6 +14,7 @@ type TableReverseInfo struct {
 	AlgorithmId    common.DasAlgorithmId `json:"algorithm_id" gorm:"column:algorithm_id"`
 	ChainType      common.ChainType      `json:"chain_type" gorm:"column:chain_type"`
 	Address        string                `json:"address" gorm:"column:address"`
+	AccountId      string                `json:"account_id" gorm:"account_id"`
 	Account        string                `json:"account" gorm:"column:account"`
 	Capacity       uint64                `json:"capacity" gorm:"column:capacity"`
 }

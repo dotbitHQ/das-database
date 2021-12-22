@@ -122,3 +122,15 @@ func GoHexToMoleculeHash(hexStr string) Hash {
 	}
 	return NewHashBuilder().Set(byteArr).Build()
 }
+
+func GoTimeUnixToMoleculeBytes(timeSec int64) [8]Byte {
+	byteBuf := bytes.NewBuffer([]byte{})
+	_ = binary.Write(byteBuf, binary.LittleEndian, timeSec)
+	timestampByteArr := [8]Byte{}
+	tmpBytes := byteBuf.Bytes()
+	size := len(tmpBytes)
+	for i := 0; i < size; i++ {
+		timestampByteArr[i] = *ByteFromSliceUnchecked([]byte{tmpBytes[i]})
+	}
+	return timestampByteArr
+}
