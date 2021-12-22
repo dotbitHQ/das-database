@@ -17,7 +17,9 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionConfig] = b.ActionConfigCell
 	b.mapTransactionHandle[common.DasActionWithdrawFromWallet] = b.ActionWithdrawFromWallet
 	b.mapTransactionHandle[common.DasActionTransfer] = b.ActionTransferPayment
+	b.mapTransactionHandle[common.DasActionCreateIncome] = b.ActionCreateIncome
 	b.mapTransactionHandle[common.DasActionConsolidateIncome] = b.ActionConsolidateIncome
+
 	b.mapTransactionHandle[common.DasActionStartAccountSale] = b.ActionStartAccountSale
 	b.mapTransactionHandle[common.DasActionEditAccountSale] = b.ActionEditAccountSale
 	b.mapTransactionHandle[common.DasActionCancelAccountSale] = b.ActionCancelAccountSale
@@ -32,7 +34,6 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionEditManager] = b.ActionEditManager
 	b.mapTransactionHandle[common.DasActionRenewAccount] = b.ActionRenewAccount
 	b.mapTransactionHandle[common.DasActionTransferAccount] = b.ActionTransferAccount
-	b.mapTransactionHandle[common.DasActionCreateIncome] = b.ActionCreateIncome
 
 	b.mapTransactionHandle[common.DasActionDeclareReverseRecord] = b.ActionDeclareReverseRecord
 	b.mapTransactionHandle[common.DasActionRedeclareReverseRecord] = b.ActionRedeclareReverseRecord
@@ -45,7 +46,7 @@ func (b *BlockParser) registerTransactionHandle() {
 }
 
 func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {
-	accContract, err := core.GetDasContractInfo(name)
+	contract, err := core.GetDasContractInfo(name)
 	if err != nil {
 		return false, fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 	}
@@ -54,7 +55,7 @@ func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (boo
 		if v.Type == nil {
 			continue
 		}
-		if accContract.IsSameTypeId(v.Type.CodeHash) {
+		if contract.IsSameTypeId(v.Type.CodeHash) {
 			isCV = true
 			break
 		}

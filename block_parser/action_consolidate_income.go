@@ -31,7 +31,7 @@ func (b *BlockParser) ActionConsolidateIncome(req FuncTransactionHandleReq) (res
 	}
 
 	for i, v := range req.Tx.Outputs {
-		if v.Lock.CodeHash.Hex() == dasContract.ContractTypeId.Hex() {
+		if dasContract.IsSameTypeId(v.Lock.CodeHash) {
 			_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(v.Lock.Args)
 			transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
 				BlockNumber:    req.BlockNumber,
@@ -43,7 +43,7 @@ func (b *BlockParser) ActionConsolidateIncome(req FuncTransactionHandleReq) (res
 				Outpoint:       common.OutPoint2String(req.TxHash, uint(i)),
 				BlockTimestamp: req.BlockTimestamp,
 			})
-		} else if v.Type != nil && v.Type.CodeHash.Hex() == incomeContract.ContractTypeId.Hex() {
+		} else if v.Type != nil && incomeContract.IsSameTypeId(v.Type.CodeHash) {
 			incomeCellInfos = append(incomeCellInfos, dao.TableIncomeCellInfo{
 				BlockNumber:    req.BlockNumber,
 				Action:         common.DasActionConsolidateIncome,

@@ -100,9 +100,9 @@ func runServer(ctx *cli.Context) error {
 	if err := dc.InitDasSoScript(); err != nil {
 		return fmt.Errorf("InitDasSoScript err: %s", err.Error())
 	}
-	dc.RunAsyncDasContract(time.Minute)   // contract outpoint
-	dc.RunAsyncDasConfigCell(time.Minute) // config cell outpoint
-	dc.RunAsyncDasSoScript(time.Minute)   // so
+	dc.RunAsyncDasContract(time.Minute * 5)   // contract outpoint
+	dc.RunAsyncDasConfigCell(time.Minute * 3) // config cell outpoint
+	dc.RunAsyncDasSoScript(time.Minute * 7)   // so
 	log.Info("contract ok")
 
 	// block parser

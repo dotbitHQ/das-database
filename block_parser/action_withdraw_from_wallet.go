@@ -29,11 +29,11 @@ func (b *BlockParser) ActionWithdrawFromWallet(req FuncTransactionHandleReq) (re
 		return
 	}
 	cellOutput := res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index]
-	if cellOutput.Lock.CodeHash.Hex() != dasLock.ContractTypeId.Hex() {
+	if !dasLock.IsSameTypeId(cellOutput.Lock.CodeHash) {
 		log.Warn("ActionWithdrawFromWallet: das lock not match", req.TxHash)
 		return
 	}
-	if cellOutput.Type != nil && cellOutput.Type.CodeHash.Hex() != balanceType.ContractTypeId.Hex() {
+	if cellOutput.Type != nil && !balanceType.IsSameTypeId(cellOutput.Type.CodeHash) {
 		log.Warn("ActionWithdrawFromWallet: balance type not match", req.TxHash)
 		return
 	}
