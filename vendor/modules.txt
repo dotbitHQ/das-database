@@ -7,7 +7,7 @@ github.com/DeAccountSystems/das-lib/core
 github.com/DeAccountSystems/das-lib/dascache
 github.com/DeAccountSystems/das-lib/molecule
 github.com/DeAccountSystems/das-lib/witness
-# github.com/DeAccountSystems/das-notice v0.0.0-20211109033956-f2728e5ea900
+# github.com/DeAccountSystems/das-notice v1.0.2
 ## explicit
 github.com/DeAccountSystems/das-notice/lark
 # github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6
@@ -148,7 +148,7 @@ go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 # golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 golang.org/x/crypto/sha3
-# golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
+# golang.org/x/net v0.0.0-20211216030914-fe4d6282115f
 golang.org/x/net/publicsuffix
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/syncmap
