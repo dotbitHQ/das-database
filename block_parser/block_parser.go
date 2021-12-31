@@ -185,7 +185,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 				if resp.Err != nil {
 					log.Error("action handle resp:", builder.Action, blockNumber, txHash, resp.Err.Error())
 					// notify
-					msg := `> Block number：%d\n> Action：%s\n> Timestamp：%s\n> Transaction hash：%s`
+					msg := "> Block number：%d\n> Action：%s\n> Timestamp：%s\n> Transaction hash：%s"
 					msg = fmt.Sprintf(msg, blockNumber, builder.Action, time.Now().Format("2006-01-02 15:04:05"), txHash)
 					_ = lark.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "Block monitor", msg)
 					return resp.Err
