@@ -117,17 +117,13 @@ func (a *AccountSaleCellDataBuilder) GenWitness(p *AccountSaleCellParam) ([]byte
 		if err != nil {
 			return nil, nil, fmt.Errorf("AccountIdFromSlice err: %s", err.Error())
 		}
-		startAt := molecule.GoU64ToMoleculeU64(p.StartAt)
-		price := molecule.GoU64ToMoleculeU64(p.Price)
-		profitRate := molecule.GoU32ToMoleculeU32(p.BuyerInviterProfitRate)
-
 		newAccountSaleCellData := molecule.NewAccountSaleCellDataBuilder().
 			Account(molecule.GoString2MoleculeBytes(p.Account)).
 			AccountId(*accountId).
 			Description(molecule.GoString2MoleculeBytes(p.Description)).
-			StartedAt(startAt).
-			Price(price).
-			BuyerInviterProfitRate(profitRate).
+			StartedAt(molecule.GoU64ToMoleculeU64(p.StartAt)).
+			Price(molecule.GoU64ToMoleculeU64(p.Price)).
+			BuyerInviterProfitRate(molecule.GoU32ToMoleculeU32(p.BuyerInviterProfitRate)).
 			Build()
 
 		newAccountSaleCellDataBytes := molecule.GoBytes2MoleculeBytes(newAccountSaleCellData.AsSlice())
