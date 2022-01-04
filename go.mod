@@ -3,12 +3,12 @@ module das_database
 go 1.15
 
 require (
-	github.com/DeAccountSystems/das-lib v0.0.0-20211221110111-16708d75c92e
+	github.com/DeAccountSystems/das-lib v0.0.0-20220104075931-d4dd414a1375
 	github.com/DeAccountSystems/das-notice v1.0.2
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/gin-gonic/gin v1.7.4
-	github.com/nervosnetwork/ckb-sdk-go v0.43.2
+	github.com/nervosnetwork/ckb-sdk-go v0.101.3
 	github.com/parnurzeal/gorequest v0.2.16
 	github.com/scorpiotzh/mylog v1.0.9
 	github.com/scorpiotzh/toolib v1.0.8

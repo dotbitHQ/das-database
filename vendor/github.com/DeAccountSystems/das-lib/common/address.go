@@ -2,6 +2,8 @@ package common
 
 import (
 	"fmt"
+	"github.com/nervosnetwork/ckb-sdk-go/address"
+	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"github.com/tron-us/go-common/crypto"
 )
 
@@ -69,4 +71,12 @@ func TronBase58ToHex(address string) (string, error) {
 		return "", fmt.Errorf("Decode58Check:%v", err)
 	}
 	return *addr, nil
+}
+
+func ConvertScriptToAddress(mode address.Mode, script *types.Script) (string, error) {
+	if len(script.Args) >= 20 && len(script.Args) <= 22 {
+		return address.ConvertScriptToShortAddress(mode, script)
+	}
+
+	return address.ConvertScriptToFullAddress(address.FullTypeFormat, mode, script)
 }

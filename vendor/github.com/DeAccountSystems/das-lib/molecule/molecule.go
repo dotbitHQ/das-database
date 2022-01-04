@@ -134,3 +134,9 @@ func GoTimeUnixToMoleculeBytes(timeSec int64) [8]Byte {
 	}
 	return timestampByteArr
 }
+
+func Go64ToBytes(i int64) []byte {
+	byteBuf := bytes.NewBuffer([]byte{})
+	_ = binary.Write(byteBuf, binary.LittleEndian, i)
+	return byteBuf.Bytes()
+}
