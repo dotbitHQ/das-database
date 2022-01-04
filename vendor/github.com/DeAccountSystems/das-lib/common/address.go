@@ -74,7 +74,7 @@ func TronBase58ToHex(address string) (string, error) {
 }
 
 func ConvertScriptToAddress(mode address.Mode, script *types.Script) (string, error) {
-	if len(script.Args) >= 20 && len(script.Args) <= 22 {
+	if script.HashType == types.HashTypeType && len(script.Args) >= 20 && len(script.Args) <= 22 {
 		return address.ConvertScriptToShortAddress(mode, script)
 	}
 
