@@ -78,5 +78,9 @@ func ConvertScriptToAddress(mode address.Mode, script *types.Script) (string, er
 		return address.ConvertScriptToShortAddress(mode, script)
 	}
 
-	return address.ConvertScriptToFullAddress(address.FullTypeFormat, mode, script)
+	hashType := address.FullTypeFormat
+	if script.HashType == types.HashTypeData {
+		hashType = address.FullDataFormat
+	}
+	return address.ConvertScriptToFullAddress(hashType, mode, script)
 }

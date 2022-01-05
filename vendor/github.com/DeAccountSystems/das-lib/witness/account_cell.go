@@ -150,14 +150,6 @@ func (a *AccountCellDataBuilder) getOldDataEntityOpt(p *AccountCellParam) *molec
 		oldAccountCellDataBytes := molecule.GoBytes2MoleculeBytes(a.AccountCellDataV1.AsSlice())
 		oldDataEntity = molecule.NewDataEntityBuilder().Entity(oldAccountCellDataBytes).
 			Version(DataEntityVersion1).Index(molecule.GoU32ToMoleculeU32(p.OldIndex)).Build()
-
-		temNewBuilder := molecule.NewAccountCellDataBuilder()
-		temNewBuilder.Records(*a.AccountCellDataV1.Records()).Id(*a.AccountCellDataV1.Id()).
-			Status(*a.AccountCellDataV1.Status()).Account(*a.AccountCellDataV1.Account()).
-			RegisteredAt(*a.AccountCellDataV1.RegisteredAt()).
-			LastTransferAccountAt(molecule.TimestampDefault()).
-			LastEditRecordsAt(molecule.TimestampDefault()).
-			LastEditManagerAt(molecule.TimestampDefault()).Build()
 	case common.GoDataEntityVersion2:
 		oldAccountCellDataBytes := molecule.GoBytes2MoleculeBytes(a.AccountCellData.AsSlice())
 		oldDataEntity = molecule.NewDataEntityBuilder().Entity(oldAccountCellDataBytes).
