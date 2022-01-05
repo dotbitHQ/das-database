@@ -37,8 +37,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
-github.com/DeAccountSystems/das-lib v0.0.0-20220105100831-b0a4cef78e2e h1:9je468FUZuOE3UlmySOu127X7/iXh8XGJsN6diA3fJY=
-github.com/DeAccountSystems/das-lib v0.0.0-20220105100831-b0a4cef78e2e/go.mod h1:DwGL1VOQqOjSHjjm1deqUEQvrsVhO+rAL/RE/1UNSIo=
+github.com/DeAccountSystems/das-lib v0.0.0-20220105140009-d423fec84f2f h1:YMS3giq29zRzAOEyZP/t9mQ5yWHzYGMgIwwqApyxbpI=
+github.com/DeAccountSystems/das-lib v0.0.0-20220105140009-d423fec84f2f/go.mod h1:DwGL1VOQqOjSHjjm1deqUEQvrsVhO+rAL/RE/1UNSIo=
 github.com/DeAccountSystems/das-notice v1.0.2 h1:uIRNkYrEpWKa595iJViZ6H6bLhHYTu60mqPPHfjZfYc=
 github.com/DeAccountSystems/das-notice v1.0.2/go.mod h1:oc8AJbazBc21EUOg2eHNhy/TVcRNwSr9FSIYeRDIFpU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=

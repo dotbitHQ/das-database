@@ -44,6 +44,7 @@ func AccountSaleCellDataBuilderFromTx(tx *types.Transaction, dataType common.Dat
 				resp.Description = string(accountSaleData.Description().RawData())
 				resp.Price, _ = molecule.Bytes2GoU64(accountSaleData.Price().RawData())
 				resp.StartedAt, _ = molecule.Bytes2GoU64(accountSaleData.StartedAt().RawData())
+				resp.BuyerInviterProfitRate = 100
 			case common.GoDataEntityVersion2:
 				accountSaleData, err := molecule.AccountSaleCellDataFromSlice(dataEntity.Entity().RawData(), false)
 				if err != nil {

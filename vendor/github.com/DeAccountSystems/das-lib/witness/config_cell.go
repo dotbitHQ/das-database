@@ -116,7 +116,7 @@ func ConfigCellDataBuilderRefByTypeArgs(builder *ConfigCellDataBuilder, tx *type
 		if err != nil {
 			return fmt.Errorf("key name space len err: %s", err.Error())
 		}
-		builder.ConfigCellRecordKeys = strings.Split(string(configCellDataBys[4:dataLength-4]), string([]byte{0x00}))
+		builder.ConfigCellRecordKeys = strings.Split(string(configCellDataBys[4:dataLength]), string([]byte{0x00}))
 	case common.ConfigCellTypeArgsCharSetEmoji:
 		dataLength, err := molecule.Bytes2GoU32(configCellDataBys[:4])
 		if err != nil {

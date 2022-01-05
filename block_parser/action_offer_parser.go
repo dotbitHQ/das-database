@@ -348,7 +348,7 @@ func (b *BlockParser) getOfferRebateInfoList(salePrice decimal.Decimal, account 
 		return list, fmt.Errorf("OfferCellDataBuilderMapFromTx err: %s", err.Error())
 	}
 
-	builder, err := witness.ConfigCellDataBuilderByTypeArgs(req.Tx, common.ConfigCellTypeArgsProfitRate)
+	builder, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsProfitRate)
 	if err != nil {
 		return list, fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
 	}
@@ -372,9 +372,11 @@ func (b *BlockParser) getOfferRebateInfoList(salePrice decimal.Decimal, account 
 		oCT = common.ChainTypeCkb
 		oA = common.Bytes2Hex(inviterScript.Args().RawData())
 	}
+	inviteeId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	list = append(list, dao.TableRebateInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, 0),
+		InviteeId:        inviteeId,
 		InviteeAccount:   account,
 		InviteeChainType: 0,
 		InviteeAddress:   "",
@@ -396,6 +398,7 @@ func (b *BlockParser) getOfferRebateInfoList(salePrice decimal.Decimal, account 
 	list = append(list, dao.TableRebateInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, 0),
+		InviteeId:        inviteeId,
 		InviteeAccount:   account,
 		InviteeChainType: 0,
 		InviteeAddress:   "",

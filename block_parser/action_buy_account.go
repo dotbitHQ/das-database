@@ -167,7 +167,7 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		return list, fmt.Errorf("ActionDataBuilderFromTx err: %s", err.Error())
 	}
 
-	builder, err := witness.ConfigCellDataBuilderByTypeArgs(req.Tx, common.ConfigCellTypeArgsProfitRate)
+	builder, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsProfitRate)
 	if err != nil {
 		return list, fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
 	}
