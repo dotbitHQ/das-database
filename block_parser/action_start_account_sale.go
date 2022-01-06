@@ -5,6 +5,7 @@ import (
 	"das_database/timer"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
+	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 )
 
@@ -39,18 +40,22 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 	}
 	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
 	priceUsd := tokenInfo.GetPriceUsd(builder.Price)
+	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
 	tradeInfo := dao.TableTradeInfo{
-		BlockNumber:    req.BlockNumber,
-		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
-		AccountId:      accountInfo.AccountId,
-		Account:        accountInfo.Account,
-		Description:    builder.Description,
-		StartedAt:      builder.StartedAt * 1e3,
-		PriceCkb:       builder.Price,
-		PriceUsd:       priceUsd,
-		ProfitRate:     builder.BuyerInviterProfitRate,
-		BlockTimestamp: req.BlockTimestamp,
-		Status:         dao.AccountStatusOnSale,
+		BlockNumber:      req.BlockNumber,
+		Outpoint:         common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:        accountInfo.AccountId,
+		Account:          accountInfo.Account,
+		OwnerAlgorithmId: oID,
+		OwnerChainType:   oCT,
+		OwnerAddress:     oA,
+		Description:      builder.Description,
+		StartedAt:        builder.StartedAt * 1e3,
+		PriceCkb:         builder.Price,
+		PriceUsd:         priceUsd,
+		ProfitRate:       builder.BuyerInviterProfitRate,
+		BlockTimestamp:   req.BlockTimestamp,
+		Status:           dao.AccountStatusOnSale,
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
