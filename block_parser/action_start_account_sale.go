@@ -30,17 +30,23 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-
+	oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[accBuilder.Index].Lock.Args)
 	accountInfo := dao.TableAccountInfo{
-		BlockNumber: req.BlockNumber,
-		Outpoint:    common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
-		AccountId:   accBuilder.AccountId,
-		Account:     accBuilder.Account,
-		Status:      dao.AccountStatusOnSale,
+		BlockNumber:        req.BlockNumber,
+		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
+		AccountId:          accBuilder.AccountId,
+		Account:            accBuilder.Account,
+		Status:             dao.AccountStatusOnSale,
+		OwnerAlgorithmId:   oID,
+		OwnerChainType:     oCT,
+		Owner:              oA,
+		ManagerAlgorithmId: mID,
+		ManagerChainType:   mCT,
+		Manager:            mA,
 	}
 	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
 	priceUsd := tokenInfo.GetPriceUsd(builder.Price)
-	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
+	oID, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
 	tradeInfo := dao.TableTradeInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, uint(builder.Index)),

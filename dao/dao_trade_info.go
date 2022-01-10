@@ -46,7 +46,7 @@ type SaleAccount struct {
 
 func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTradeInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("block_number", "outpoint", "status").
+		if err := tx.Select("block_number", "manager", "manager_chain_type", "manager_algorithm_id", "owner", "owner_algorithm_id", "owner_chain_type", "outpoint", "status").
 			Where("account_id = ?", accountInfo.AccountId).
 			Updates(accountInfo).Error; err != nil {
 			return err
