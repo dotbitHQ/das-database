@@ -66,12 +66,10 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
 		return
 	}
-	basicCapacity, _ := configCell.BasicCapacity()
+	//basicCapacity, _ := configCell.BasicCapacity()
 	// rebate rate
 	profitRateInviter, _ := configCell.ProfitRateInviter()
 	profitRateChannel, _ := configCell.ProfitRateChannel()
-
-	log.Info("ActionConfirmProposal:", basicCapacity, profitRateInviter, profitRateChannel)
 
 	for _, v := range accMap {
 		oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[v.Index].Lock.Args)
@@ -116,6 +114,10 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			_, _, inviteeOCT, _, inviteeOA, _ := core.FormatDasLockToHexAddress(common.Hex2Bytes(argsStr))
 			inviterId, _ := preAcc.InviterId()
 			accLen := uint64(len([]byte(preAcc.Account))) * common.OneCkb
+
+			basicCapacity, _ := configCell.BasicCapacityFromOwnerDasAlgorithmId(argsStr)
+			log.Info("ActionConfirmProposal:", basicCapacity, profitRateInviter, profitRateChannel)
+
 			preCapacity := preTx.Transaction.Outputs[req.Tx.Inputs[preAcc.Index].PreviousOutput.Index].Capacity - basicCapacity - accLen // 扣除存储费，账号长度
 			capacity, _ := decimal.NewFromString(fmt.Sprintf("%d", preCapacity))
 

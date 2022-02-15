@@ -225,6 +225,23 @@ func (c *ConfigCellDataBuilder) BasicCapacity() (uint64, error) {
 	return 0, fmt.Errorf("ConfigCellAccount is nil")
 }
 
+func (c *ConfigCellDataBuilder) BasicCapacityFromOwnerDasAlgorithmId(args string) (uint64, error) {
+	if args == "" {
+		return 0, fmt.Errorf("args is nil")
+	}
+	argsByte := common.Hex2Bytes(args)
+	algorithmId := common.DasAlgorithmId(argsByte[0])
+	switch algorithmId {
+	case common.DasAlgorithmIdEd25519:
+		return 230 * common.OneCkb, nil
+	default:
+		if c.ConfigCellAccount != nil {
+			return molecule.Bytes2GoU64(c.ConfigCellAccount.BasicCapacity().RawData())
+		}
+	}
+	return 0, fmt.Errorf("ConfigCellAccount is nil")
+}
+
 func (c *ConfigCellDataBuilder) TransferAccountThrottle() (uint32, error) {
 	if c.ConfigCellAccount != nil {
 		return molecule.Bytes2GoU32(c.ConfigCellAccount.TransferAccountThrottle().RawData())
