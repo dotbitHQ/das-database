@@ -1,0 +1,38 @@
+server:
+  is_update: false
+  net: 2 # 1: mainnet 2: testnet
+  http_server_addr: ":9090"
+notice:
+  webhook_lark_err: ""
+chain:
+  ckb_url: "http://127.0.0.1:8114"
+  index_url: "http://127.0.0.1:8116"
+  current_block_number: 1927285 # start from the start time of DAS
+  confirm_num: 4 # confirm nums before written into DB
+  concurrency_num: 100
+db:
+  mysql:
+    log_mode: true
+    addr: "127.0.0.1"
+    user: "root"
+    password: "123456"
+    db_name: "das_database"
+    max_open_conn: 100
+    max_idle_conn: 50
+das_core:
+  thq_code_hash: "0x96248cdefb09eed910018a847cfb51ad044c2d7db650112931760e3ef34a7e9a"
+  das_contract_args: "0xbc502a34a430e3e167c82a24db6f9237b15ebf35"
+  das_contract_code_hash: "0x00000000000000000000000000000000000000000000000000545950455f4944"
+  map_das_contract:
+    "config-cell-type": "0x34363fad2018db0b3b6919c26870f302da74c3c4ef4456e5665b82c4118eda51"
+    "account-cell-type": "0x6f0b8328b703617508d62d1f017b0d91fab2056de320a7b7faed4c777a356b7b"
+    "balance-cell-type": "0x27560fe2daa6150b771621300d1d4ea127832b7b326f2d70eed63f5333b4a8a9"
+    "das-lock": "0xeedd10c7d8fee85c119daf2077fea9cf76b9a92ddca546f1f8e0031682e65aee"
+    "income-cell-type": "0xd7b9d8213671aec03f3a3ab95171e0e79481db2c084586b9ea99914c00ff3716"
+    "account-sale-cell-type": "0xed5d7fc00a3f8605bfe3f6717747bb0ed529fa064c2b8ce56e9677a0c46c2c1c"
+    "always-success": "0x7821c662b7efd50e7f6cf2b036efe53e07eccaf2e3447a2a470ee07ae455ab92"
+    "apply-register-cell-type": "0xc78fa9066af1624e600ccfb21df9546f900b2afe5d7940d91aefc115653f90d9"
+    "pre-account-cell-type": "0xd3f7ad59632a2ebdc2fe9d41aa69708ed1069b074cd8b297b205f835335d3a6b"
+    "proposal-cell-type": "0x03d0bb128bd10e666975d9a07c148f6abebe811f511e9574048b30600b065b9a"
+    "reverse-record-cell-type": "0x334d7841eb156b8aa5abd7b09277e91e782d840140905496bb5bff0ea6ce9d75"
+    "offer-cell-type": "0x443b2d1b3b00ffab1a2287d84c47b2c31a11aad24b183d732c213a69e3d6d390"
