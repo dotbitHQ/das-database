@@ -193,6 +193,9 @@ VALUES (4, 'tron_trx', 'tron', 3, '', 'TRON', 'TRX', 6, 0.10413300,
 INSERT INTO `t_token_price_info`
 VALUES (6001, 'wx_cny', '_wx_cny_', 4, '', 'WeChat Pay', '¥', 2, 0.15620000, '/images/components/wechat_pay.png',
         0.00000000, 0.00000000, 0.00000000, 1636082387, 0, '2021-11-03 15:08:32', '2021-11-05 11:19:47');
+
+INSERT INTO `t_token_price_info`(`token_id`, `gecko_id`, `chain_type`, `contract`, `name`, `symbol`, `decimals`, `price`, `logo`, `change_24_h`, `vol_24_h`, `market_cap`, `last_updated_at`, `status`, `created_at`, `updated_at`) VALUES ('bsc_bnb', 'binancecoin', 1, '', 'Binance', 'BNB', 18, 372.56000000, 'https://app.da.systems/images/components/binance-smart-chain.svg', 3.42678021, 1550980993.53909560, 62650149931.41216000, 1645581083, 0, '2021-11-23 10:27:38', '2022-02-23 09:52:53');
+INSERT INTO `t_token_price_info`(`token_id`, `gecko_id`, `chain_type`, `contract`, `name`, `symbol`, `decimals`, `price`, `logo`, `change_24_h`, `vol_24_h`, `market_cap`, `last_updated_at`, `status`, `created_at`, `updated_at`) VALUES ('polygon_matic', 'matic-network', 1, '', 'Polygon', 'MATIC', 18, 1.45000000, 'https://app.da.systems/images/components/polygon.svg', 2.65294280, 1033515086.31246830, 9962004241.80516400, 1645581080, 0, '2021-11-29 14:57:56', '2022-02-23 09:52:53');
 COMMIT;
 
 -- ----------------------------
