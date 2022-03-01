@@ -9,29 +9,34 @@ USE `das_database`;
 DROP TABLE IF EXISTS `t_account_info`;
 CREATE TABLE `t_account_info`
 (
-    `id`                    bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
-    `block_number`          bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
-    `outpoint`              varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'Hash-Index',
-    `account_id`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'hash of account',
-    `account`               varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
-    `owner_chain_type`      smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
-    `owner`                 varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'owner address',
-    `owner_algorithm_id`    smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
-    `manager_chain_type`    smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
-    `manager`               varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'manager address',
-    `manager_algorithm_id`  smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
-    `status`                smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
-    `registered_at`         bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
-    `expired_at`            bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
-    `confirm_proposal_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
-    `created_at`            timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
-    `updated_at`            timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
+    `id`                      bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
+    `block_number`            bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
+    `outpoint`                varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'Hash-Index',
+    `account_id`              varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'hash of account',
+    `parent_account_id`       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `account`                 varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `owner_chain_type`        smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
+    `owner`                   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'owner address',
+    `owner_algorithm_id`      smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
+    `manager_chain_type`      smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
+    `manager`                 varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'manager address',
+    `manager_algorithm_id`    smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
+    `status`                  smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
+    `enable_sub_account`      smallint(6)                                                   NOT NULL DEFAULT '0' COMMENT '',
+    `renew_sub_account_price` bigint(20)                                                    NOT NULL DEFAULT '0' COMMENT '',
+    `nonce`                   bigint(20)                                                    NOT NULL DEFAULT '0' COMMENT '',
+    `registered_at`           bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
+    `expired_at`              bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
+    `confirm_proposal_hash`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `created_at`              timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
+    `updated_at`              timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_account_id` (`account_id`) USING BTREE,
     KEY `account` (`account`) USING BTREE,
     KEY `k_oct_o` (`owner_chain_type`, `owner`) USING BTREE,
     KEY `k_mct_m` (`manager_chain_type`, `manager`) USING BTREE,
-    KEY `k_confirm_proposal_hash` (`confirm_proposal_hash`) USING BTREE
+    KEY `k_confirm_proposal_hash` (`confirm_proposal_hash`) USING BTREE,
+    KEY `k_parent_account_id` (`parent_account_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='current account info';
@@ -346,6 +351,27 @@ CREATE TABLE `t_offer_info`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='bid info';
+
+-- ----------------------------
+-- Table structure for t_smt_info
+-- ----------------------------
+DROP TABLE IF EXISTS `t_smt_info`;
+CREATE TABLE `t_smt_info`
+(
+    `id`                bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
+    `block_number`      bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
+    `outpoint`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `account_id`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `parent_account_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `leaf_data_hash`    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `created_at`        timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
+    `updated_at`        timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_account_id` (`account_id`) USING BTREE,
+    KEY `k_parent_account_id` (`parent_account_id`)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci COMMENT ='current account info';
 
 SET
     FOREIGN_KEY_CHECKS = 1;
