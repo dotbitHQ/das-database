@@ -21,6 +21,7 @@ type ConfigCellDataBuilder struct {
 	ConfigCellProposal              *molecule.ConfigCellProposal
 	ConfigCellApply                 *molecule.ConfigCellApply
 	ConfigCellRelease               *molecule.ConfigCellRelease
+	ConfigCellSubAccount            *molecule.ConfigCellSubAccount
 	ConfigCellRecordKeys            []string
 	ConfigCellEmojis                []string
 	ConfigCellUnavailableAccountMap map[string]struct{}
@@ -111,6 +112,12 @@ func ConfigCellDataBuilderRefByTypeArgs(builder *ConfigCellDataBuilder, tx *type
 			return fmt.Errorf("ConfigCellReverseResolutionFromSlice err: %s", err.Error())
 		}
 		builder.ConfigCellReverseResolution = ConfigCellReverseResolution
+	case common.ConfigCellTypeArgsSubAccount:
+		ConfigCellSubAccount, err := molecule.ConfigCellSubAccountFromSlice(configCellDataBys, false)
+		if err != nil {
+			return fmt.Errorf("ConfigCellSubAccountFromSlice err: %s", err.Error())
+		}
+		builder.ConfigCellSubAccount = ConfigCellSubAccount
 	case common.ConfigCellTypeArgsProposal:
 		ConfigCellProposal, err := molecule.ConfigCellProposalFromSlice(configCellDataBys, false)
 		if err != nil {
