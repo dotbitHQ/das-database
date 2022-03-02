@@ -101,11 +101,6 @@ func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo Ta
 	})
 }
 
-func (d *DbDao) FindAccountInfoByAccount(account string) (accountInfo TableAccountInfo, err error) {
-	err = d.db.Where("account = ?", account).Limit(1).Find(&accountInfo).Error
-	return
-}
-
 func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(incomeCellInfos) > 0 {
@@ -125,6 +120,7 @@ func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountIn
 					"owner_chain_type", "owner", "owner_algorithm_id",
 					"manager_chain_type", "manager", "manager_algorithm_id",
 					"registered_at", "expired_at", "status",
+					"enable_sub_account", "renew_sub_account_price", "nonce",
 				}),
 			}).Create(&accountInfos).Error; err != nil {
 				return err
@@ -152,6 +148,27 @@ func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountIn
 			}).Create(&rebateInfos).Error; err != nil {
 				return err
 			}
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) EnableSubAccount(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint", "enable_sub_account", "renew_sub_account_price").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
 		}
 
 		return nil
