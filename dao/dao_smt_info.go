@@ -77,3 +77,46 @@ func (d *DbDao) CreateSubAccount(incomeCellInfos []TableIncomeCellInfo, accountI
 		return nil
 	})
 }
+
+func (d *DbDao) EditSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint",
+			"owner_chain_type", "owner", "owner_algorithm_id",
+			"manager_chain_type", "manager", "manager_algorithm_id",
+			"registered_at", "expired_at", "status",
+			"enable_sub_account", "renew_sub_account_price", "nonce").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"block_number", "outpoint", "leaf_data_hash",
+			}),
+		}).Create(&smtInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id = ?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+
+		if len(recordsInfos) > 0 {
+			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
