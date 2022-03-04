@@ -30,3 +30,10 @@ const (
 	GoDataEntityVersion2 uint32   = 2
 	GoDataEntityVersion3 uint32   = 3
 )
+
+const (
+	EditKeyOwner     = "owner"
+	EditKeyManager   = "manager"
+	EditKeyExpiredAt = "expired_at"
+	EditKeyRecords   = "records"
+)
