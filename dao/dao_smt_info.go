@@ -78,23 +78,75 @@ func (d *DbDao) CreateSubAccount(incomeCellInfos []TableIncomeCellInfo, accountI
 	})
 }
 
-func (d *DbDao) EditSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
+func (d *DbDao) EditOwnerSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint",
-			"owner_chain_type", "owner", "owner_algorithm_id",
-			"manager_chain_type", "manager", "manager_algorithm_id",
-			"registered_at", "expired_at", "status",
-			"enable_sub_account", "renew_sub_account_price", "nonce").
+			"owner_chain_type", "owner", "owner_algorithm_id", "nonce").
 			Where("account_id = ?", accountInfo.AccountId).
 			Updates(accountInfo).Error; err != nil {
 			return err
 		}
 
+		if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(&smtInfo).Error; err != nil {
+			return err
+		}
+
 		if err := tx.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{
-				"block_number", "outpoint", "leaf_data_hash",
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
 			}),
-		}).Create(&smtInfo).Error; err != nil {
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id = ?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+func (d *DbDao) EditManagerSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInfo, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint",
+			"manager_chain_type", "manager", "manager_algorithm_id", "nonce").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(&smtInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+func (d *DbDao) EditRecordsSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint", "nonce").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(&smtInfo).Error; err != nil {
 			return err
 		}
 
@@ -115,6 +167,33 @@ func (d *DbDao) EditSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInf
 			if err := tx.Create(&recordsInfos).Error; err != nil {
 				return err
 			}
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) RenewSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInfo, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint", "expired_at", "nonce").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(&smtInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
 		}
 
 		return nil
