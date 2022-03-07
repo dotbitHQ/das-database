@@ -8,6 +8,7 @@ import (
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/crypto/blake2b"
 	"strconv"
+	"time"
 )
 
 func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -324,6 +325,49 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 }
 
 func (b *BlockParser) ActionRecycleSubAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warn("not current version recycle sub account tx")
+		return
+	}
+
+	log.Info("ActionRecycleSubAccount:", req.BlockNumber, req.TxHash)
+
+	builder, err := witness.SubAccountDataBuilderFromTx(req.Tx)
+	if err != nil {
+		resp.Err = fmt.Errorf("SubAccountDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
+	outpoint := common.OutPoint2String(req.TxHash, 0)
+
+	transactionInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.SubAccount.AccountId,
+		Account:        builder.Account,
+		Action:         common.DasActionRecycleSubAccount,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      oCT,
+		Address:        oA,
+		Capacity:       req.Tx.Outputs[0].Capacity,
+		Outpoint:       outpoint,
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	// if expired time greater than three months ago, then reject the recycle of sub_account.
+	if builder.SubAccount.ExpiredAt > uint64(time.Now().Add(-time.Hour*24*90).Unix()) {
+		resp.Err = fmt.Errorf("not yet arrived expired time: %d", builder.SubAccount.ExpiredAt)
+		return
+	}
+
+	log.Info("ActionRecycleSubAccount:", builder.Account)
+
+	if err = b.dbDao.RecycleSubAccount(builder.SubAccount.AccountId, transactionInfo); err != nil {
+		resp.Err = fmt.Errorf("RecycleSubAccount err: %s", err.Error())
+		return
+	}
 
 	return
 }
