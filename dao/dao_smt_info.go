@@ -199,3 +199,30 @@ func (d *DbDao) RenewSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtIn
 		return nil
 	})
 }
+
+func (d *DbDao) RecycleSubAccount(accountId string, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("account_id = ?", accountId).Delete(&TableAccountInfo{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id = ?", accountId).Delete(&TableSmtInfo{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id = ?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
