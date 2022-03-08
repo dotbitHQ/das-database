@@ -34,7 +34,6 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		BlockNumber:          req.BlockNumber,
 		Outpoint:             outpoint,
 		AccountId:            builder.AccountId,
-		Account:              builder.Account,
 		EnableSubAccount:     dao.AccountEnableStatusOn,
 		RenewSubAccountPrice: builder.RenewSubAccountPrice,
 	}

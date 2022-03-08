@@ -39,11 +39,11 @@ const (
 	AccountStatusNormal          AccountStatus = 0
 	AccountStatusOnSale          AccountStatus = 1
 	AccountStatusOnAuction       AccountStatus = 2
-	TableNameAccountInfo                       = "t_account_info"
-)
-const (
+
 	AccountEnableStatusOff EnableSubAccount = 0
 	AccountEnableStatusOn  EnableSubAccount = 1
+
+	TableNameAccountInfo = "t_account_info"
 )
 
 func (t *TableAccountInfo) TableName() string {
