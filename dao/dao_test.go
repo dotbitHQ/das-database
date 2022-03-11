@@ -261,3 +261,27 @@ func TestUpdateCNYToUSDRate(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestAutoMigrate(t *testing.T) {
+	dbDao, err := getInit()
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = dbDao.db.AutoMigrate(
+		&TableAccountInfo{},
+		&TableBlockInfo{},
+		&TableIncomeCellInfo{},
+		&TableOfferInfo{},
+		&TableRebateInfo{},
+		&TableRecordsInfo{},
+		&TableReverseInfo{},
+		&TableSmtInfo{},
+		&TableTokenPriceInfo{},
+		&TableTradeDealInfo{},
+		&TableTradeInfo{},
+		&TableTransactionInfo{},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
