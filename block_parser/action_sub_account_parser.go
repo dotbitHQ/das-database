@@ -141,7 +141,6 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			Outpoint:        outpoint,
 			AccountId:       v.SubAccount.AccountId,
 			ParentAccountId: builder.AccountId,
-			Account:         v.Account,
 			LeafDataHash:    common.Bytes2Hex(bys),
 		})
 		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
@@ -216,7 +215,6 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 	log.Info("ActionEditSubAccount:", builder.Account)
 
 	subAccount := builder.ConvertToSubAccount()
-	var recordsInfos []dao.TableRecordsInfo
 	switch string(builder.EditKey) {
 	case common.EditKeyOwner:
 		oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(subAccount.Lock.Args)
@@ -239,6 +237,7 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 		}
 		return
 	case common.EditKeyRecords:
+		var recordsInfos []dao.TableRecordsInfo
 		for _, v := range subAccount.Records {
 			recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
 				AccountId: builder.SubAccount.AccountId,

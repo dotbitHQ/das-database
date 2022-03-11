@@ -29,9 +29,30 @@ func NewGormDataBase(addr, user, password, dbName string, maxOpenConn, maxIdleCo
 	return db, nil
 }
 
-func Initialize(db *gorm.DB, logMode bool) *DbDao {
+func Initialize(db *gorm.DB, logMode, isUpdate bool) (*DbDao, error) {
 	if logMode {
 		db = db.Debug()
 	}
-	return &DbDao{db: db}
+
+	var err error
+	if isUpdate {
+		// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes.
+		// It will change existing column’s type if its size, precision, nullable changed.
+		// It WON’T delete unused columns to protect your data.
+		err = db.AutoMigrate(
+			&TableAccountInfo{},
+			&TableBlockInfo{},
+			&TableIncomeCellInfo{},
+			&TableOfferInfo{},
+			&TableRebateInfo{},
+			&TableRecordsInfo{},
+			&TableReverseInfo{},
+			&TableSmtInfo{},
+			&TableTokenPriceInfo{},
+			&TableTradeDealInfo{},
+			&TableTradeInfo{},
+			&TableTransactionInfo{},
+		)
+	}
+	return &DbDao{db: db}, err
 }
