@@ -62,7 +62,10 @@ func runServer(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("NewGormDataBase err:%s", err.Error())
 	}
-	dbDao := dao.Initialize(db, cfgMysql.LogMode)
+	dbDao, err := dao.Initialize(db, cfgMysql.LogMode, config.Cfg.Server.IsUpdate)
+	if err != nil {
+		return fmt.Errorf("Initialize err:%s ", err.Error())
+	}
 	log.Info("db ok")
 
 	// ckb 节点
