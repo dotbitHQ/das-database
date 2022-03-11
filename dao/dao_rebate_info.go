@@ -18,7 +18,7 @@ type TableRebateInfo struct {
 	Action           string           `json:"action" gorm:"column:action;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT ''"`
 	ServiceType      int              `json:"service_type" gorm:"column:service_type;type:smallint(6) NOT NULL DEFAULT '0' COMMENT '1: register 2: trade'"`
 	InviterArgs      string           `json:"inviter_args" gorm:"column:inviter_args;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT ''"`
-	InviterId        string           `json:"inviter_id" gorm:"column:inviter_id;index:k_invitee_id;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'account id of inviter'"`
+	InviterId        string           `json:"inviter_id" gorm:"column:inviter_id;index:k_inviter_id;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'account id of inviter'"`
 	InviterAccount   string           `json:"inviter_account" gorm:"column:inviter_account;index:k_inviter_account;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'inviter account'"`
 	InviterChainType common.ChainType `json:"inviter_chain_type" gorm:"column:inviter_chain_type;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
 	InviterAddress   string           `json:"inviter_address" gorm:"column:inviter_address;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'address of inviter'"`
