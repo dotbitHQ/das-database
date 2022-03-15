@@ -1,9 +1,11 @@
 package dao
 
 import (
+	"das_database/config"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type DbDao struct {
@@ -34,12 +36,11 @@ func Initialize(db *gorm.DB, logMode, isUpdate bool) (*DbDao, error) {
 		db = db.Debug()
 	}
 
-	var err error
 	if isUpdate {
 		// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes.
 		// It will change existing column’s type if its size, precision, nullable changed.
 		// It WON’T delete unused columns to protect your data.
-		err = db.AutoMigrate(
+		if err := db.AutoMigrate(
 			&TableAccountInfo{},
 			&TableBlockInfo{},
 			&TableIncomeCellInfo{},
@@ -52,7 +53,88 @@ func Initialize(db *gorm.DB, logMode, isUpdate bool) (*DbDao, error) {
 			&TableTradeDealInfo{},
 			&TableTradeInfo{},
 			&TableTransactionInfo{},
-		)
+		); err != nil {
+			return &DbDao{db: db}, err
+		}
+
+		var tokenList []TableTokenPriceInfo
+		for _, v := range config.Cfg.GeckoIds {
+			if tokenInfo, ok := geckoIds[v]; ok {
+				tokenList = append(tokenList, tokenInfo)
+			}
+		}
+		if err := db.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{"chain_type", "name", "symbol", "decimals", "logo"}),
+		}).Create(&tokenList).Error; err != nil {
+			return &DbDao{db: db}, err
+		}
 	}
-	return &DbDao{db: db}, err
+
+	return &DbDao{db: db}, nil
+}
+
+var geckoIds = map[string]TableTokenPriceInfo{
+	"nervos-network": {
+		TokenId:   "ckb_ckb",
+		GeckoId:   "nervos-network",
+		ChainType: 0,
+		Name:      "Nervos Network",
+		Symbol:    "CKB",
+		Decimals:  8,
+		Logo:      "https://app.da.systems/images/components/portal-wallet.svg",
+	},
+	"ethereum": {
+		TokenId:   "eth_eth",
+		GeckoId:   "ethereum",
+		ChainType: 1,
+		Name:      "Ethereum",
+		Symbol:    "ETH",
+		Decimals:  18,
+		Logo:      "https://app.da.systems/images/components/ethereum.svg",
+	},
+	"bitcoin": {
+		TokenId:   "btc_btc",
+		GeckoId:   "bitcoin",
+		ChainType: 2,
+		Name:      "Bitcoin",
+		Symbol:    "BTC",
+		Decimals:  8,
+		Logo:      "https://app.da.systems/images/components/bitcoin.svg",
+	},
+	"tron": {
+		TokenId:   "tron_trx",
+		GeckoId:   "tron",
+		ChainType: 3,
+		Name:      "TRON",
+		Symbol:    "TRX",
+		Decimals:  6,
+		Logo:      "https://app.da.systems/images/components/tron.svg",
+	},
+	"_wx_cny_": {
+		TokenId:   "wx_cny",
+		GeckoId:   "_wx_cny_",
+		ChainType: 4,
+		Name:      "WeChat Pay",
+		Symbol:    "¥",
+		Decimals:  2,
+		Logo:      "https://app.da.systems/images/components/wechat_pay.png",
+	},
+	"binancecoin": {
+		TokenId:   "bsc_bnb",
+		GeckoId:   "binancecoin",
+		ChainType: 5,
+		Name:      "Binance",
+		Symbol:    "BNB",
+		Decimals:  18,
+		Logo:      "https://app.da.systems/images/components/binance-smart-chain.svg",
+	},
+	"matic-network": {
+		TokenId:   "polygon_matic",
+		GeckoId:   "matic-network",
+		ChainType: 1,
+		Name:      "Polygon",
+		Symbol:    "MATIC",
+		Decimals:  18,
+		Logo:      "https: //app.da.systems/images/components/polygon.svg",
+	},
 }
