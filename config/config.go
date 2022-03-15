@@ -57,7 +57,8 @@ type CfgServer struct {
 	DB struct {
 		Mysql DbMysql `json:"mysql" yaml:"mysql"`
 	} `json:"db" yaml:"db"`
-	DasCore struct {
+	GeckoIds []string `json:"gecko_ids" yaml:"gecko_ids"`
+	DasCore  struct {
 		THQCodeHash         string                            `json:"thq_code_hash" yaml:"thq_code_hash"`
 		DasContractArgs     string                            `json:"das_contract_args" yaml:"das_contract_args"`
 		DasContractCodeHash string                            `json:"das_contract_code_hash" yaml:"das_contract_code_hash"`

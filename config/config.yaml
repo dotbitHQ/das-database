@@ -19,6 +19,14 @@ db:
     db_name: "das_database"
     max_open_conn: 100
     max_idle_conn: 50
+gecko_ids:
+  - "nervos-network"
+  - "ethereum"
+  - "bitcoin"
+  - "tron"
+  - "_wx_cny_"
+  - "binancecoin"
+  - "matic-network"
 das_core:
   thq_code_hash: "0x9e537bf5b8ec044ca3f53355e879f3fd8832217e4a9b41d9994cf0c547241a79"
   das_contract_args: "0xc126635ece567c71c50f7482c5db80603852c306" # multi sign's args
