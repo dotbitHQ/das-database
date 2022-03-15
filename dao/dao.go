@@ -135,6 +135,6 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "Polygon",
 		Symbol:    "MATIC",
 		Decimals:  18,
-		Logo:      "https: //app.da.systems/images/components/polygon.svg",
+		Logo:      "https://app.da.systems/images/components/polygon.svg",
 	},
 }
