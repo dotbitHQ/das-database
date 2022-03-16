@@ -54,7 +54,7 @@ func Initialize(db *gorm.DB, logMode, isUpdate bool) (*DbDao, error) {
 			&TableTradeInfo{},
 			&TableTransactionInfo{},
 		); err != nil {
-			return &DbDao{db: db}, err
+			return nil, err
 		}
 
 		var tokenList []TableTokenPriceInfo
@@ -66,7 +66,7 @@ func Initialize(db *gorm.DB, logMode, isUpdate bool) (*DbDao, error) {
 		if err := db.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{"chain_type", "name", "symbol", "decimals", "logo"}),
 		}).Create(&tokenList).Error; err != nil {
-			return &DbDao{db: db}, err
+			return nil, err
 		}
 	}
 
