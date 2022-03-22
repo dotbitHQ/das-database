@@ -44,3 +44,4 @@ das_core:
     "proposal-cell-type": "0x03d0bb128bd10e666975d9a07c148f6abebe811f511e9574048b30600b065b9a"
     "reverse-record-cell-type": "0x334d7841eb156b8aa5abd7b09277e91e782d840140905496bb5bff0ea6ce9d75"
     "offer-cell-type": "0x443b2d1b3b00ffab1a2287d84c47b2c31a11aad24b183d732c213a69e3d6d390"
+    "sub-account-cell-type": "0x63ca3e26cc69809f06735c6d9139ec2d84f2a277f13509a54060d6ee19423b5b"
