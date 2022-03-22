@@ -100,9 +100,9 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 
-	subAccountMap, err := witness.SubAccountDataBuilderMapFromTx(req.Tx)
+	subAccountMap, err := witness.SubAccountBuilderMapFromTx(req.Tx)
 	if err != nil {
-		resp.Err = fmt.Errorf("SubAccountDataBuilderMapFromTx err: %s", err.Error())
+		resp.Err = fmt.Errorf("SubAccountBuilderMapFromTx err: %s", err.Error())
 		return
 	}
 
@@ -176,9 +176,9 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 
 	log.Info("ActionEditSubAccount:", req.BlockNumber, req.TxHash)
 
-	builder, err := witness.SubAccountDataBuilderFromTx(req.Tx)
+	builder, err := witness.SubAccountBuilderFromTx(req.Tx)
 	if err != nil {
-		resp.Err = fmt.Errorf("SubAccountDataBuilderFromTx err: %s", err.Error())
+		resp.Err = fmt.Errorf("SubAccountBuilderFromTx err: %s", err.Error())
 		return
 	}
 	_, _, chainType, _, address, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
@@ -190,9 +190,7 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 		AccountId:   builder.SubAccount.AccountId,
 		Nonce:       builder.SubAccount.Nonce,
 	}
-	subAccountBuilder := builder.GenSubAccountBuilder()
-	moleculeSubAccount := subAccountBuilder.Build()
-	bys, _ := blake2b.Blake256(moleculeSubAccount.AsSlice())
+	bys, _ := blake2b.Blake256(builder.MoleculeSubAccount.AsSlice())
 	smtInfo := dao.TableSmtInfo{
 		BlockNumber:  req.BlockNumber,
 		Outpoint:     outpoint,
@@ -214,7 +212,11 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 
 	log.Info("ActionEditSubAccount:", builder.Account)
 
-	subAccount := builder.ConvertToSubAccount()
+	subAccount, err := builder.ConvertToEditValue()
+	if err != nil {
+		resp.Err = fmt.Errorf("ConvertToEditValue err: %s", err.Error())
+		return
+	}
 	switch string(builder.EditKey) {
 	case common.EditKeyOwner:
 		oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(subAccount.Lock.Args)
@@ -270,9 +272,9 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 
 	log.Info("ActionRenewSubAccount:", req.BlockNumber, req.TxHash)
 
-	builder, err := witness.SubAccountDataBuilderFromTx(req.Tx)
+	builder, err := witness.SubAccountBuilderFromTx(req.Tx)
 	if err != nil {
-		resp.Err = fmt.Errorf("SubAccountDataBuilderFromTx err: %s", err.Error())
+		resp.Err = fmt.Errorf("SubAccountBuilderFromTx err: %s", err.Error())
 		return
 	}
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
@@ -284,9 +286,7 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 		AccountId:   builder.SubAccount.AccountId,
 		Nonce:       builder.SubAccount.Nonce,
 	}
-	subAccountBuilder := builder.GenSubAccountBuilder()
-	moleculeSubAccount := subAccountBuilder.Build()
-	bys, _ := blake2b.Blake256(moleculeSubAccount.AsSlice())
+	bys, _ := blake2b.Blake256(builder.MoleculeSubAccount.AsSlice())
 	smtInfo := dao.TableSmtInfo{
 		BlockNumber:  req.BlockNumber,
 		Outpoint:     outpoint,
@@ -308,7 +308,11 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 
 	log.Info("ActionRenewSubAccount:", builder.Account)
 
-	subAccount := builder.ConvertToSubAccount()
+	subAccount, err := builder.ConvertToEditValue()
+	if err != nil {
+		resp.Err = fmt.Errorf("ConvertToEditValue err: %s", err.Error())
+		return
+	}
 	switch string(builder.EditKey) {
 	case common.EditKeyExpiredAt:
 		accountInfo.ExpiredAt = subAccount.ExpiredAt
@@ -333,9 +337,9 @@ func (b *BlockParser) ActionRecycleSubAccount(req FuncTransactionHandleReq) (res
 
 	log.Info("ActionRecycleSubAccount:", req.BlockNumber, req.TxHash)
 
-	builder, err := witness.SubAccountDataBuilderFromTx(req.Tx)
+	builder, err := witness.SubAccountBuilderFromTx(req.Tx)
 	if err != nil {
-		resp.Err = fmt.Errorf("SubAccountDataBuilderFromTx err: %s", err.Error())
+		resp.Err = fmt.Errorf("SubAccountBuilderFromTx err: %s", err.Error())
 		return
 	}
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
