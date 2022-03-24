@@ -28,11 +28,10 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
-	outpoint := common.OutPoint2String(req.TxHash, 1)
 
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:          req.BlockNumber,
-		Outpoint:             outpoint,
+		Outpoint:             common.OutPoint2String(req.TxHash, 0),
 		AccountId:            builder.AccountId,
 		EnableSubAccount:     dao.AccountEnableStatusOn,
 		RenewSubAccountPrice: builder.RenewSubAccountPrice,
@@ -46,7 +45,7 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		ChainType:      oCT,
 		Address:        oA,
 		Capacity:       req.Tx.Outputs[1].Capacity,
-		Outpoint:       outpoint,
+		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
@@ -113,11 +112,10 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 	var transactionInfos []dao.TableTransactionInfo
 	for _, v := range subAccountMap {
 		oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(v.SubAccount.Lock.Args)
-		outpoint := common.OutPoint2String(req.TxHash, 1)
 
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
 			BlockNumber:          req.BlockNumber,
-			Outpoint:             outpoint,
+			Outpoint:             common.OutPoint2String(req.TxHash, 0),
 			AccountId:            v.SubAccount.AccountId,
 			ParentAccountId:      builder.AccountId,
 			Account:              v.Account,
@@ -138,7 +136,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		bys, _ := blake2b.Blake256(v.MoleculeSubAccount.AsSlice())
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:     req.BlockNumber,
-			Outpoint:        outpoint,
+			Outpoint:        common.OutPoint2String(req.TxHash, 1),
 			AccountId:       v.SubAccount.AccountId,
 			ParentAccountId: builder.AccountId,
 			LeafDataHash:    common.Bytes2Hex(bys),
@@ -152,7 +150,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ChainType:      oCT,
 			Address:        oA,
 			Capacity:       req.Tx.Outputs[1].Capacity,
-			Outpoint:       outpoint,
+			Outpoint:       common.OutPoint2String(req.TxHash, 1),
 			BlockTimestamp: req.BlockTimestamp,
 		})
 	}
