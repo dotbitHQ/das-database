@@ -45,7 +45,7 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		ServiceType:    dao.ServiceTypeRegister,
 		ChainType:      oCT,
 		Address:        oA,
-		Capacity:       req.Tx.Outputs[builder.Index].Capacity,
+		Capacity:       req.Tx.Outputs[1].Capacity,
 		Outpoint:       outpoint,
 		BlockTimestamp: req.BlockTimestamp,
 	}
