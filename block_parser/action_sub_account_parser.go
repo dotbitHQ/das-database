@@ -139,19 +139,20 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ParentAccountId: builder.AccountId,
 			LeafDataHash:    common.Bytes2Hex(v.SubAccount.ToH256()),
 		})
-		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
-			BlockNumber:    req.BlockNumber,
-			AccountId:      v.SubAccount.AccountId,
-			Account:        v.Account,
-			Action:         common.DasActionCreateSubAccount,
-			ServiceType:    dao.ServiceTypeRegister,
-			ChainType:      oCT,
-			Address:        oA,
-			Capacity:       req.Tx.Outputs[1].Capacity,
-			Outpoint:       common.OutPoint2String(req.TxHash, 1),
-			BlockTimestamp: req.BlockTimestamp,
-		})
 	}
+	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
+	transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.AccountId,
+		Account:        builder.Account,
+		Action:         common.DasActionCreateSubAccount,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      oCT,
+		Address:        oA,
+		Capacity:       req.Tx.Outputs[1].Capacity,
+		Outpoint:       common.OutPoint2String(req.TxHash, 1),
+		BlockTimestamp: req.BlockTimestamp,
+	})
 
 	if err = b.dbDao.CreateSubAccount(incomeCellInfos, accountInfos, smtInfos, transactionInfos); err != nil {
 		resp.Err = fmt.Errorf("CreateSubAccount err: %s", err.Error())
