@@ -6,7 +6,6 @@ import (
 	"github.com/DeAccountSystems/das-lib/common"
 	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
-	"github.com/nervosnetwork/ckb-sdk-go/crypto/blake2b"
 	"strconv"
 	"time"
 )
@@ -133,13 +132,12 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ExpiredAt:            v.SubAccount.ExpiredAt,
 			ConfirmProposalHash:  req.TxHash,
 		})
-		bys, _ := blake2b.Blake256(v.MoleculeSubAccount.AsSlice())
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:     req.BlockNumber,
 			Outpoint:        common.OutPoint2String(req.TxHash, 1),
 			AccountId:       v.SubAccount.AccountId,
 			ParentAccountId: builder.AccountId,
-			LeafDataHash:    common.Bytes2Hex(bys),
+			LeafDataHash:    common.Bytes2Hex(v.SubAccount.ToH256()),
 		})
 		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
@@ -188,12 +186,11 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 		AccountId:   builder.SubAccount.AccountId,
 		Nonce:       builder.SubAccount.Nonce,
 	}
-	bys, _ := blake2b.Blake256(builder.MoleculeSubAccount.AsSlice())
 	smtInfo := dao.TableSmtInfo{
 		BlockNumber:  req.BlockNumber,
 		Outpoint:     outpoint,
 		AccountId:    builder.SubAccount.AccountId,
-		LeafDataHash: common.Bytes2Hex(bys),
+		LeafDataHash: common.Bytes2Hex(builder.SubAccount.ToH256()),
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
@@ -284,12 +281,11 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 		AccountId:   builder.SubAccount.AccountId,
 		Nonce:       builder.SubAccount.Nonce,
 	}
-	bys, _ := blake2b.Blake256(builder.MoleculeSubAccount.AsSlice())
 	smtInfo := dao.TableSmtInfo{
 		BlockNumber:  req.BlockNumber,
 		Outpoint:     outpoint,
 		AccountId:    builder.SubAccount.AccountId,
-		LeafDataHash: common.Bytes2Hex(bys),
+		LeafDataHash: common.Bytes2Hex(builder.SubAccount.ToH256()),
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
