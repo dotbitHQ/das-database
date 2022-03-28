@@ -195,13 +195,13 @@ func TestGenerateAddress(t *testing.T) {
 		HashType: types.HashTypeType,
 		Args:     ethCommon.FromHex("0xa266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
-	tnAddress, err := address.Generate(address.Testnet, script)
+	tnAddress, err := address.ConvertScriptToAddress(address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(tnAddress)
 
-	tnAddress, err = address.GenerateFullPayloadAddress(address.FullTypeFormat, address.Testnet, script)
+	tnAddress, err = address.ConvertScriptToFullAddress(address.FullTypeFormat, address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -214,7 +214,7 @@ func TestGenerateDASAddress(t *testing.T) {
 		HashType: types.HashTypeType,
 		Args:     ethCommon.FromHex("0x03a266e3226426af7f30ae133fc0fdcdd761e69aac03a266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
-	tnAddress, err := address.Generate(address.Testnet, script)
+	tnAddress, err := address.ConvertScriptToAddress(address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -225,7 +225,7 @@ func TestGenerateDASAddress(t *testing.T) {
 		HashType: types.HashTypeType,
 		Args:     ethCommon.FromHex("0x05a266e3226426af7f30ae133fc0fdcdd761e69aac05a266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
-	tnAddress, err = address.GenerateFullPayloadAddress(address.FullTypeFormat, address.Testnet, script)
+	tnAddress, err = address.ConvertScriptToFullAddress(address.FullTypeFormat, address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}

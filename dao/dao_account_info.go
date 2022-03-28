@@ -120,7 +120,6 @@ func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountIn
 					"owner_chain_type", "owner", "owner_algorithm_id",
 					"manager_chain_type", "manager", "manager_algorithm_id",
 					"registered_at", "expired_at", "status",
-					"enable_sub_account", "renew_sub_account_price", "nonce",
 				}),
 			}).Create(&accountInfos).Error; err != nil {
 				return err
