@@ -108,7 +108,6 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 
 	var accountInfos []dao.TableAccountInfo
 	var smtInfos []dao.TableSmtInfo
-	var transactionInfos []dao.TableTransactionInfo
 	for _, v := range subAccountMap {
 		oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(v.SubAccount.Lock.Args)
 
@@ -140,8 +139,13 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			LeafDataHash:    common.Bytes2Hex(v.SubAccount.ToH256()),
 		})
 	}
+	accountInfo := dao.TableAccountInfo{
+		BlockNumber: req.BlockNumber,
+		AccountId:   builder.AccountId,
+		Outpoint:    common.OutPoint2String(req.TxHash, 0),
+	}
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
-	transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
+	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      builder.AccountId,
 		Account:        builder.Account,
@@ -152,9 +156,9 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		Capacity:       req.Tx.Outputs[1].Capacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
-	})
+	}
 
-	if err = b.dbDao.CreateSubAccount(incomeCellInfos, accountInfos, smtInfos, transactionInfos); err != nil {
+	if err = b.dbDao.CreateSubAccount(incomeCellInfos, accountInfos, smtInfos, accountInfo, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("CreateSubAccount err: %s", err.Error())
 		return
 	}
