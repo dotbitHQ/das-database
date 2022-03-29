@@ -14,6 +14,7 @@ import (
 func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle = make(map[string]FuncTransactionHandle)
 	b.mapTransactionHandle[dao.DasActionTransferBalance] = b.ActionTransferBalance
+	b.mapTransactionHandle[dao.DasActionOrderRefund] = b.ActionOrderRefund
 	b.mapTransactionHandle[common.DasActionConfig] = b.ActionConfigCell
 	b.mapTransactionHandle[common.DasActionWithdrawFromWallet] = b.ActionWithdrawFromWallet
 	b.mapTransactionHandle[common.DasActionTransfer] = b.ActionTransferPayment

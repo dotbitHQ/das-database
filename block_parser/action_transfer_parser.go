@@ -9,6 +9,16 @@ import (
 )
 
 func (b *BlockParser) ActionTransferBalance(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	resp = b.actionTransferParser(req, "ActionTransferBalance:", dao.DasActionTransferBalance, dao.ServiceTypeTransaction)
+	return
+}
+
+func (b *BlockParser) ActionOrderRefund(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	resp = b.actionTransferParser(req, "ActionOrderRefund:", dao.DasActionOrderRefund, dao.ServiceTypeRegister)
+	return
+}
+
+func (b *BlockParser) actionTransferParser(req FuncTransactionHandleReq, funcName, action string, serviceType int) (resp FuncTransactionHandleResp) {
 	dasLock, err := core.GetDasContractInfo(common.DasContractNameDispatchCellType)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
@@ -21,7 +31,7 @@ func (b *BlockParser) ActionTransferBalance(req FuncTransactionHandleReq) (resp 
 		return
 	}
 
-	log.Info("ActionTransferBalance:", req.TxHash)
+	log.Info(funcName, req.TxHash)
 
 	var transactionInfos []dao.TableTransactionInfo
 	for i, v := range req.Tx.Outputs {
@@ -35,8 +45,8 @@ func (b *BlockParser) ActionTransferBalance(req FuncTransactionHandleReq) (resp 
 		_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(v.Lock.Args)
 		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
-			Action:         dao.DasActionTransferBalance,
-			ServiceType:    dao.ServiceTypeTransaction,
+			Action:         action,
+			ServiceType:    serviceType,
 			ChainType:      oCT,
 			Address:        oA,
 			Capacity:       v.Capacity,
