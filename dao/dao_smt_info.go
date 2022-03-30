@@ -178,21 +178,24 @@ func (d *DbDao) EditRecordsSubAccount(accountInfo TableAccountInfo, smtInfo Tabl
 	})
 }
 
-func (d *DbDao) RenewSubAccount(accountIds []string, accountInfos []TableAccountInfo,
-	smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo) error {
+func (d *DbDao) RenewSubAccount(accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(accountInfos) > 0 {
-			if err := tx.Select("block_number", "outpoint", "expired_at", "nonce").
-				Where("account_id IN(?)", accountIds).
-				Updates(accountInfos).Error; err != nil {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"block_number", "outpoint", "expired_at", "nonce",
+				}),
+			}).Create(&accountInfos).Error; err != nil {
 				return err
 			}
 		}
 
 		if len(smtInfos) > 0 {
-			if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
-				Where("account_id IN(?)", accountIds).
-				Updates(&smtInfos).Error; err != nil {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"block_number", "outpoint", "leaf_data_hash",
+				}),
+			}).Create(&smtInfos).Error; err != nil {
 				return err
 			}
 		}

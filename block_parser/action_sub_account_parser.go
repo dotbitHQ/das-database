@@ -276,7 +276,6 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 		return
 	}
 
-	var accountIds []string
 	var accountInfos []dao.TableAccountInfo
 	var smtInfos []dao.TableSmtInfo
 	var transactionInfos []dao.TableTransactionInfo
@@ -318,7 +317,6 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 		}
 		switch string(builder.EditKey) {
 		case common.EditKeyExpiredAt:
-			accountIds = append(accountIds, builder.SubAccount.AccountId)
 			accountInfo.ExpiredAt = subAccount.ExpiredAt
 			accountInfos = append(accountInfos, accountInfo)
 			smtInfos = append(smtInfos, smtInfo)
@@ -326,7 +324,7 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 		}
 	}
 
-	if err = b.dbDao.RenewSubAccount(accountIds, accountInfos, smtInfos, transactionInfos); err != nil {
+	if err = b.dbDao.RenewSubAccount(accountInfos, smtInfos, transactionInfos); err != nil {
 		resp.Err = fmt.Errorf("RenewSubAccount err: %s", err.Error())
 		return
 	}
