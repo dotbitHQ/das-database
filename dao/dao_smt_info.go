@@ -26,7 +26,7 @@ func (t *TableSmtInfo) TableName() string {
 }
 
 func (d *DbDao) CreateSubAccount(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo,
-	smtInfos []TableSmtInfo, accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+	smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo, accountInfo TableAccountInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(incomeCellInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
@@ -62,18 +62,20 @@ func (d *DbDao) CreateSubAccount(incomeCellInfos []TableIncomeCellInfo, accountI
 			}
 		}
 
+		if len(transactionInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"account_id", "account", "service_type",
+					"chain_type", "address", "capacity", "status",
+				}),
+			}).Create(&transactionInfos).Error; err != nil {
+				return err
+			}
+		}
+
 		if err := tx.Select("block_number", "outpoint").
 			Where("account_id = ?", accountInfo.AccountId).
 			Updates(accountInfo).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{
-				"account_id", "account", "service_type",
-				"chain_type", "address", "capacity", "status",
-			}),
-		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
 
@@ -176,54 +178,63 @@ func (d *DbDao) EditRecordsSubAccount(accountInfo TableAccountInfo, smtInfo Tabl
 	})
 }
 
-func (d *DbDao) RenewSubAccount(accountInfo TableAccountInfo, smtInfo TableSmtInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) RenewSubAccount(accountIds []string, accountInfos []TableAccountInfo,
+	smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("block_number", "outpoint", "expired_at", "nonce").
-			Where("account_id = ?", accountInfo.AccountId).
-			Updates(accountInfo).Error; err != nil {
-			return err
+		if len(accountInfos) > 0 {
+			if err := tx.Select("block_number", "outpoint", "expired_at", "nonce").
+				Where("account_id IN(?)", accountIds).
+				Updates(accountInfos).Error; err != nil {
+				return err
+			}
 		}
 
-		if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
-			Where("account_id = ?", accountInfo.AccountId).
-			Updates(&smtInfo).Error; err != nil {
-			return err
+		if len(smtInfos) > 0 {
+			if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+				Where("account_id IN(?)", accountIds).
+				Updates(&smtInfos).Error; err != nil {
+				return err
+			}
 		}
 
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{
-				"account_id", "account", "service_type",
-				"chain_type", "address", "capacity", "status",
-			}),
-		}).Create(&transactionInfo).Error; err != nil {
-			return err
+		if len(transactionInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"account_id", "account", "service_type",
+					"chain_type", "address", "capacity", "status",
+				}),
+			}).Create(&transactionInfos).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil
 	})
 }
 
-func (d *DbDao) RecycleSubAccount(accountId string, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) RecycleSubAccount(accountIds []string, transactionInfos []TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("account_id = ?", accountId).Delete(&TableAccountInfo{}).Error; err != nil {
+		if err := tx.Where("account_id IN(?)", accountIds).Delete(&TableAccountInfo{}).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Where("account_id = ?", accountId).Delete(&TableSmtInfo{}).Error; err != nil {
+		if err := tx.Where("account_id IN(?)", accountIds).Delete(&TableSmtInfo{}).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Where("account_id = ?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+		if err := tx.Where("account_id IN(?)", accountIds).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{
-				"account_id", "account", "service_type",
-				"chain_type", "address", "capacity", "status",
-			}),
-		}).Create(&transactionInfo).Error; err != nil {
-			return err
+		if len(transactionInfos) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{
+					"account_id", "account", "service_type",
+					"chain_type", "address", "capacity", "status",
+				}),
+			}).Create(&transactionInfos).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil

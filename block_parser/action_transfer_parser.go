@@ -9,16 +9,18 @@ import (
 )
 
 func (b *BlockParser) ActionTransferBalance(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	resp = b.actionTransferParser(req, "ActionTransferBalance:", dao.DasActionTransferBalance, dao.ServiceTypeTransaction)
+	log.Info("ActionTransferBalance:", req.BlockNumber, req.TxHash)
+	resp = b.actionTransferParser(req, dao.DasActionTransferBalance, dao.ServiceTypeTransaction)
 	return
 }
 
 func (b *BlockParser) ActionOrderRefund(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	resp = b.actionTransferParser(req, "ActionOrderRefund:", dao.DasActionOrderRefund, dao.ServiceTypeRegister)
+	log.Info("ActionOrderRefund:", req.BlockNumber, req.TxHash)
+	resp = b.actionTransferParser(req, dao.DasActionOrderRefund, dao.ServiceTypeRegister)
 	return
 }
 
-func (b *BlockParser) actionTransferParser(req FuncTransactionHandleReq, funcName, action string, serviceType int) (resp FuncTransactionHandleResp) {
+func (b *BlockParser) actionTransferParser(req FuncTransactionHandleReq, action string, serviceType int) (resp FuncTransactionHandleResp) {
 	dasLock, err := core.GetDasContractInfo(common.DasContractNameDispatchCellType)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
@@ -30,8 +32,6 @@ func (b *BlockParser) actionTransferParser(req FuncTransactionHandleReq, funcNam
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 		return
 	}
-
-	log.Info(funcName, req.TxHash)
 
 	var transactionInfos []dao.TableTransactionInfo
 	for i, v := range req.Tx.Outputs {
