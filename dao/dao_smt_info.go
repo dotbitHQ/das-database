@@ -25,19 +25,8 @@ func (t *TableSmtInfo) TableName() string {
 	return TableNameSmtInfo
 }
 
-func (d *DbDao) CreateSubAccount(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo,
-	smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo, accountInfo TableAccountInfo) error {
+func (d *DbDao) CreateSubAccount(accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo, accountInfo TableAccountInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if len(incomeCellInfos) > 0 {
-			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{
-					"action", "capacity", "status",
-				}),
-			}).Create(&incomeCellInfos).Error; err != nil {
-				return err
-			}
-		}
-
 		if len(accountInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
 				DoUpdates: clause.AssignmentColumns([]string{
