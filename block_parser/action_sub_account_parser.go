@@ -162,18 +162,18 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 	for _, builder := range builderMap {
 		_, _, chainType, _, address, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
 		outpoint := common.OutPoint2String(req.TxHash, 0)
-		builder.SubAccount.Nonce++
 
 		accountInfo := dao.TableAccountInfo{
 			BlockNumber: req.BlockNumber,
 			Outpoint:    outpoint,
 			AccountId:   builder.SubAccount.AccountId,
-			Nonce:       builder.SubAccount.Nonce,
+			Nonce:       builder.CurrentSubAccount.Nonce,
 		}
 		smtInfo := dao.TableSmtInfo{
-			BlockNumber: req.BlockNumber,
-			Outpoint:    outpoint,
-			AccountId:   builder.SubAccount.AccountId,
+			BlockNumber:  req.BlockNumber,
+			Outpoint:     outpoint,
+			AccountId:    builder.SubAccount.AccountId,
+			LeafDataHash: common.Bytes2Hex(builder.CurrentSubAccount.ToH256()),
 		}
 		transactionInfo := dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
@@ -200,8 +200,6 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 			accountInfo.OwnerAlgorithmId = oID
 			accountInfo.OwnerChainType = oCT
 			accountInfo.Owner = oA
-			builder.SubAccount.Lock.Args = common.Hex2Bytes(subAccount.LockArgs)
-			smtInfo.LeafDataHash = common.Bytes2Hex(builder.SubAccount.ToH256())
 			transactionInfo.ChainType = oCT
 			transactionInfo.Address = oA
 			if err = b.dbDao.EditOwnerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
@@ -212,14 +210,10 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 			accountInfo.ManagerAlgorithmId = mID
 			accountInfo.ManagerChainType = mCT
 			accountInfo.Manager = mA
-			builder.SubAccount.Lock.Args = common.Hex2Bytes(subAccount.LockArgs)
-			smtInfo.LeafDataHash = common.Bytes2Hex(builder.SubAccount.ToH256())
 			if err = b.dbDao.EditManagerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
 				resp.Err = fmt.Errorf("EditManagerSubAccount err: %s", err.Error())
 			}
 		case common.EditKeyRecords:
-			builder.SubAccount.Records = subAccount.Records
-			smtInfo.LeafDataHash = common.Bytes2Hex(builder.SubAccount.ToH256())
 			var recordsInfos []dao.TableRecordsInfo
 			for _, v := range subAccount.Records {
 				recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
@@ -266,18 +260,18 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 	for _, builder := range builderMap {
 		_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
 		outpoint := common.OutPoint2String(req.TxHash, 0)
-		builder.SubAccount.Nonce++
 
 		accountInfo := dao.TableAccountInfo{
 			BlockNumber: req.BlockNumber,
 			Outpoint:    outpoint,
 			AccountId:   builder.SubAccount.AccountId,
-			Nonce:       builder.SubAccount.Nonce,
+			Nonce:       builder.CurrentSubAccount.Nonce,
 		}
 		smtInfo := dao.TableSmtInfo{
-			BlockNumber: req.BlockNumber,
-			Outpoint:    outpoint,
-			AccountId:   builder.SubAccount.AccountId,
+			BlockNumber:  req.BlockNumber,
+			Outpoint:     outpoint,
+			AccountId:    builder.SubAccount.AccountId,
+			LeafDataHash: common.Bytes2Hex(builder.CurrentSubAccount.ToH256()),
 		}
 		transactionInfo := dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
@@ -302,8 +296,6 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 		case common.EditKeyExpiredAt:
 			accountInfo.ExpiredAt = subAccount.ExpiredAt
 			accountInfos = append(accountInfos, accountInfo)
-			builder.SubAccount.ExpiredAt = subAccount.ExpiredAt
-			smtInfo.LeafDataHash = common.Bytes2Hex(builder.SubAccount.ToH256())
 			smtInfos = append(smtInfos, smtInfo)
 			transactionInfos = append(transactionInfos, transactionInfo)
 		}
