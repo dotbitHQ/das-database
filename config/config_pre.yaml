@@ -1,0 +1,43 @@
+server:
+  is_update: false
+  net: 2 # 1: mainnet 2: testnet
+  http_server_addr: ":9090"
+notice:
+  webhook_lark_err: ""
+chain:
+  ckb_url: "http://127.0.0.1:8114"
+  index_url: "http://127.0.0.1:8116"
+  current_block_number: 1927285 # start from the start time of DAS
+  confirm_num: 4 # confirm nums before written into DB
+  concurrency_num: 100
+db:
+  mysql:
+    log_mode: true
+    addr: "127.0.0.1"
+    user: "root"
+    password: "123456"
+    db_name: "das_database"
+    max_open_conn: 100
+    max_idle_conn: 50
+gecko_ids:
+  - "nervos-network"
+  - "ethereum"
+  - "bitcoin"
+  - "tron"
+  - "_wx_cny_"
+  - "binancecoin"
+  - "matic-network"
+das_core:
+  thq_code_hash: "0x96248cdefb09eed910018a847cfb51ad044c2d7db650112931760e3ef34a7e9a"
+  das_contract_args: "0xbc502a34a430e3e167c82a24db6f9237b15ebf35"
+  das_contract_code_hash: "0x00000000000000000000000000000000000000000000000000545950455f4944"
+  map_das_contract:
+    "config-cell-type": "0x44a18479eec3cef7a161e8861c019d195a84c4f318d032ee523d1f662de883be"
+    "account-cell-type": "0x334540e23ec513f691cdd9490818237cbc9675861e4f19c480e0c520c715fd34"
+    "das-lock": "0x326df166e3f0a900a0aee043e31a4dea0f01ea3307e6e235f09d1b4220b75fbd"
+    "income-cell-type": "0x55faf1d18e77c640de0e4a1e0193884ed7bda3ebdf1f34281e4f83f198d96096"
+    "account-sale-cell-type": "0x19ff9b7d2956f4b59ef30b196949d7fc0a284c3472c716bc95ea07c7bec38cbe"
+    "always-success": "0xacd0cfbbc4d4ebab7620a98fc0e8a35245c8d5fb7e24dd787178d9564808deb8"
+    "apply-register-cell-type": "0x8b0ab9073521cc7c7beb7a15368e8600188012594c4e6449316f6ecbf07a1da1"
+    "pre-account-cell-type": "0x179934b1f21db4c99081e1c585f83b7410a4cf94eaefa1ba3eb320cd35cc5f02"
+    "proposal-cell-type": "0xc8a23512a45e45ece5b2358a80d9a837501de622ba482960b6b578fffd2de366"
