@@ -79,6 +79,17 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 
+	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsSubAccount)
+	if err != nil {
+		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+		return
+	}
+	newPrice, err := builderConfig.NewSubAccountPrice()
+	if err != nil {
+		resp.Err = fmt.Errorf("NewSubAccountPrice err: %s", err.Error())
+		return
+	}
+
 	var accountInfos []dao.TableAccountInfo
 	var smtInfos []dao.TableSmtInfo
 	var transactionInfos []dao.TableTransactionInfo
@@ -121,7 +132,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ServiceType:    dao.ServiceTypeRegister,
 			ChainType:      oCT,
 			Address:        oA,
-			Capacity:       req.Tx.Outputs[1].Capacity,
+			Capacity:       (v.SubAccount.ExpiredAt - v.SubAccount.RegisteredAt) / uint64(common.OneYearSec) * newPrice,
 			Outpoint:       common.OutPoint2String(common.OutPoint2String(req.TxHash, 1), index),
 			BlockTimestamp: req.BlockTimestamp,
 		})
@@ -256,6 +267,17 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 		return
 	}
 
+	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsSubAccount)
+	if err != nil {
+		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+		return
+	}
+	renewPrice, err := builderConfig.RenewSubAccountPrice()
+	if err != nil {
+		resp.Err = fmt.Errorf("RenewSubAccountPrice err: %s", err.Error())
+		return
+	}
+
 	var accountInfos []dao.TableAccountInfo
 	var smtInfos []dao.TableSmtInfo
 	var transactionInfos []dao.TableTransactionInfo
@@ -284,7 +306,6 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 			ServiceType:    dao.ServiceTypeRegister,
 			ChainType:      oCT,
 			Address:        oA,
-			Capacity:       req.Tx.Outputs[0].Capacity,
 			Outpoint:       common.OutPoint2String(outpoint, index),
 			BlockTimestamp: req.BlockTimestamp,
 		}
@@ -300,6 +321,7 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 			accountInfo.ExpiredAt = subAccount.ExpiredAt
 			accountInfos = append(accountInfos, accountInfo)
 			smtInfos = append(smtInfos, smtInfo)
+			transactionInfo.Capacity = (subAccount.ExpiredAt - builder.SubAccount.ExpiredAt) / uint64(common.OneYearSec) * renewPrice
 			transactionInfos = append(transactionInfos, transactionInfo)
 		}
 	}

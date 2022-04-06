@@ -392,3 +392,19 @@ func (p *SubAccountParam) NewSubAccountWitness() ([]byte, error) {
 	witness := GenDasDataWitnessWithByte(common.ActionDataTypeSubAccount, bys)
 	return witness, nil
 }
+
+func ConvertSubAccountCellOutputData(data []byte) (smtRoot []byte, profit uint64) {
+	if len(data) == 32 {
+		smtRoot = data
+	} else if len(data) == 40 {
+		smtRoot = data[:32]
+		profit, _ = molecule.Bytes2GoU64(data[32:])
+	}
+	return
+}
+
+func BuildSubAccountCellOutputData(smtRoot []byte, profit uint64) []byte {
+	data := molecule.GoU64ToMoleculeU64(profit)
+	smtRoot = append(smtRoot, data.RawData()...)
+	return smtRoot
+}
