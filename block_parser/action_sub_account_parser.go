@@ -143,7 +143,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 	}
 	output := res.Transaction.Outputs[req.Tx.Inputs[2].PreviousOutput.Index]
 	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
-	if output.Lock.CodeHash.Hex() == dasLock.ContractTypeId.Hex() && output.Type != nil && output.Type.CodeHash.Hex() == dasBalance.ContractTypeId.Hex() {
+	if output.Lock.CodeHash.Hex() != dasLock.ContractTypeId.Hex() && output.Type != nil && output.Type.CodeHash.Hex() != dasBalance.ContractTypeId.Hex() {
 		oCT = 0
 		oA = common.Bytes2Hex(req.Tx.Outputs[0].Lock.Args)
 	}
