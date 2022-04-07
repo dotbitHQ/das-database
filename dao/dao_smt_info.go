@@ -25,7 +25,7 @@ func (t *TableSmtInfo) TableName() string {
 	return TableNameSmtInfo
 }
 
-func (d *DbDao) CreateSubAccount(accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo, accountInfo TableAccountInfo) error {
+func (d *DbDao) CreateSubAccount(accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfo TableTransactionInfo, accountInfo TableAccountInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(accountInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
@@ -51,15 +51,13 @@ func (d *DbDao) CreateSubAccount(accountInfos []TableAccountInfo, smtInfos []Tab
 			}
 		}
 
-		if len(transactionInfos) > 0 {
-			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{
-					"account_id", "account", "service_type",
-					"chain_type", "address", "capacity", "status",
-				}),
-			}).Create(&transactionInfos).Error; err != nil {
-				return err
-			}
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
 		}
 
 		if err := tx.Select("block_number", "outpoint").

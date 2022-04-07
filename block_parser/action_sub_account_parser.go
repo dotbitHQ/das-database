@@ -92,8 +92,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 
 	var accountInfos []dao.TableAccountInfo
 	var smtInfos []dao.TableSmtInfo
-	var transactionInfos []dao.TableTransactionInfo
-	var index uint
+	var capacity uint64
 	for _, v := range builderMap {
 		oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(v.SubAccount.Lock.Args)
 
@@ -124,19 +123,41 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ParentAccountId: builder.AccountId,
 			LeafDataHash:    common.Bytes2Hex(v.SubAccount.ToH256()),
 		})
-		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
-			BlockNumber:    req.BlockNumber,
-			AccountId:      v.SubAccount.AccountId,
-			Account:        v.Account,
-			Action:         common.DasActionCreateSubAccount,
-			ServiceType:    dao.ServiceTypeRegister,
-			ChainType:      oCT,
-			Address:        oA,
-			Capacity:       (v.SubAccount.ExpiredAt - v.SubAccount.RegisteredAt) / uint64(common.OneYearSec) * newPrice,
-			Outpoint:       common.OutPoint2String(common.OutPoint2String(req.TxHash, 1), index),
-			BlockTimestamp: req.BlockTimestamp,
-		})
-		index++
+		capacity += (v.SubAccount.ExpiredAt - v.SubAccount.RegisteredAt) / uint64(common.OneYearSec) * newPrice
+	}
+
+	dasLock, err := core.GetDasContractInfo(common.DasContractNameDispatchCellType)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+		return
+	}
+	dasBalance, err := core.GetDasContractInfo(common.DasContractNameBalanceCellType)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+		return
+	}
+	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[2].PreviousOutput.TxHash)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		return
+	}
+	output := res.Transaction.Outputs[req.Tx.Inputs[2].PreviousOutput.Index]
+	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
+	if output.Lock.CodeHash.Hex() == dasLock.ContractTypeId.Hex() && output.Type != nil && output.Type.CodeHash.Hex() == dasBalance.ContractTypeId.Hex() {
+		oCT = 0
+		oA = common.Bytes2Hex(req.Tx.Outputs[0].Lock.Args)
+	}
+	transactionInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.AccountId,
+		Account:        builder.Account,
+		Action:         common.DasActionCreateSubAccount,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      oCT,
+		Address:        oA,
+		Capacity:       capacity,
+		Outpoint:       common.OutPoint2String(req.TxHash, 1),
+		BlockTimestamp: req.BlockTimestamp,
 	}
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber: req.BlockNumber,
@@ -144,7 +165,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		Outpoint:    common.OutPoint2String(req.TxHash, 0),
 	}
 
-	if err = b.dbDao.CreateSubAccount(accountInfos, smtInfos, transactionInfos, accountInfo); err != nil {
+	if err = b.dbDao.CreateSubAccount(accountInfos, smtInfos, transactionInfo, accountInfo); err != nil {
 		resp.Err = fmt.Errorf("CreateSubAccount err: %s", err.Error())
 		return
 	}
