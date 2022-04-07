@@ -88,15 +88,16 @@ func runServer(ctx *cli.Context) error {
 	log.Info("parser timer ok")
 
 	// das contract init
+	env := core.InitEnv(config.Cfg.Server.Net)
 	opts := []core.DasCoreOption{
 		core.WithClient(ckbClient.Client()),
-		core.WithDasContractArgs(config.Cfg.DasCore.DasContractArgs),
-		core.WithDasContractCodeHash(config.Cfg.DasCore.DasContractCodeHash),
+		core.WithDasContractArgs(env.ContractArgs),
+		core.WithDasContractCodeHash(env.ContractCodeHash),
 		core.WithDasNetType(config.Cfg.Server.Net),
-		core.WithTHQCodeHash(config.Cfg.DasCore.THQCodeHash),
+		core.WithTHQCodeHash(env.THQCodeHash),
 	}
 	dc := core.NewDasCore(ctxServer, &wgServer, opts...)
-	dc.InitDasContract(config.Cfg.DasCore.MapDasContract)
+	dc.InitDasContract(env.MapContract)
 	if err := dc.InitDasConfigCell(); err != nil {
 		return fmt.Errorf("InitDasConfigCell err: %s", err.Error())
 	}

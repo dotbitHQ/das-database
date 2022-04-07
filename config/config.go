@@ -58,12 +58,6 @@ type CfgServer struct {
 		Mysql DbMysql `json:"mysql" yaml:"mysql"`
 	} `json:"db" yaml:"db"`
 	GeckoIds []string `json:"gecko_ids" yaml:"gecko_ids"`
-	DasCore  struct {
-		THQCodeHash         string                            `json:"thq_code_hash" yaml:"thq_code_hash"`
-		DasContractArgs     string                            `json:"das_contract_args" yaml:"das_contract_args"`
-		DasContractCodeHash string                            `json:"das_contract_code_hash" yaml:"das_contract_code_hash"`
-		MapDasContract      map[common.DasContractName]string `json:"map_das_contract" yaml:"map_das_contract"`
-	} `json:"das_core" yaml:"das_core"`
 }
 
 type DbMysql struct {
