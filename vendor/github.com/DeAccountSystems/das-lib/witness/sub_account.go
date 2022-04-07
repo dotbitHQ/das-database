@@ -97,7 +97,14 @@ func SubAccountBuilderMapFromTx(tx *types.Transaction) (map[string]*SubAccountBu
 				builder.CurrentSubAccount.Nonce++
 			}
 			switch editKey {
-			case common.EditKeyOwner, common.EditKeyManager:
+			case common.EditKeyOwner:
+				builder.CurrentSubAccount.Lock = &types.Script{
+					CodeHash: builder.SubAccount.Lock.CodeHash,
+					HashType: builder.SubAccount.Lock.HashType,
+					Args:     builder.EditValue,
+				}
+				builder.CurrentSubAccount.Records = nil
+			case common.EditKeyManager:
 				builder.CurrentSubAccount.Lock = &types.Script{
 					CodeHash: builder.SubAccount.Lock.CodeHash,
 					HashType: builder.SubAccount.Lock.HashType,
