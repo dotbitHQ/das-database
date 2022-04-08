@@ -215,7 +215,7 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 			ServiceType:    dao.ServiceTypeRegister,
 			ChainType:      chainType,
 			Address:        address,
-			Capacity:       req.Tx.Outputs[0].Capacity,
+			Capacity:       0,
 			Outpoint:       common.OutPoint2String(outpoint, index),
 			BlockTimestamp: req.BlockTimestamp,
 		}
