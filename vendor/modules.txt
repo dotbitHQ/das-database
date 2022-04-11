@@ -7,7 +7,7 @@ github.com/DeAccountSystems/das-lib/core
 github.com/DeAccountSystems/das-lib/dascache
 github.com/DeAccountSystems/das-lib/molecule
 github.com/DeAccountSystems/das-lib/witness
-# github.com/DeAccountSystems/das-notice v1.0.2
+# github.com/DeAccountSystems/das-notice v1.0.0
 ## explicit
 github.com/DeAccountSystems/das-notice/lark
 # github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6
@@ -20,6 +20,8 @@ github.com/cpuguy83/go-md2man/v2/md2man
 github.com/deckarep/golang-set
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
+# github.com/elazarl/goproxy v0.0.0-20220403042543-a53172b9392e
+## explicit
 # github.com/ethereum/go-ethereum v1.10.13
 ## explicit
 github.com/ethereum/go-ethereum/common

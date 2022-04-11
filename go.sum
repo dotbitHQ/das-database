@@ -39,8 +39,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DeAccountSystems/das-lib v0.0.0-20220407082959-f7e89fd11b94 h1:/l41DVeZ1HPgTGlUuUEGTSSPxo1eSb0RtuxdRQx1jvA=
 github.com/DeAccountSystems/das-lib v0.0.0-20220407082959-f7e89fd11b94/go.mod h1:YRU7JOwGtiln9Zm9fAfgympeiKCEBHkLinPaz7SKKLU=
-github.com/DeAccountSystems/das-notice v1.0.2 h1:MOtSTWf16fii4FmbLWew6CCvF8FlPAHx9kN4ri2jHMQ=
-github.com/DeAccountSystems/das-notice v1.0.2/go.mod h1:oc8AJbazBc21EUOg2eHNhy/TVcRNwSr9FSIYeRDIFpU=
+github.com/DeAccountSystems/das-notice v1.0.0 h1:c5d7j7UPwewoaD0evCSyVBH3bK1GZ4MNmCC3hl5+cpc=
+github.com/DeAccountSystems/das-notice v1.0.0/go.mod h1:oc8AJbazBc21EUOg2eHNhy/TVcRNwSr9FSIYeRDIFpU=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/goquery v1.5.1/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
 github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 h1:fLjPD/aNc3UIOA6tDi6QXUemppXK3P9BI7mr2hd6gx8=
@@ -124,8 +124,9 @@ github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7j
 github.com/edsrzf/mmap-go v0.0.0-20160512033002-935e0e8a636c/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
 github.com/edsrzf/mmap-go v1.0.0/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
 github.com/elastic/gosigar v0.8.1-0.20180330100440-37f05ff46ffa/go.mod h1:cdorVVzy1fhmEqmtgqkoE3bYtCfSCkVyjTyCIo22xvs=
-github.com/elazarl/goproxy v0.0.0-20211114080932-d06c3be7c11b h1:1XqENn2YoYZd6w3Awx+7oa+aR87DFIZJFLF2n1IojA0=
 github.com/elazarl/goproxy v0.0.0-20211114080932-d06c3be7c11b/go.mod h1:Ro8st/ElPeALwNFlcTpWmkr6IoMFfkjXAvTHpevnDsM=
+github.com/elazarl/goproxy v0.0.0-20220403042543-a53172b9392e h1:8dhROE/dIrz8nOJQjah6LG37QfL8fZhQTp1RDAjuNpQ=
+github.com/elazarl/goproxy v0.0.0-20220403042543-a53172b9392e/go.mod h1:Ro8st/ElPeALwNFlcTpWmkr6IoMFfkjXAvTHpevnDsM=
 github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 h1:dWB6v3RcOy03t/bUadywsbyrQwCqZeNIEX6M1OtSZOM=
 github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:gNh8nYJoAm43RfaxurUnxr+N1PwuFV3ZMl/efxlIlY8=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
