@@ -20,3 +20,6 @@ bin
 das_database
 das_database.exe
 das_database_server
+
+# config file
+config/config.yaml

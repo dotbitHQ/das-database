@@ -7,7 +7,7 @@ notice:
 chain:
   ckb_url: "http://127.0.0.1:8114"
   index_url: "http://127.0.0.1:8116"
-  current_block_number: 4872287 # start from the start time of DAS
+  current_block_number: 4872287 # 4872287: mainnet 1927285: testnet
   confirm_num: 4 # confirm nums before written into DB
   concurrency_num: 100
 db:
