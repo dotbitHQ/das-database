@@ -16,6 +16,8 @@ RUN go build -ldflags -s -v -o das-database cmd/main.go
 ##
 FROM ubuntu
 
+RUN apt-get update -y && apt-get install -y tzdata && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
 WORKDIR /app
 
 COPY --from=build /app/das-database /app/das-database
