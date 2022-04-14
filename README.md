@@ -12,9 +12,12 @@ A block parser tool that allows extraction of various data types on DAS
 # get the code
 git clone https://github.com/DeAccountSystems/das-database.git
 
-# edit config/config.yaml before init mysql database
+# init config/config.yaml
+cp config/config.example.yaml config/config.yaml
+ 
+# create mysql database
 mysql -uroot -p
-> source das-database/dao/das_database.sql
+> create database das_database;
 > quit;
 
 # compile and run
@@ -23,6 +26,20 @@ make parser
 ./das_database_server --config=config/config.yaml
 # it will take about 3 hours to synchronize to the latest data(Dec 6, 2021)
 ```
+
+## Docker Build
+```bash
+# get the code, init config/config.yaml and create mysql database
+...
+
+# compile and run
+docker build --tag das-database .
+docker run -dp 9090:9090 --name das-database-server das-database
+
+# remove dangling images 
+docker system prune 
+```
+
 ## Usage
 ```sql
 select * from das_database.t_account_info limit 10;

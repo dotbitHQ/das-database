@@ -16,14 +16,14 @@ RUN go build -ldflags -s -v -o das-database cmd/main.go
 ##
 FROM ubuntu
 
-ENV TZ=Asia/Shanghai \
-    DEBIAN_FRONTEND=noninteractive
+ARG TZ=Asia/Shanghai
 
-RUN apt-get update \
+RUN export DEBIAN_FRONTEND=noninteractive \
+    && apt-get update \
     && apt-get install -y tzdata \
     && ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
-    && dpkg-reconfigure --frontend noninteractive tzdata \
+    && dpkg-reconfigure tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
