@@ -63,10 +63,12 @@ func Initialize(db *gorm.DB, logMode, isUpdate bool) (*DbDao, error) {
 				tokenList = append(tokenList, tokenInfo)
 			}
 		}
-		if err := db.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"chain_type", "name", "symbol", "decimals", "logo"}),
-		}).Create(&tokenList).Error; err != nil {
-			return nil, err
+		if len(tokenList) > 0 {
+			if err := db.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{"chain_type", "name", "symbol", "decimals", "logo"}),
+			}).Create(&tokenList).Error; err != nil {
+				return nil, err
+			}
 		}
 	}
 
