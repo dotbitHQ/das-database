@@ -31,44 +31,42 @@ func NewGormDataBase(addr, user, password, dbName string, maxOpenConn, maxIdleCo
 	return db, nil
 }
 
-func Initialize(db *gorm.DB, logMode, isUpdate bool) (*DbDao, error) {
+func Initialize(db *gorm.DB, logMode bool) (*DbDao, error) {
 	if logMode {
 		db = db.Debug()
 	}
 
-	if isUpdate {
-		// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes.
-		// It will change existing column’s type if its size, precision, nullable changed.
-		// It WON’T delete unused columns to protect your data.
-		if err := db.AutoMigrate(
-			&TableAccountInfo{},
-			&TableBlockInfo{},
-			&TableIncomeCellInfo{},
-			&TableOfferInfo{},
-			&TableRebateInfo{},
-			&TableRecordsInfo{},
-			&TableReverseInfo{},
-			&TableSmtInfo{},
-			&TableTokenPriceInfo{},
-			&TableTradeDealInfo{},
-			&TableTradeInfo{},
-			&TableTransactionInfo{},
-		); err != nil {
-			return nil, err
-		}
+	// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes.
+	// It will change existing column’s type if its size, precision, nullable changed.
+	// It WON’T delete unused columns to protect your data.
+	if err := db.AutoMigrate(
+		&TableAccountInfo{},
+		&TableBlockInfo{},
+		&TableIncomeCellInfo{},
+		&TableOfferInfo{},
+		&TableRebateInfo{},
+		&TableRecordsInfo{},
+		&TableReverseInfo{},
+		&TableSmtInfo{},
+		&TableTokenPriceInfo{},
+		&TableTradeDealInfo{},
+		&TableTradeInfo{},
+		&TableTransactionInfo{},
+	); err != nil {
+		return nil, err
+	}
 
-		var tokenList []TableTokenPriceInfo
-		for _, v := range config.Cfg.GeckoIds {
-			if tokenInfo, ok := geckoIds[v]; ok {
-				tokenList = append(tokenList, tokenInfo)
-			}
+	var tokenList []TableTokenPriceInfo
+	for _, v := range config.Cfg.GeckoIds {
+		if tokenInfo, ok := geckoIds[v]; ok {
+			tokenList = append(tokenList, tokenInfo)
 		}
-		if len(tokenList) > 0 {
-			if err := db.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{"chain_type", "name", "symbol", "decimals", "logo"}),
-			}).Create(&tokenList).Error; err != nil {
-				return nil, err
-			}
+	}
+	if len(tokenList) > 0 {
+		if err := db.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{"chain_type", "name", "symbol", "decimals", "logo"}),
+		}).Create(&tokenList).Error; err != nil {
+			return nil, err
 		}
 	}
 

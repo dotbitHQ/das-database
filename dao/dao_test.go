@@ -16,7 +16,7 @@ func getInit() (*DbDao, error) {
 	if err != nil {
 		return nil, fmt.Errorf("NewGormDataBase err:%s", err.Error())
 	}
-	dbDao, err := Initialize(db, cfgMysql.LogMode, config.Cfg.Server.IsUpdate)
+	dbDao, err := Initialize(db, cfgMysql.LogMode)
 	if err != nil {
 		return nil, fmt.Errorf("Initialize err:%s ", err.Error())
 	}
