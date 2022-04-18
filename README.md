@@ -35,7 +35,7 @@ make parser
 # compile and run
 cd das-database
 docker build --tag das-database .
-docker run -dp 9090:9090 --name das-database-server das-database
+docker run -dp 9090:9090 --name das-database-server --restart=always das-database
 
 # remove dangling images 
 docker system prune 
