@@ -20,6 +20,7 @@ ARG TZ=Asia/Shanghai
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
+    && apt-get install -y ca-certificates \
     && apt-get install -y tzdata \
     && ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime \
     && echo ${TZ} > /etc/timezone \
