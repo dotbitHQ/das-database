@@ -8,19 +8,9 @@ import (
 	"github.com/scorpiotzh/toolib"
 )
 
-func (b *BlockParser) ActionTransferBalance(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	log.Info("ActionTransferBalance:", req.BlockNumber, req.TxHash)
-	resp = b.actionTransferParser(req, dao.DasActionTransferBalance, dao.ServiceTypeTransaction)
-	return
-}
+func (b *BlockParser) ActionTransferParser(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	log.Info("ActionTransferParser:", req.BlockNumber, req.TxHash, req.Action)
 
-func (b *BlockParser) ActionOrderRefund(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	log.Info("ActionOrderRefund:", req.BlockNumber, req.TxHash)
-	resp = b.actionTransferParser(req, dao.DasActionOrderRefund, dao.ServiceTypeRegister)
-	return
-}
-
-func (b *BlockParser) actionTransferParser(req FuncTransactionHandleReq, action string, serviceType int) (resp FuncTransactionHandleResp) {
 	dasLock, err := core.GetDasContractInfo(common.DasContractNameDispatchCellType)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
@@ -32,20 +22,23 @@ func (b *BlockParser) actionTransferParser(req FuncTransactionHandleReq, action 
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 		return
 	}
+	serviceType := dao.ServiceTypeRegister
+	if req.Action == dao.DasActionTransferBalance {
+		serviceType = dao.ServiceTypeTransaction
+	}
 
 	var transactionInfos []dao.TableTransactionInfo
 	for i, v := range req.Tx.Outputs {
 		if v.Lock.CodeHash.Hex() != dasLock.ContractTypeId.Hex() {
 			continue
 		}
-		if v.Type != nil && v.Type.CodeHash.Hex() != dasBalance.ContractTypeId.Hex() {
+		if req.Action == dao.DasActionTransferBalance && v.Type != nil && v.Type.CodeHash.Hex() != dasBalance.ContractTypeId.Hex() {
 			continue
 		}
-
 		_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(v.Lock.Args)
 		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
-			Action:         action,
+			Action:         req.Action,
 			ServiceType:    serviceType,
 			ChainType:      oCT,
 			Address:        oA,

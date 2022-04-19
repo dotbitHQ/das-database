@@ -41,6 +41,7 @@ const (
 	DasActionEditOfferAdd    = "offer_edit_add"
 	DasActionEditOfferSub    = "offer_edit_sub"
 	DasActionOrderRefund     = "order_refund"
+	DasActionBalanceDeposit  = "balance_deposit"
 )
 
 func (d *DbDao) CreateTransactionInfo(transactionInfo TableTransactionInfo) error {
