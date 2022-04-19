@@ -32,6 +32,6 @@ WORKDIR /app
 COPY --from=build /app/das-database /app/das-database
 COPY --from=build /app/config/config.yaml /app/config/config.yaml
 
-EXPOSE 9090
+EXPOSE 8118 9118
 
 ENTRYPOINT ["/app/das-database", "--config", "/app/config/config.yaml"]
