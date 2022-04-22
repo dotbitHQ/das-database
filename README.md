@@ -27,18 +27,13 @@ make parser
 # it will take about 3 hours to synchronize to the latest data(Dec 6, 2021)
 ```
 
-## Docker Build
+## Docker Install
 ```bash
-# get the code, init config/config.yaml and create mysql database
-...
+# if you already have a mysql database installed, just run
+docker run -dp 8118:8118 -v $PWD/config/config.yaml:/app/config/config.yaml --name bit-database-server slagga/bit-database
 
-# compile and run
-cd das-database
-docker build --tag das-database .
-docker run -dp 8118:8118 --name das-database-server --restart=always das-database
-
-# remove dangling images 
-docker system prune 
+# if not, you need docker-compose to automate the installation
+docker-compose up -d
 ```
 
 ## Usage
