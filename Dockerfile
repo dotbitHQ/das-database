@@ -31,6 +31,6 @@ WORKDIR /app
 COPY --from=build /app/bit-database /app/bit-database
 COPY --from=build /app/config/config.yaml /app/config/config.yaml
 
-EXPOSE 8118 9118
+EXPOSE 8118
 
 ENTRYPOINT ["/app/bit-database", "--config", "/app/config/config.yaml"]
