@@ -35,13 +35,17 @@ func (b *BlockParser) ActionTransferParser(req FuncTransactionHandleReq) (resp F
 		if req.Action == dao.DasActionTransferBalance && v.Type != nil && v.Type.CodeHash.Hex() != dasBalance.ContractTypeId.Hex() {
 			continue
 		}
-		_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(v.Lock.Args)
+		oldHex, _, err := b.dasCore.Daf().ArgsToHex(v.Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
 		transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
 			Action:         req.Action,
 			ServiceType:    serviceType,
-			ChainType:      oCT,
-			Address:        oA,
+			ChainType:      oldHex.ChainType,
+			Address:        oldHex.AddressHex,
 			Capacity:       v.Capacity,
 			Outpoint:       common.OutPoint2String(req.TxHash, uint(i)),
 			BlockTimestamp: req.BlockTimestamp,

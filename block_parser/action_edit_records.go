@@ -4,7 +4,6 @@ import (
 	"das_database/dao"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/scorpiotzh/toolib"
 	"strconv"
@@ -47,15 +46,20 @@ func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp Func
 		Account:     account,
 		AccountId:   accountId,
 	}
-	_, _, _, mCT, _, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[accBuilder.Index].Lock.Args)
+	_, mHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[accBuilder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionEditRecords,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      mCT,
-		Address:        mA,
+		ChainType:      mHex.ChainType,
+		Address:        mHex.AddressHex,
 		Capacity:       0,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		BlockTimestamp: req.BlockTimestamp,

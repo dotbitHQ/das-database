@@ -4,7 +4,6 @@ import (
 	"das_database/dao"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 )
 
 func (b *BlockParser) ActionRetractReverseRecord(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -29,15 +28,19 @@ func (b *BlockParser) ActionRetractReverseRecord(req FuncTransactionHandleReq) (
 		listOutpoint = append(listOutpoint, common.OutPointStruct2String(v.PreviousOutput))
 	}
 
-	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[0].Lock.Args)
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[0].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	txInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      "",
 		Account:        "",
 		Action:         common.DasActionRetractReverseRecord,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		Capacity:       req.Tx.OutputsCapacity(),
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,

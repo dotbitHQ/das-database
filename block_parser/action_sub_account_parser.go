@@ -26,7 +26,11 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:          req.BlockNumber,
@@ -41,8 +45,8 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		Account:        builder.Account,
 		Action:         common.DasActionEnableSubAccount,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		Capacity:       req.Tx.Outputs[1].Capacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
@@ -94,7 +98,11 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 	var smtInfos []dao.TableSmtInfo
 	var capacity uint64
 	for _, v := range builderMap {
-		oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(v.SubAccount.Lock.Args)
+		ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(v.SubAccount.Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
 
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
 			BlockNumber:          req.BlockNumber,
@@ -102,12 +110,12 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			AccountId:            v.SubAccount.AccountId,
 			ParentAccountId:      builder.AccountId,
 			Account:              v.Account,
-			OwnerChainType:       oCT,
-			Owner:                oA,
-			OwnerAlgorithmId:     oID,
-			ManagerChainType:     mCT,
-			Manager:              mA,
-			ManagerAlgorithmId:   mID,
+			OwnerChainType:       ownerHex.ChainType,
+			Owner:                ownerHex.AddressHex,
+			OwnerAlgorithmId:     ownerHex.DasAlgorithmId,
+			ManagerChainType:     managerHex.ChainType,
+			Manager:              managerHex.AddressHex,
+			ManagerAlgorithmId:   managerHex.DasAlgorithmId,
 			Status:               dao.AccountStatus(v.SubAccount.Status),
 			EnableSubAccount:     dao.EnableSubAccount(v.SubAccount.EnableSubAccount),
 			RenewSubAccountPrice: v.SubAccount.RenewSubAccountPrice,
@@ -131,21 +139,21 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 		return
 	}
-	dasBalance, err := core.GetDasContractInfo(common.DasContractNameBalanceCellType)
-	if err != nil {
-		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
-		return
-	}
+
 	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[2].PreviousOutput.TxHash)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
 		return
 	}
 	output := res.Transaction.Outputs[req.Tx.Inputs[2].PreviousOutput.Index]
-	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(output.Lock.Args)
-	if output.Lock.CodeHash.Hex() != dasLock.ContractTypeId.Hex() || output.Type == nil || output.Type.CodeHash.Hex() != dasBalance.ContractTypeId.Hex() {
-		oCT = 0
-		oA = common.Bytes2Hex(output.Lock.Args)
+	oCT, oA := common.ChainTypeCkb, common.Bytes2Hex(output.Lock.Args)
+	if dasLock.IsSameTypeId(output.Lock.CodeHash) {
+		tmpHex, _, err := b.dasCore.Daf().ArgsToHex(output.Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
+		oCT, oA = tmpHex.ChainType, tmpHex.AddressHex
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
@@ -192,7 +200,11 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 
 	var index uint
 	for _, builder := range builderMap {
-		_, _, chainType, _, address, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
+		ownerHex, _, err := b.dasCore.Daf().ArgsToHex(builder.SubAccount.Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
 		outpoint := common.OutPoint2String(req.TxHash, 0)
 
 		accountInfo := dao.TableAccountInfo{
@@ -213,8 +225,8 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 			Account:        builder.Account,
 			Action:         common.DasActionEditSubAccount,
 			ServiceType:    dao.ServiceTypeRegister,
-			ChainType:      chainType,
-			Address:        address,
+			ChainType:      ownerHex.ChainType,
+			Address:        ownerHex.AddressHex,
 			Capacity:       0,
 			Outpoint:       common.OutPoint2String(outpoint, index),
 			BlockTimestamp: req.BlockTimestamp,
@@ -228,23 +240,31 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 		}
 		switch string(builder.EditKey) {
 		case common.EditKeyOwner:
-			oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(common.Hex2Bytes(subAccount.LockArgs))
-			accountInfo.OwnerAlgorithmId = oID
-			accountInfo.OwnerChainType = oCT
-			accountInfo.Owner = oA
-			accountInfo.ManagerAlgorithmId = mID
-			accountInfo.ManagerChainType = mCT
-			accountInfo.Manager = mA
-			transactionInfo.ChainType = oCT
-			transactionInfo.Address = oA
+			oHex, mHex, err := b.dasCore.Daf().ArgsToHex(common.Hex2Bytes(subAccount.LockArgs))
+			if err != nil {
+				resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+				return
+			}
+			accountInfo.OwnerAlgorithmId = oHex.DasAlgorithmId
+			accountInfo.OwnerChainType = oHex.ChainType
+			accountInfo.Owner = oHex.AddressHex
+			accountInfo.ManagerAlgorithmId = mHex.DasAlgorithmId
+			accountInfo.ManagerChainType = mHex.ChainType
+			accountInfo.Manager = mHex.AddressHex
+			transactionInfo.ChainType = oHex.ChainType
+			transactionInfo.Address = oHex.AddressHex
 			if err = b.dbDao.EditOwnerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
 				resp.Err = fmt.Errorf("EditOwnerSubAccount err: %s", err.Error())
 			}
 		case common.EditKeyManager:
-			_, mID, _, mCT, _, mA := core.FormatDasLockToHexAddress(common.Hex2Bytes(subAccount.LockArgs))
-			accountInfo.ManagerAlgorithmId = mID
-			accountInfo.ManagerChainType = mCT
-			accountInfo.Manager = mA
+			_, mHex, err := b.dasCore.Daf().ArgsToHex(common.Hex2Bytes(subAccount.LockArgs))
+			if err != nil {
+				resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+				return
+			}
+			accountInfo.ManagerAlgorithmId = mHex.DasAlgorithmId
+			accountInfo.ManagerChainType = mHex.ChainType
+			accountInfo.Manager = mHex.AddressHex
 			if err = b.dbDao.EditManagerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
 				resp.Err = fmt.Errorf("EditManagerSubAccount err: %s", err.Error())
 			}
@@ -304,7 +324,11 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 	var transactionInfos []dao.TableTransactionInfo
 	var index uint
 	for _, builder := range builderMap {
-		_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
+		oHex, _, err := b.dasCore.Daf().ArgsToHex(builder.SubAccount.Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
 		outpoint := common.OutPoint2String(req.TxHash, 0)
 
 		accountInfo := dao.TableAccountInfo{
@@ -325,8 +349,8 @@ func (b *BlockParser) ActionRenewSubAccount(req FuncTransactionHandleReq) (resp 
 			Account:        builder.Account,
 			Action:         common.DasActionRenewSubAccount,
 			ServiceType:    dao.ServiceTypeRegister,
-			ChainType:      oCT,
-			Address:        oA,
+			ChainType:      oHex.ChainType,
+			Address:        oHex.AddressHex,
 			Outpoint:       common.OutPoint2String(outpoint, index),
 			BlockTimestamp: req.BlockTimestamp,
 		}
@@ -381,8 +405,11 @@ func (b *BlockParser) ActionRecycleSubAccount(req FuncTransactionHandleReq) (res
 			resp.Err = fmt.Errorf("not yet arrived expired time: %d", builder.SubAccount.ExpiredAt)
 			return
 		}
-
-		_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(builder.SubAccount.Lock.Args)
+		oHex, _, err := b.dasCore.Daf().ArgsToHex(builder.SubAccount.Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
 		outpoint := common.OutPoint2String(req.TxHash, 0)
 
 		accountIds = append(accountIds, builder.SubAccount.AccountId)
@@ -392,8 +419,8 @@ func (b *BlockParser) ActionRecycleSubAccount(req FuncTransactionHandleReq) (res
 			Account:        builder.Account,
 			Action:         common.DasActionRecycleSubAccount,
 			ServiceType:    dao.ServiceTypeRegister,
-			ChainType:      oCT,
-			Address:        oA,
+			ChainType:      oHex.ChainType,
+			Address:        oHex.AddressHex,
 			Capacity:       req.Tx.Outputs[0].Capacity,
 			Outpoint:       common.OutPoint2String(outpoint, index),
 			BlockTimestamp: req.BlockTimestamp,

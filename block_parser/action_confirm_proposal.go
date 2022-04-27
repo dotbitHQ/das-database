@@ -72,18 +72,22 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 	profitRateChannel, _ := configCell.ProfitRateChannel()
 
 	for _, v := range accMap {
-		oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[v.Index].Lock.Args)
+		ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[v.Index].Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
 			BlockNumber:         req.BlockNumber,
 			Outpoint:            common.OutPoint2String(req.TxHash, uint(v.Index)),
 			AccountId:           v.AccountId,
 			Account:             v.Account,
-			OwnerChainType:      oCT,
-			Owner:               oA,
-			OwnerAlgorithmId:    oID,
-			ManagerChainType:    mCT,
-			Manager:             mA,
-			ManagerAlgorithmId:  mID,
+			OwnerChainType:      ownerHex.ChainType,
+			Owner:               ownerHex.AddressHex,
+			OwnerAlgorithmId:    ownerHex.DasAlgorithmId,
+			ManagerChainType:    managerHex.ChainType,
+			Manager:             managerHex.AddressHex,
+			ManagerAlgorithmId:  managerHex.DasAlgorithmId,
 			Status:              dao.AccountStatus(v.Status),
 			RegisteredAt:        v.RegisteredAt,
 			ExpiredAt:           v.ExpiredAt,
@@ -103,15 +107,19 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				Account:        v.Account,
 				Action:         common.DasActionConfirmProposal,
 				ServiceType:    dao.ServiceTypeRegister,
-				ChainType:      oCT,
-				Address:        oA,
+				ChainType:      ownerHex.ChainType,
+				Address:        ownerHex.AddressHex,
 				Capacity:       req.Tx.Outputs[v.Index].Capacity,
 				Outpoint:       common.OutPoint2String(req.TxHash, uint(v.Index)),
 				BlockTimestamp: req.BlockTimestamp,
 			})
 
 			argsStr, _ := preAcc.OwnerLockArgsStr()
-			_, _, inviteeOCT, _, inviteeOA, _ := core.FormatDasLockToHexAddress(common.Hex2Bytes(argsStr))
+			inviteeHex, _, err := b.dasCore.Daf().ArgsToHex(common.Hex2Bytes(argsStr))
+			if err != nil {
+				resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+				return
+			}
 			inviterId, _ := preAcc.InviterId()
 			accLen := uint64(len([]byte(preAcc.Account))) * common.OneCkb
 
@@ -127,23 +135,27 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				tmp := molecule.ScriptDefault()
 				inviterLock = &tmp
 			}
-			_, _, inviterOCT, _, inviterOA, _ := core.FormatDasLockToHexAddress(inviterLock.Args().RawData())
+			inviterHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(inviterLock))
+			if err != nil {
+				resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
+				return
+			}
 			inviteeId := common.Bytes2Hex(common.GetAccountIdByAccount(preAcc.Account))
 			rebateInfos = append(rebateInfos, dao.TableRebateInfo{
 				BlockNumber:      req.BlockNumber,
 				Outpoint:         common.OutPoint2String(req.TxHash, uint(v.Index)),
 				InviteeId:        inviteeId,
 				InviteeAccount:   preAcc.Account,
-				InviteeChainType: inviteeOCT,
-				InviteeAddress:   inviteeOA,
+				InviteeChainType: inviteeHex.ChainType,
+				InviteeAddress:   inviteeHex.AddressHex,
 				RewardType:       dao.RewardTypeInviter,
 				Reward:           capacity.Div(decimal.NewFromInt(common.PercentRateBase)).Mul(decimal.NewFromInt(int64(profitRateInviter))).BigInt().Uint64(),
 				Action:           common.DasActionConfirmProposal,
 				ServiceType:      dao.ServiceTypeRegister,
 				InviterArgs:      common.Bytes2Hex(inviterLock.Args().RawData()),
 				InviterId:        inviterId,
-				InviterChainType: inviterOCT,
-				InviterAddress:   inviterOA,
+				InviterChainType: inviterHex.ChainType,
+				InviterAddress:   inviterHex.AddressHex,
 				BlockTimestamp:   req.BlockTimestamp,
 			})
 
@@ -153,21 +165,25 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				tmp := molecule.ScriptDefault()
 				channelLock = &tmp
 			}
-			_, _, channelOCT, _, channelOA, _ := core.FormatDasLockToHexAddress(channelLock.Args().RawData())
+			channelHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(channelLock))
+			if err != nil {
+				resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
+				return
+			}
 			rebateInfos = append(rebateInfos, dao.TableRebateInfo{
 				BlockNumber:      req.BlockNumber,
 				Outpoint:         common.OutPoint2String(req.TxHash, uint(v.Index)),
 				InviteeId:        inviteeId,
 				InviteeAccount:   preAcc.Account,
-				InviteeChainType: inviteeOCT,
-				InviteeAddress:   inviteeOA,
+				InviteeChainType: inviteeHex.ChainType,
+				InviteeAddress:   inviteeHex.AddressHex,
 				RewardType:       dao.RewardTypeChannel,
 				Reward:           capacity.Div(decimal.NewFromInt(common.PercentRateBase)).Mul(decimal.NewFromInt(int64(profitRateChannel))).BigInt().Uint64(),
 				Action:           common.DasActionConfirmProposal,
 				ServiceType:      dao.ServiceTypeRegister,
 				InviterArgs:      common.Bytes2Hex(channelLock.Args().RawData()),
-				InviterChainType: channelOCT,
-				InviterAddress:   channelOA,
+				InviterChainType: channelHex.ChainType,
+				InviterAddress:   channelHex.AddressHex,
 				BlockTimestamp:   req.BlockTimestamp,
 			})
 		}
