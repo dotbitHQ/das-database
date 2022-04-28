@@ -201,6 +201,10 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 	if err != nil {
 		return list, fmt.Errorf("ScriptToHex err: %s", err.Error())
 	}
+	channelHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(channelScript))
+	if err != nil {
+		return list, fmt.Errorf("ScriptToHex err: %s", err.Error())
+	}
 	inviteeId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	list = append(list, dao.TableRebateInfo{
 		BlockNumber:      req.BlockNumber,
@@ -219,10 +223,7 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		InviterAddress:   inviterHex.AddressHex,
 		BlockTimestamp:   req.BlockTimestamp,
 	})
-	channelHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(channelScript))
-	if err != nil {
-		return list, fmt.Errorf("ScriptToHex err: %s", err.Error())
-	}
+
 	list = append(list, dao.TableRebateInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, 0),
