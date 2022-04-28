@@ -283,6 +283,10 @@ func (d *DasAddressFormat) halfArgsToHex(args []byte) (r DasAddressHex, e error)
 }
 
 func (d *DasAddressFormat) ScriptToHex(s *types.Script) (ownerHex, managerHex DasAddressHex, e error) {
+	if s == nil {
+		e = fmt.Errorf("script is nil")
+		return
+	}
 	contractDispatch, err := GetDasContractInfo(common.DasContractNameDispatchCellType)
 	if err != nil {
 		e = fmt.Errorf("GetDasContractInfo err: %s", err.Error())

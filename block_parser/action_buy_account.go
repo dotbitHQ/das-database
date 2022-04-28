@@ -122,7 +122,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		BlockTimestamp: req.BlockTimestamp,
 	}
 	for i := 1; i < len(req.Tx.Outputs); i++ {
-		ownerHex, _, err = b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[i].Lock.Args)
+		ownerHex, _, err = b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[i].Lock)
 		if err != nil {
 			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 			return
