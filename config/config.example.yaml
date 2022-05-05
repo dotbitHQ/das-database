@@ -15,7 +15,7 @@ db:
     addr: "127.0.0.1" # 172.17.0.1: docker 182.17.0.1: docker-compose
     user: "root"
     password: "123456"
-    db_name: "bit_database"
+    db_name: "das_database"
     max_open_conn: 100
     max_idle_conn: 50
 gecko_ids:

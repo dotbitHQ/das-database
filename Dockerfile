@@ -9,7 +9,7 @@ WORKDIR /app
 
 COPY . ./
 
-RUN go build -ldflags -s -v -o bit-database cmd/main.go
+RUN go build -ldflags -s -v -o das-database cmd/main.go
 
 ##
 ## Deploy
@@ -28,9 +28,9 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /app
 
-COPY --from=build /app/bit-database /app/bit-database
+COPY --from=build /app/das-database /app/das-database
 COPY --from=build /app/config/config.yaml /app/config/config.yaml
 
 EXPOSE 8118
 
-ENTRYPOINT ["/app/bit-database", "--config", "/app/config/config.yaml"]
+ENTRYPOINT ["/app/das-database", "--config", "/app/config/config.yaml"]

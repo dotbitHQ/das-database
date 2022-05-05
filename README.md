@@ -28,11 +28,20 @@ make parser
 ```
 
 ## Docker Install
-```bash
-# if you already have a mysql database installed, just run
-docker run -dp 8118:8118 -v $PWD/config/config.yaml:/app/config/config.yaml --name bit-database-server slagga/bit-database
+* docker >= 20.10
+* docker-compose >= 2.2.2
 
-# if not, you need docker-compose to automate the installation
+if you already have a mysql database installed, just run
+```bash
+docker run -dp 8118:8118 -v $PWD/config/config.yaml:/app/config/config.yaml --name das-database-server slagga/das-database
+```
+
+if not, you need docker-compose to automate the installation
+```bash
+curl -SL https://github.com/docker/compose/releases/download/v2.2.2/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+
 docker-compose up -d
 ```
 
