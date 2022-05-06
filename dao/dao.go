@@ -81,7 +81,7 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "Nervos Network",
 		Symbol:    "CKB",
 		Decimals:  8,
-		Logo:      "https://app.da.systems/images/components/portal-wallet.svg",
+		Logo:      "https://app.did.id/images/components/portal-wallet.svg",
 	},
 	"ethereum": {
 		TokenId:   "eth_eth",
@@ -90,7 +90,7 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "Ethereum",
 		Symbol:    "ETH",
 		Decimals:  18,
-		Logo:      "https://app.da.systems/images/components/ethereum.svg",
+		Logo:      "https://app.did.id/images/components/ethereum.svg",
 	},
 	"bitcoin": {
 		TokenId:   "btc_btc",
@@ -99,7 +99,7 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "Bitcoin",
 		Symbol:    "BTC",
 		Decimals:  8,
-		Logo:      "https://app.da.systems/images/components/bitcoin.svg",
+		Logo:      "https://app.did.id/images/components/bitcoin.svg",
 	},
 	"tron": {
 		TokenId:   "tron_trx",
@@ -108,7 +108,7 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "TRON",
 		Symbol:    "TRX",
 		Decimals:  6,
-		Logo:      "https://app.da.systems/images/components/tron.svg",
+		Logo:      "https://app.did.id/images/components/tron.svg",
 	},
 	"_wx_cny_": {
 		TokenId:   "wx_cny",
@@ -117,7 +117,7 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "WeChat Pay",
 		Symbol:    "¥",
 		Decimals:  2,
-		Logo:      "https://app.da.systems/images/components/wechat_pay.png",
+		Logo:      "https://app.did.id/images/components/wechat_pay.png",
 	},
 	"binancecoin": {
 		TokenId:   "bsc_bnb",
@@ -126,7 +126,7 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "Binance",
 		Symbol:    "BNB",
 		Decimals:  18,
-		Logo:      "https://app.da.systems/images/components/binance-smart-chain.svg",
+		Logo:      "https://app.did.id/images/components/binance-smart-chain.svg",
 	},
 	"matic-network": {
 		TokenId:   "polygon_matic",
@@ -135,6 +135,6 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Name:      "Polygon",
 		Symbol:    "MATIC",
 		Decimals:  18,
-		Logo:      "https://app.da.systems/images/components/polygon.svg",
+		Logo:      "https://app.did.id/images/components/polygon.svg",
 	},
 }
