@@ -7,7 +7,9 @@ A block parser tool that allows extraction of various data types on DAS
 * go version >= 1.15.0
 
 
-## Install
+## Install & Run
+
+### Source Compile
 ```bash
 # get the code
 git clone https://github.com/DeAccountSystems/das-database.git
@@ -27,22 +29,21 @@ make parser
 # it will take about 3 hours to synchronize to the latest data(Dec 6, 2021)
 ```
 
-## Docker Install
+### Docker
 * docker >= 20.10
 * docker-compose >= 2.2.2
 
-if you already have a mysql database installed, just run
+
 ```bash
-docker run -dp 8118:8118 -v $PWD/config/config.yaml:/app/config/config.yaml --name das-database-server slagga/das-database
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.2.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+docker-compose up -d
 ```
 
-if not, you need docker-compose to automate the installation
+_if you already have a mysql installed, just run_
 ```bash
-curl -SL https://github.com/docker/compose/releases/download/v2.2.2/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-
-sudo chmod +x /usr/local/bin/docker-compose
-
-docker-compose up -d
+docker run -dp 8118:8118 -v $PWD/config/config.yaml:/app/config/config.yaml --name das-database-server slagga/das-database
 ```
 
 ## Usage
