@@ -5,7 +5,6 @@ import (
 	"das_database/timer"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 )
 
@@ -30,31 +29,41 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[accBuilder.Index].Lock.Args)
+	ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[accBuilder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		AccountId:          accBuilder.AccountId,
 		Account:            accBuilder.Account,
 		Status:             dao.AccountStatusOnSale,
-		OwnerAlgorithmId:   oID,
-		OwnerChainType:     oCT,
-		Owner:              oA,
-		ManagerAlgorithmId: mID,
-		ManagerChainType:   mCT,
-		Manager:            mA,
+		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
+		OwnerChainType:     ownerHex.ChainType,
+		Owner:              ownerHex.AddressHex,
+		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerChainType:   managerHex.ChainType,
+		Manager:            managerHex.AddressHex,
 	}
 	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
 	priceUsd := tokenInfo.GetPriceUsd(builder.Price)
-	oID, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
+
+	ownerHex, _, err = b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+
 	tradeInfo := dao.TableTradeInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		AccountId:        accountInfo.AccountId,
 		Account:          accountInfo.Account,
-		OwnerAlgorithmId: oID,
-		OwnerChainType:   oCT,
-		OwnerAddress:     oA,
+		OwnerAlgorithmId: ownerHex.DasAlgorithmId,
+		OwnerChainType:   ownerHex.ChainType,
+		OwnerAddress:     ownerHex.AddressHex,
 		Description:      builder.Description,
 		StartedAt:        builder.StartedAt * 1e3,
 		PriceCkb:         builder.Price,

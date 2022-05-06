@@ -4,7 +4,6 @@ import (
 	"das_database/dao"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/scorpiotzh/toolib"
 	"strconv"
@@ -29,7 +28,11 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 	account := builder.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 
-	oID, mID, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[builder.Index].Lock.Args)
+	oHex, mHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	oldBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
 	if err != nil {
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
@@ -41,15 +44,19 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		return
 	}
 
-	_, _, oldChainType, _, oldAddress, _ := core.FormatDasLockToHexAddress(res.Transaction.Outputs[oldBuilder.Index].Lock.Args)
+	oldHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[oldBuilder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionTransferAccount,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oldChainType,
-		Address:        oldAddress,
+		ChainType:      oldHex.ChainType,
+		Address:        oldHex.AddressHex,
 		Capacity:       0,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		BlockTimestamp: req.BlockTimestamp,
@@ -59,12 +66,12 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		AccountId:          accountId,
 		Account:            account,
-		OwnerChainType:     oCT,
-		Owner:              oA,
-		OwnerAlgorithmId:   oID,
-		ManagerChainType:   mCT,
-		Manager:            mA,
-		ManagerAlgorithmId: mID,
+		OwnerChainType:     oHex.ChainType,
+		Owner:              oHex.AddressHex,
+		OwnerAlgorithmId:   oHex.DasAlgorithmId,
+		ManagerChainType:   mHex.ChainType,
+		Manager:            mHex.AddressHex,
+		ManagerAlgorithmId: mHex.DasAlgorithmId,
 	}
 	var recordsInfos []dao.TableRecordsInfo
 	recordList := builder.RecordList()
@@ -80,7 +87,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		})
 	}
 
-	log.Info("ActionTransferAccount:", account, oID, mID, oCT, mCT, oA, mA, transactionInfo.Address)
+	log.Info("ActionTransferAccount:", account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex, mHex.DasAlgorithmId, mHex.ChainType, mHex.AddressHex, transactionInfo.Address)
 
 	if err := b.dbDao.TransferAccount(accountInfo, transactionInfo, recordsInfos); err != nil {
 		log.Error("TransferAccount err:", err.Error(), toolib.JsonString(transactionInfo))

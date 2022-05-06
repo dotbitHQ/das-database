@@ -4,7 +4,6 @@ import (
 	"das_database/dao"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/scorpiotzh/toolib"
 )
@@ -27,15 +26,19 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 	}
 	account := accBuilder.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
-	_, mId, oCT, mCT, oA, mA := core.FormatDasLockToHexAddress(req.Tx.Outputs[accBuilder.Index].Lock.Args)
+	ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[accBuilder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      accountId,
 		Account:        account,
 		Action:         common.DasActionEditManager,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		Capacity:       0,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		BlockTimestamp: req.BlockTimestamp,
@@ -45,12 +48,12 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		Account:            account,
 		AccountId:          accountId,
-		ManagerChainType:   mCT,
-		Manager:            mA,
-		ManagerAlgorithmId: mId,
+		ManagerChainType:   managerHex.ChainType,
+		Manager:            managerHex.AddressHex,
+		ManagerAlgorithmId: managerHex.DasAlgorithmId,
 	}
 
-	log.Info("ActionEditManager:", account, mId, mCT, mA, transactionInfo.Address)
+	log.Info("ActionEditManager:", account, managerHex.DasAlgorithmId, managerHex.ChainType, managerHex.AddressHex, transactionInfo.Address)
 
 	if err := b.dbDao.EditManager(accountInfo, transactionInfo); err != nil {
 		log.Error("EditManager err:", err.Error(), toolib.JsonString(transactionInfo))

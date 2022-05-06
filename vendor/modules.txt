@@ -1,6 +1,6 @@
 # github.com/Andrew-M-C/go.emoji v0.0.0-20211011074904-61cf526972e1
 github.com/Andrew-M-C/go.emoji/official
-# github.com/DeAccountSystems/das-lib v0.0.0-20220415024942-667e80949392
+# github.com/DeAccountSystems/das-lib v0.0.0-20220429063041-801789fefc99
 ## explicit
 github.com/DeAccountSystems/das-lib/common
 github.com/DeAccountSystems/das-lib/core
@@ -16,13 +16,13 @@ github.com/StackExchange/wmi
 github.com/btcsuite/btcutil/base58
 # github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d
 github.com/cpuguy83/go-md2man/v2/md2man
-# github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea
+# github.com/deckarep/golang-set v1.8.0
 github.com/deckarep/golang-set
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
 # github.com/elazarl/goproxy v0.0.0-20220403042543-a53172b9392e
 ## explicit
-# github.com/ethereum/go-ethereum v1.10.13
+# github.com/ethereum/go-ethereum v1.10.17
 ## explicit
 github.com/ethereum/go-ethereum/common
 github.com/ethereum/go-ethereum/common/hexutil

@@ -38,13 +38,17 @@ func (b *BlockParser) ActionWithdrawFromWallet(req FuncTransactionHandleReq) (re
 		return
 	}
 
-	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(cellOutput.Lock.Args)
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(cellOutput.Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	tx := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		Action:         common.DasActionWithdrawFromWallet,
 		ServiceType:    dao.ServiceTypeTransaction,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      oHex.ChainType,
+		Address:        oHex.AddressHex,
 		Capacity:       req.Tx.Outputs[0].Capacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,

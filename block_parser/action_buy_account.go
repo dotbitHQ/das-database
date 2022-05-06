@@ -75,18 +75,22 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		return
 	}
 
-	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
+	ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[0].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		AccountId:          accountId,
 		Account:            account,
-		OwnerChainType:     oCT,
-		Owner:              oA,
-		OwnerAlgorithmId:   oID,
-		ManagerChainType:   oCT,
-		Manager:            oA,
-		ManagerAlgorithmId: oID,
+		OwnerChainType:     ownerHex.ChainType,
+		Owner:              ownerHex.AddressHex,
+		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
+		ManagerChainType:   managerHex.ChainType,
+		Manager:            managerHex.AddressHex,
+		ManagerAlgorithmId: managerHex.DasAlgorithmId,
 		Status:             dao.AccountStatusNormal,
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{
@@ -95,27 +99,35 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		Account:        account,
 		Action:         common.DasActionBuyAccount,
 		ServiceType:    dao.ServiceTypeTransaction,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		Capacity:       builder.Price,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
+	ownerHex, _, err = b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 	transactionInfoSale := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      accountId,
 		Account:        account,
 		Action:         dao.DasActionSaleAccount,
 		ServiceType:    dao.ServiceTypeTransaction,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
 	}
 	for i := 1; i < len(req.Tx.Outputs); i++ {
-		_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(req.Tx.Outputs[i].Lock.Args)
-		if transactionInfoSale.ChainType == oCT && strings.EqualFold(transactionInfoSale.Address, oA) {
+		ownerHex, _, err = b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[i].Lock)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
+		if transactionInfoSale.ChainType == ownerHex.ChainType && strings.EqualFold(transactionInfoSale.Address, ownerHex.AddressHex) {
 			transactionInfoSale.Capacity = req.Tx.Outputs[i].Capacity
 			break
 		}
@@ -185,10 +197,13 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		tmp := molecule.ScriptDefault()
 		channelScript = &tmp
 	}
-	_, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(inviterScript.Args().RawData())
-	if oA == "" {
-		oCT = common.ChainTypeCkb
-		oA = common.Bytes2Hex(inviterScript.Args().RawData())
+	inviterHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(inviterScript))
+	if err != nil {
+		return list, fmt.Errorf("ScriptToHex err: %s", err.Error())
+	}
+	channelHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(channelScript))
+	if err != nil {
+		return list, fmt.Errorf("ScriptToHex err: %s", err.Error())
 	}
 	inviteeId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	list = append(list, dao.TableRebateInfo{
@@ -204,15 +219,11 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		ServiceType:      dao.ServiceTypeTransaction,
 		InviterArgs:      common.Bytes2Hex(inviterScript.Args().RawData()),
 		InviterAccount:   "",
-		InviterChainType: oCT,
-		InviterAddress:   oA,
+		InviterChainType: inviterHex.ChainType,
+		InviterAddress:   inviterHex.AddressHex,
 		BlockTimestamp:   req.BlockTimestamp,
 	})
-	_, _, oCT, _, oA, _ = core.FormatDasLockToHexAddress(channelScript.Args().RawData())
-	if oA == "" {
-		oCT = common.ChainTypeCkb
-		oA = common.Bytes2Hex(channelScript.Args().RawData())
-	}
+
 	list = append(list, dao.TableRebateInfo{
 		BlockNumber:      req.BlockNumber,
 		Outpoint:         common.OutPoint2String(req.TxHash, 0),
@@ -226,8 +237,8 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		ServiceType:      dao.ServiceTypeTransaction,
 		InviterArgs:      common.Bytes2Hex(channelScript.Args().RawData()),
 		InviterAccount:   "",
-		InviterChainType: oCT,
-		InviterAddress:   oA,
+		InviterChainType: channelHex.ChainType,
+		InviterAddress:   channelHex.AddressHex,
 		BlockTimestamp:   req.BlockTimestamp,
 	})
 	return list, nil

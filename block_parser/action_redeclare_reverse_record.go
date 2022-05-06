@@ -4,7 +4,6 @@ import (
 	"das_database/dao"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	"github.com/DeAccountSystems/das-lib/core"
 )
 
 func (b *BlockParser) ActionRedeclareReverseRecord(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -20,16 +19,21 @@ func (b *BlockParser) ActionRedeclareReverseRecord(req FuncTransactionHandleReq)
 
 	lastOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
 	account := string(req.Tx.OutputsData[0])
-	oID, _, oCT, _, oA, _ := core.FormatDasLockToHexAddress(req.Tx.Outputs[0].Lock.Args)
+
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[0].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	reverseInfo := dao.TableReverseInfo{
 		BlockNumber:    req.BlockNumber,
 		BlockTimestamp: req.BlockTimestamp,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
-		AlgorithmId:    oID,
-		ChainType:      oCT,
-		Address:        oA,
+		AlgorithmId:    ownerHex.DasAlgorithmId,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		AccountId:      accountId,
 		Account:        account,
 		Capacity:       req.Tx.Outputs[0].Capacity,
@@ -41,8 +45,8 @@ func (b *BlockParser) ActionRedeclareReverseRecord(req FuncTransactionHandleReq)
 		Account:        account,
 		Action:         common.DasActionRedeclareReverseRecord,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		Capacity:       req.Tx.Outputs[0].Capacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
