@@ -5,6 +5,8 @@ A block parser tool that allows extraction of various data types on DAS
 * Ubuntu 18.04 or newer
 * MYSQL >= 8.0
 * go version >= 1.15.0
+* [ckb-node](https://github.com/nervosnetwork/ckb) (latest)
+* [ckb-indexer](https://github.com/nervosnetwork/ckb-indexer) (latest)
 
 
 ## Install & Run
