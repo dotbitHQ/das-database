@@ -39,6 +39,7 @@ const (
 	AccountStatusNormal          AccountStatus = 0
 	AccountStatusOnSale          AccountStatus = 1
 	AccountStatusOnAuction       AccountStatus = 2
+	AccountStatusOnLock          AccountStatus = 3
 
 	AccountEnableStatusOff EnableSubAccount = 0
 	AccountEnableStatusOn  EnableSubAccount = 1
@@ -168,6 +169,34 @@ func (d *DbDao) EnableSubAccount(accountInfo TableAccountInfo, transactionInfo T
 			}),
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint",
+			"owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id", "status").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		if transactionInfo.Action == common.DasActionLockAccountForCrossChain {
+			if err := tx.Where("account_id = ?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil
