@@ -35,11 +35,10 @@ type AccountStatus int
 type EnableSubAccount int
 
 const (
-	AccountStatusNotOpenRegister AccountStatus = -1
-	AccountStatusNormal          AccountStatus = 0
-	AccountStatusOnSale          AccountStatus = 1
-	AccountStatusOnAuction       AccountStatus = 2
-	AccountStatusOnLock          AccountStatus = 3
+	AccountStatusNormal    AccountStatus = 0
+	AccountStatusOnSale    AccountStatus = 1
+	AccountStatusOnAuction AccountStatus = 2
+	AccountStatusOnLock    AccountStatus = 3
 
 	AccountEnableStatusOff EnableSubAccount = 0
 	AccountEnableStatusOn  EnableSubAccount = 1
