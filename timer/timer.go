@@ -11,7 +11,7 @@ import (
 
 var log = mylog.NewLogger("timer", mylog.LevelDebug)
 
-// ParserTimer 业务定时器
+// ParserTimer
 type ParserTimer struct {
 	dbDao     *dao.DbDao
 	ctx       context.Context

@@ -57,3 +57,7 @@ func TestGetTokenPrice(t *testing.T) {
 		fmt.Println(dec.String())
 	}
 }
+
+func TestGetTokenPriceBinance(t *testing.T) {
+	fmt.Println(GetTokenPriceNew(nil))
+}

@@ -29,7 +29,6 @@ type GeckoTokenInfo struct {
 	LastUpdatedAt int64           `json:"last_updated_at"`
 }
 
-// 批量获取壁虎代币价格信息
 func GetTokenPrice(ids []string) ([]GeckoTokenInfo, error) {
 	idsStr := strings.Join(ids, ",")
 	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd,cny", idsStr)
@@ -50,7 +49,6 @@ func GetTokenPrice(ids []string) ([]GeckoTokenInfo, error) {
 	return list, nil
 }
 
-// 价格信息转换
 func mapToList(res map[string]map[string]interface{}) []GeckoTokenInfo {
 	list := make([]GeckoTokenInfo, 0)
 	doParse := func(id, key string) decimal.Decimal {
@@ -70,6 +68,58 @@ func mapToList(res map[string]map[string]interface{}) []GeckoTokenInfo {
 		if v, ok := res[k]["last_updated_at"].(float64); ok {
 			gti.LastUpdatedAt = int64(v)
 		}
+		list = append(list, gti)
+	}
+	return list
+}
+
+func GetTokenPriceNew(ids []string) ([]GeckoTokenInfo, error) {
+	var symbols []string
+	symbols = append(symbols, "BTCUSDT", "CKBUSDT", "ETHUSDT", "TRXUSDT", "BNBUSDT", "MATICUSDT")
+
+	symbolStr := ""
+	for _, v := range symbols {
+		symbolStr += "%22" + v + "%22,"
+	}
+	symbolStr = strings.Trim(symbolStr, ",")
+	url := fmt.Sprintf("https://api1.binance.com/api/v3/ticker/price?symbols=\\[%s\\]", symbolStr)
+	fmt.Println(url)
+
+	var res []TokenPriceNew
+	resp, _, errs := gorequest.New().Timeout(time.Second*30).Get(url).Retry(3, time.Second*2).EndStruct(&res)
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("GetTokenPrice api err:%v", errs)
+	} else if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("GetTokenPrice api status code:%d", resp.StatusCode)
+	}
+	//fmt.Println(body)
+	//fmt.Println(res)
+	list := TokenPriceNewToList(res)
+
+	return list, nil
+}
+
+type TokenPriceNew struct {
+	Symbol string          `json:"symbol"`
+	Price  decimal.Decimal `json:"price"`
+}
+
+var TokenIdMap = map[string]string{
+	"CKBUSDT":   "nervos-network",
+	"BTCUSDT":   "bitcoin",
+	"ETHUSDT":   "ethereum",
+	"BNBUSDT":   "binancecoin",
+	"TRXUSDT":   "tron",
+	"MATICUSDT": "matic-network",
+}
+
+func TokenPriceNewToList(res []TokenPriceNew) []GeckoTokenInfo {
+	list := make([]GeckoTokenInfo, 0)
+	for _, v := range res {
+		gti := GeckoTokenInfo{}
+		gti.Id = TokenIdMap[v.Symbol]
+		gti.Price = v.Price
+		gti.LastUpdatedAt = time.Now().Unix()
 		list = append(list, gti)
 	}
 	return list

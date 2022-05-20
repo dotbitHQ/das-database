@@ -75,7 +75,6 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 	}
 }
 
-// 美元汇率
 func (p *ParserTimer) updateUSDRate() {
 	ids := []string{
 		"ethereum",
