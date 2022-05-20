@@ -86,13 +86,13 @@ func GetTokenPriceNew(ids []string) ([]GeckoTokenInfo, error) {
 	fmt.Println(url)
 
 	var res []TokenPriceNew
-	resp, _, errs := gorequest.New().Timeout(time.Second*30).Get(url).Retry(3, time.Second*2).EndStruct(&res)
+	resp, body, errs := gorequest.New().Timeout(time.Second*30).Get(url).Retry(3, time.Second*2).EndStruct(&res)
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("GetTokenPrice api err:%v", errs)
 	} else if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GetTokenPrice api status code:%d", resp.StatusCode)
 	}
-	//fmt.Println(body)
+	fmt.Println(body)
 	//fmt.Println(res)
 	list := TokenPriceNewToList(res)
 
