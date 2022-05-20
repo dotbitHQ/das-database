@@ -55,7 +55,7 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 		}
 	}
 
-	if list, err := GetTokenPrice(geckoIds); err != nil {
+	if list, err := GetTokenPriceNew(geckoIds); err != nil {
 		log.Error("updateTokenPriceInfoList GetTokenPrice err:", err.Error())
 	} else {
 		var tokenList []dao.TableTokenPriceInfo
@@ -75,17 +75,28 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 	}
 }
 
-// 美元汇率
+//
 func (p *ParserTimer) updateUSDRate() {
-	ids := []string{
-		"ethereum",
-	}
-	list, err := GetTokenPrice(ids)
+	//ids := []string{
+	//	"ethereum",
+	//}
+	//list, err := GetTokenPrice(ids)
+	//if err != nil {
+	//	log.Errorf("updateUSDRate GetTokenPrice err:%s", err.Error())
+	//}
+	//if len(list) > 0 && list[0].Cny.Cmp(decimal.Zero) == 1 && list[0].Price.Cmp(decimal.Zero) == 1 {
+	//	dec := list[0].Price.DivRound(list[0].Cny, 4)
+	//	if err = p.dbDao.UpdateCNYToUSDRate([]string{"wx_cny"}, dec); err != nil {
+	//		log.Errorf("updateUSDRate UpdateCNYToUSDRate err:%s", err)
+	//	}
+	//}
+
+	rate, err := GetCnyRate()
 	if err != nil {
-		log.Errorf("updateUSDRate GetTokenPrice err:%s", err.Error())
+		log.Error("GetCnyRate err: %s", err.Error())
 	}
-	if len(list) > 0 && list[0].Cny.Cmp(decimal.Zero) == 1 && list[0].Price.Cmp(decimal.Zero) == 1 {
-		dec := list[0].Price.DivRound(list[0].Cny, 4)
+	if rate != nil && rate.Value > 0 {
+		dec := decimal.NewFromInt(1).DivRound(decimal.NewFromFloat(rate.Value), 4)
 		if err = p.dbDao.UpdateCNYToUSDRate([]string{"wx_cny"}, dec); err != nil {
 			log.Errorf("updateUSDRate UpdateCNYToUSDRate err:%s", err)
 		}
