@@ -61,3 +61,7 @@ func TestGetTokenPrice(t *testing.T) {
 func TestGetTokenPriceBinance(t *testing.T) {
 	fmt.Println(GetTokenPriceNew(nil))
 }
+
+func TestGetCnyRate(t *testing.T) {
+	fmt.Println(GetCnyRate())
+}

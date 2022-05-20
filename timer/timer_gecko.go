@@ -6,6 +6,7 @@ import (
 	"github.com/parnurzeal/gorequest"
 	"github.com/shopspring/decimal"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -126,4 +127,55 @@ func TokenPriceNewToList(res []TokenPriceNew) []GeckoTokenInfo {
 		list = append(list, gti)
 	}
 	return list
+}
+
+type Rate struct {
+	Title      string  `gorm:"-" json:"-"`
+	Name       string  `gorm:"column:name" json:"name"`
+	Symbol     string  `gorm:"column:symbol" json:"symbol"`
+	Value      float64 `gorm:"column:value" json:"value"`
+	CheckValue float64 `gorm:"-" json:"-"`
+}
+
+type ResultData struct {
+	Result []struct {
+		DisplayData struct {
+			ResultData struct {
+				TplData struct {
+					Value string `json:"money2_num"`
+				} `json:"tplData"`
+			} `json:"resultData"`
+		} `json:"DisplayData"`
+	} `json:"Result"`
+}
+
+func GetCnyRate() (*Rate, error) {
+	var rate = Rate{"人民币", "CNY", "¥", 0, 1.5}
+	url := "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=1美元等于多少人民币&co=&resource_id=5293&t=1587039033404&cardId=5293&ie=utf8&oe=gbk&cb=op_aladdin_callback&format=json&tn=baidu&alr=1&cb=jQuery1102038387806309445316_1587037695932&_=1587037695933"
+	res, body, errs := gorequest.New().Timeout(10 * time.Second).Get(url).End()
+	if errs != nil {
+		return nil, fmt.Errorf("http req err: %v", errs)
+	}
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("http req err: %v", res.StatusCode)
+	}
+
+	indexI := strings.Index(body, "{")
+	indexJ := strings.LastIndex(body, ")")
+	if indexI > 0 && indexJ > 0 {
+		body = body[indexI:indexJ]
+	}
+	var result ResultData
+	if err := json.Unmarshal([]byte(body), &result); err != nil {
+		return nil, fmt.Errorf("json.Unmarshal err: %s", err.Error())
+	}
+	if len(result.Result) > 0 {
+		valueStr := strings.Replace(result.Result[0].DisplayData.ResultData.TplData.Value, ",", "", -1)
+		if value, err := strconv.ParseFloat(valueStr, 64); err != nil {
+			return nil, fmt.Errorf("json.Unmarshal err: %s", err.Error())
+		} else {
+			rate.Value = value
+		}
+	}
+	return &rate, nil
 }
