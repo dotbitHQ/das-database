@@ -82,7 +82,7 @@ func GetTokenPriceNew(ids []string) ([]GeckoTokenInfo, error) {
 		symbolStr += "%22" + v + "%22,"
 	}
 	symbolStr = strings.Trim(symbolStr, ",")
-	url := fmt.Sprintf("https://api1.binance.com/api/v3/ticker/price?symbols=\\[%s\\]", symbolStr)
+	url := fmt.Sprintf("https://api1.binance.com/api/v3/ticker/price?symbols=[%s]", symbolStr)
 	fmt.Println(url)
 
 	var res []TokenPriceNew
