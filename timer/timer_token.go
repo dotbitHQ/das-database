@@ -60,16 +60,14 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 	} else {
 		var tokenList []dao.TableTokenPriceInfo
 		for _, v := range list {
-			if v.Price.Cmp(decimal.Zero) == 1 {
-				tokenList = append(tokenList, dao.TableTokenPriceInfo{
-					GeckoId:       strings.ToLower(v.Id),
-					Price:         v.Price,
-					Change24h:     v.Change24h,
-					Vol24h:        v.Vol24h,
-					MarketCap:     v.MarketCap,
-					LastUpdatedAt: v.LastUpdatedAt,
-				})
-			}
+			tokenList = append(tokenList, dao.TableTokenPriceInfo{
+				GeckoId:       strings.ToLower(v.Id),
+				Price:         v.Price,
+				Change24h:     v.Change24h,
+				Vol24h:        v.Vol24h,
+				MarketCap:     v.MarketCap,
+				LastUpdatedAt: v.LastUpdatedAt,
+			})
 		}
 		if err := p.dbDao.UpdateTokenPriceInfoList(tokenList); err != nil {
 			log.Error("updateTokenPriceInfoList UpdateTokenPriceInfoList err:", err.Error())
@@ -77,6 +75,7 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 	}
 }
 
+//
 func (p *ParserTimer) updateUSDRate() {
 	//ids := []string{
 	//	"ethereum",

@@ -30,6 +30,7 @@ type GeckoTokenInfo struct {
 	LastUpdatedAt int64           `json:"last_updated_at"`
 }
 
+//
 func GetTokenPrice(ids []string) ([]GeckoTokenInfo, error) {
 	idsStr := strings.Join(ids, ",")
 	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd,cny", idsStr)
@@ -50,6 +51,7 @@ func GetTokenPrice(ids []string) ([]GeckoTokenInfo, error) {
 	return list, nil
 }
 
+//
 func mapToList(res map[string]map[string]interface{}) []GeckoTokenInfo {
 	list := make([]GeckoTokenInfo, 0)
 	doParse := func(id, key string) decimal.Decimal {
