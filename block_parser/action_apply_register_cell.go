@@ -15,7 +15,6 @@ func (b *BlockParser) ActionApplyRegister(req FuncTransactionHandleReq) (resp Fu
 		log.Warn("not current version apply register tx")
 		return
 	}
-
 	log.Info("ActionApplyRegister:", req.BlockNumber, req.TxHash)
 
 	transactionInfo := dao.TableTransactionInfo{

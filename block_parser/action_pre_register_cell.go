@@ -15,7 +15,6 @@ func (b *BlockParser) ActionPreRegister(req FuncTransactionHandleReq) (resp Func
 		log.Warn("not current version pre register tx")
 		return
 	}
-
 	log.Info("ActionPreRegister:", req.BlockNumber, req.TxHash)
 
 	preBuilder, err := witness.PreAccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
@@ -23,7 +22,6 @@ func (b *BlockParser) ActionPreRegister(req FuncTransactionHandleReq) (resp Func
 		resp.Err = fmt.Errorf("PreAccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-
 	log.Info("ActionPreRegister:", preBuilder.Account)
 
 	refundLock, _ := preBuilder.RefundLock()

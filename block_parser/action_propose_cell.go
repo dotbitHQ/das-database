@@ -15,7 +15,6 @@ func (b *BlockParser) ActionPropose(req FuncTransactionHandleReq) (resp FuncTran
 		log.Warn("not current version proposal tx")
 		return
 	}
-
 	log.Info("ActionPropose:", req.BlockNumber, req.TxHash)
 
 	preAccMap, err := witness.PreAccountCellDataBuilderMapFromTx(req.Tx, common.DataTypeDep)
@@ -23,7 +22,6 @@ func (b *BlockParser) ActionPropose(req FuncTransactionHandleReq) (resp FuncTran
 		resp.Err = fmt.Errorf("PreAccountCellDataBuilderMapFromTx err: %s", err.Error())
 		return
 	}
-
 	log.Info("ActionPropose:", len(preAccMap))
 
 	proBuilder, err := witness.ProposalCellDataBuilderFromTx(req.Tx, common.DataTypeNew)

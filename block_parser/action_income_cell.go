@@ -7,19 +7,30 @@ import (
 	"github.com/DeAccountSystems/das-lib/core"
 )
 
+func (b *BlockParser) ActionCreateIncome(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameIncomeCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if isCV {
+		log.Warn("not current version create income tx")
+		return
+	}
+	log.Info("ActionCreateIncome:", req.BlockNumber, req.TxHash)
+
+	return
+}
+
 func (b *BlockParser) ActionConsolidateIncome(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
 	incomeContract, err := core.GetDasContractInfo(common.DasContractNameIncomeCellType)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 		return
 	}
-
 	dasContract, err := core.GetDasContractInfo(common.DasContractNameDispatchCellType)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 		return
 	}
-
 	log.Info("ActionConsolidateIncome:", req.TxHash)
 
 	var inputsOutpoints []string
