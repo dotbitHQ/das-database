@@ -7,13 +7,12 @@ import (
 	"regexp"
 )
 
-var AllowOriginList = []string{
-	`https?:\/\/127\.0\.0\.1:\d+`,
-	`https?:\/\/localhost:\d+`,
-	`https?:\/\/[^.]*\.test\.com`,
-}
+var AllowOriginList = []string{}
 
 func AllowOriginFunc(origin string) bool {
+	if len(AllowOriginList) == 0 {
+		return true
+	}
 	for _, ao := range AllowOriginList {
 		if ok, err := regexp.MatchString(ao, origin); err != nil {
 			return false

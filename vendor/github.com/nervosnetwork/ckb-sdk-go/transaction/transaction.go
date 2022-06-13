@@ -10,14 +10,18 @@ import (
 )
 
 var (
-	EmptyWitnessArg = &types.WitnessArgs{
-		Lock:       make([]byte, 65),
+	Secp256k1EmptyWitnessArg            = NewEmptyWitnessArg(65)
+	Secp256k1EmptyWitnessArgPlaceholder = make([]byte, 85)
+	Secp256k1SignaturePlaceholder       = make([]byte, 65)
+)
+
+func NewEmptyWitnessArg(LockScriptLength uint) *types.WitnessArgs {
+	return &types.WitnessArgs{
+		Lock:       make([]byte, LockScriptLength),
 		InputType:  nil,
 		OutputType: nil,
 	}
-	EmptyWitnessArgPlaceholder = make([]byte, 89)
-	SignaturePlaceholder       = make([]byte, 65)
-)
+}
 
 func NewSecp256k1SingleSigTx(scripts *utils.SystemScripts) *types.Transaction {
 	return &types.Transaction{
@@ -63,7 +67,7 @@ func NewSecp256k1HybirdSigTx(scripts *utils.SystemScripts) *types.Transaction {
 	}
 }
 
-func AddInputsForTransaction(transaction *types.Transaction, inputs []*types.CellInput) ([]int, *types.WitnessArgs, error) {
+func AddInputsForTransaction(transaction *types.Transaction, inputs []*types.CellInput, signatureLengthInBytes uint) ([]int, *types.WitnessArgs, error) {
 	if len(inputs) == 0 {
 		return nil, nil, errors.New("input cells empty")
 	}
@@ -75,8 +79,13 @@ func AddInputsForTransaction(transaction *types.Transaction, inputs []*types.Cel
 		transaction.Witnesses = append(transaction.Witnesses, []byte{})
 		group[i] = start + i
 	}
-	transaction.Witnesses[start] = EmptyWitnessArgPlaceholder
-	return group, EmptyWitnessArg, nil
+	emptyWitnessArgs := NewEmptyWitnessArg(signatureLengthInBytes)
+	emptyWitnessArgsBytes, err := emptyWitnessArgs.Serialize()
+	if err != nil {
+		return make([]int, 0), &types.WitnessArgs{}, err
+	}
+	transaction.Witnesses[start] = emptyWitnessArgsBytes
+	return group, emptyWitnessArgs, nil
 }
 
 // group is an array, which content is the index of input after grouping
@@ -138,23 +147,31 @@ func SingleSignTransaction(transaction *types.Transaction, group []int, witnessA
 	return nil
 }
 
-func MultiSignTransaction(transaction *types.Transaction, group []int, witnessArgs *types.WitnessArgs, serialize []byte, keys ...crypto.Key) error {
-	var emptySignature []byte
-	for range keys {
-		emptySignature = append(emptySignature, SignaturePlaceholder...)
+func MsgFromTxForMultiSig(transaction *types.Transaction, group []int, multisigScript []byte) ([]byte, error) {
+	var witnessArgs *types.WitnessArgs
+	var err error
+	originalWitness := transaction.Witnesses[group[0]]
+	if originalWitness == nil || len(originalWitness) == 0 {
+		witnessArgs = &types.WitnessArgs{}
+	} else {
+		witnessArgs, err = types.DeserializeWitnessArgs(originalWitness)
+		if err != nil {
+			return nil, err
+		}
 	}
-	witnessArgs.Lock = append(serialize, emptySignature...)
-
+	n := int(multisigScript[3])
+	witnessArgsLock := append(multisigScript, make([]byte, n*len(Secp256k1SignaturePlaceholder))...)
+	witnessArgs.Lock = witnessArgsLock
 	data, err := witnessArgs.Serialize()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	length := make([]byte, 8)
 	binary.LittleEndian.PutUint64(length, uint64(len(data)))
 
 	hash, err := transaction.ComputeHash()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	message := append(hash.Bytes(), length...)
@@ -162,26 +179,28 @@ func MultiSignTransaction(transaction *types.Transaction, group []int, witnessAr
 
 	if len(group) > 1 {
 		for i := 1; i < len(group); i++ {
-			var data []byte
+			data = transaction.Witnesses[group[i]]
 			length := make([]byte, 8)
 			binary.LittleEndian.PutUint64(length, uint64(len(data)))
 			message = append(message, length...)
 			message = append(message, data...)
 		}
 	}
-
-	message, err = blake2b.Blake256(message)
-	if err != nil {
-		return err
+	// hash witnesses that are not in any input group
+	for _, witness := range transaction.Witnesses[len(transaction.Inputs):] {
+		length := make([]byte, 8)
+		binary.LittleEndian.PutUint64(length, uint64(len(witness)))
+		message = append(message, length...)
+		message = append(message, witness...)
 	}
 
+	return blake2b.Blake256(message)
+}
+
+func MultiSignTransaction(transaction *types.Transaction, group []int, witnessArgs *types.WitnessArgs, serialize []byte, signatures ...[]byte) error {
 	var signed []byte
-	for _, key := range keys {
-		s, err := key.Sign(message)
-		if err != nil {
-			return err
-		}
-		signed = append(signed, s...)
+	for _, sig := range signatures {
+		signed = append(signed, sig...)
 	}
 
 	wa := &types.WitnessArgs{

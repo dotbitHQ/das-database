@@ -16,7 +16,10 @@ type MiddlewareRespHandle func(*gin.Context, string, error)
 
 func MiddlewareCacheByRedis(red *redis.Client, isCookie bool, dataExpiration, lockExpiration, updateExpiration time.Duration, respHandle MiddlewareRespHandle) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println(c.Request.URL.Path)
+		fmt.Println("url path:", c.Request.URL.Path)
+		if red == nil {
+			return
+		}
 		key := getCacheKeyByGet(c, isCookie)
 		if c.Request.Method == http.MethodPost {
 			key = getCacheKeyByPost(c, isCookie)
@@ -28,7 +31,7 @@ func MiddlewareCacheByRedis(red *redis.Client, isCookie bool, dataExpiration, lo
 			statusCode := c.Writer.Status()
 			// 不缓存失败的请求
 			if statusCode != http.StatusOK {
-				return "", fmt.Errorf("status code not ok")
+				return "", fmt.Errorf("status code [%d]", statusCode)
 			}
 			if blw.body.String() == "" {
 				return "", fmt.Errorf("body is nil")
