@@ -22,7 +22,6 @@ func (b *BlockParser) ActionMakeOffer(req FuncTransactionHandleReq) (resp FuncTr
 		log.Warn("not current version make offer record tx")
 		return
 	}
-
 	log.Info("ActionMakeOffer:", req.BlockNumber, req.TxHash)
 
 	builder, err := witness.OfferCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
@@ -82,7 +81,6 @@ func (b *BlockParser) ActionEditOffer(req FuncTransactionHandleReq) (resp FuncTr
 		log.Warn("not current version edit offer record tx")
 		return
 	}
-
 	log.Info("ActionEditOffer:", req.BlockNumber, req.TxHash)
 
 	oldBuilder, err := witness.OfferCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
@@ -154,7 +152,6 @@ func (b *BlockParser) ActionCancelOffer(req FuncTransactionHandleReq) (resp Func
 		log.Warn("not current version cancel offer record tx")
 		return
 	}
-
 	log.Info("ActionCancelOffer:", req.BlockNumber, req.TxHash)
 
 	oldBuilderMap, err := witness.OfferCellDataBuilderMapFromTx(req.Tx, common.DataTypeOld)
@@ -204,7 +201,6 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
 		return
 	}
-
 	if isCV, err := isCurrentVersionTx(res.Transaction, common.DASContractNameOfferCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
@@ -212,7 +208,6 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		log.Warn("not current version accept offer tx")
 		return
 	}
-
 	log.Info("ActionAcceptOffer:", req.BlockNumber, req.TxHash)
 
 	// add income cell infos
