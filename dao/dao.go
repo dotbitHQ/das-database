@@ -20,6 +20,7 @@ func NewGormDataBase(addr, user, password, dbName string, maxOpenConn, maxIdleCo
 	if err != nil {
 		return nil, fmt.Errorf("gorm open :%v", err)
 	}
+	db = db.Debug()
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, fmt.Errorf("gorm db :%v", err)
@@ -31,11 +32,7 @@ func NewGormDataBase(addr, user, password, dbName string, maxOpenConn, maxIdleCo
 	return db, nil
 }
 
-func Initialize(db *gorm.DB, logMode bool) (*DbDao, error) {
-	if logMode {
-		db = db.Debug()
-	}
-
+func Initialize(db *gorm.DB) (*DbDao, error) {
 	// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes.
 	// It will change existing column’s type if its size, precision, nullable changed.
 	// It WON’T delete unused columns to protect your data.
