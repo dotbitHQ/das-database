@@ -152,24 +152,16 @@ type ResultData struct {
 }
 
 func GetCnyRate() (*Rate, error) {
-	var rate = Rate{"人民币", "CNY", "¥", 0, 1.5}
-	url := "https://sp0.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=1美元等于多少人民币&co=&resource_id=5293&t=1587039033404&cardId=5293&ie=utf8&oe=gbk&cb=op_aladdin_callback&format=json&tn=baidu&alr=1&cb=jQuery1102038387806309445316_1587037695932&_=1587037695933"
-	res, body, errs := gorequest.New().Timeout(10 * time.Second).Get(url).End()
+	var rate = Rate{"", "CNY", "¥", 0, 1.5}
+	url := "https://sp1.baidu.com/8aQDcjqpAAV3otqbppnN2DJv/api.php?query=1%E7%BE%8E%E5%85%83%E7%AD%89%E4%BA%8E%E5%A4%9A%E5%B0%91%E4%BA%BA%E6%B0%91%E5%B8%81&resource_id=5293&alr=1"
+
+	var result ResultData
+	res, _, errs := gorequest.New().Timeout(10 * time.Second).Get(url).EndStruct(&result)
 	if errs != nil {
 		return nil, fmt.Errorf("http req err: %v", errs)
 	}
 	if res.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("http req err: %v", res.StatusCode)
-	}
-
-	indexI := strings.Index(body, "{")
-	indexJ := strings.LastIndex(body, ")")
-	if indexI > 0 && indexJ > 0 {
-		body = body[indexI:indexJ]
-	}
-	var result ResultData
-	if err := json.Unmarshal([]byte(body), &result); err != nil {
-		return nil, fmt.Errorf("json.Unmarshal err: %s", err.Error())
 	}
 	if len(result.Result) > 0 {
 		valueStr := strings.Replace(result.Result[0].DisplayData.ResultData.TplData.Value, ",", "", -1)

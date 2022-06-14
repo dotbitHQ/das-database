@@ -93,7 +93,7 @@ func (p *ParserTimer) updateUSDRate() {
 
 	rate, err := GetCnyRate()
 	if err != nil {
-		log.Error("GetCnyRate err: %s", err.Error())
+		log.Error("GetCnyRate err: ", err.Error())
 	}
 	if rate != nil && rate.Value > 0 {
 		dec := decimal.NewFromInt(1).DivRound(decimal.NewFromFloat(rate.Value), 4)
