@@ -1,8 +1,11 @@
 SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
+SET
+    FOREIGN_KEY_CHECKS = 0;
 
-CREATE DATABASE `das_database`;
-USE `das_database`;
+CREATE
+    DATABASE `das_database`;
+USE
+    `das_database`;
 -- ----------------------------
 -- Table structure for t_account_info
 -- ----------------------------
@@ -199,8 +202,18 @@ INSERT INTO `t_token_price_info`
 VALUES (6001, 'wx_cny', '_wx_cny_', 4, '', 'WeChat Pay', '¥', 2, 0.15620000, '/images/components/wechat_pay.png',
         0.00000000, 0.00000000, 0.00000000, 1636082387, 0, '2021-11-03 15:08:32', '2021-11-05 11:19:47');
 
-INSERT INTO `t_token_price_info`(`token_id`, `gecko_id`, `chain_type`, `contract`, `name`, `symbol`, `decimals`, `price`, `logo`, `change_24_h`, `vol_24_h`, `market_cap`, `last_updated_at`, `status`, `created_at`, `updated_at`) VALUES ('bsc_bnb', 'binancecoin', 1, '', 'Binance', 'BNB', 18, 372.56000000, 'https://app.da.systems/images/components/binance-smart-chain.svg', 3.42678021, 1550980993.53909560, 62650149931.41216000, 1645581083, 0, '2021-11-23 10:27:38', '2022-02-23 09:52:53');
-INSERT INTO `t_token_price_info`(`token_id`, `gecko_id`, `chain_type`, `contract`, `name`, `symbol`, `decimals`, `price`, `logo`, `change_24_h`, `vol_24_h`, `market_cap`, `last_updated_at`, `status`, `created_at`, `updated_at`) VALUES ('polygon_matic', 'matic-network', 1, '', 'Polygon', 'MATIC', 18, 1.45000000, 'https://app.da.systems/images/components/polygon.svg', 2.65294280, 1033515086.31246830, 9962004241.80516400, 1645581080, 0, '2021-11-29 14:57:56', '2022-02-23 09:52:53');
+INSERT INTO `t_token_price_info`(`token_id`, `gecko_id`, `chain_type`, `contract`, `name`, `symbol`, `decimals`,
+                                 `price`, `logo`, `change_24_h`, `vol_24_h`, `market_cap`, `last_updated_at`, `status`,
+                                 `created_at`, `updated_at`)
+VALUES ('bsc_bnb', 'binancecoin', 1, '', 'Binance', 'BNB', 18, 372.56000000,
+        'https://app.da.systems/images/components/binance-smart-chain.svg', 3.42678021, 1550980993.53909560,
+        62650149931.41216000, 1645581083, 0, '2021-11-23 10:27:38', '2022-02-23 09:52:53');
+INSERT INTO `t_token_price_info`(`token_id`, `gecko_id`, `chain_type`, `contract`, `name`, `symbol`, `decimals`,
+                                 `price`, `logo`, `change_24_h`, `vol_24_h`, `market_cap`, `last_updated_at`, `status`,
+                                 `created_at`, `updated_at`)
+VALUES ('polygon_matic', 'matic-network', 1, '', 'Polygon', 'MATIC', 18, 1.45000000,
+        'https://app.da.systems/images/components/polygon.svg', 2.65294280, 1033515086.31246830, 9962004241.80516400,
+        1645581080, 0, '2021-11-29 14:57:56', '2022-02-23 09:52:53');
 COMMIT;
 
 -- ----------------------------
@@ -373,5 +386,30 @@ CREATE TABLE `t_smt_info`
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='current account info';
 
+
+-- ----------------------------
+-- Table structure for t_register_info
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `t_register_info`
+(
+    `id`            BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '',
+    `register_date` VARCHAR(255)        NOT NULL DEFAULT '' COMMENT '2022-01-02',
+    `total_account` INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `total_owner`   INT                 NOT NULL DEFAULT '0' COMMENT 'independent owner',
+    `one`           INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `two`           INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `three`         INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `four`          INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `five_and_more` INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `json_info`     TEXT                NOT NULL COMMENT '{"4":1,"5":10}',
+    `created_at`    timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
+    `updated_at`    timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_register_date` (`register_date`) USING BTREE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci COMMENT ='account register info';
+
 SET
     FOREIGN_KEY_CHECKS = 1;
+
