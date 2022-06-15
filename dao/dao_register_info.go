@@ -15,7 +15,7 @@ type TableRegisterInfo struct {
 	Three           int       `json:"three" gorm:"column:three;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
 	Four            int       `json:"four" gorm:"column:four;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
 	FiveAndMore     int       `json:"five_and_more" gorm:"column:five_and_more;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
-	RegisterDetail  string    `json:"register_detail" gorm:"column:register_detail;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '{\"4\":1,\"5\":10,\"sub\":4}'"`
+	RegisterDetail  string    `json:"register_detail" gorm:"column:register_detail;type:text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '{\"4\":1,\"5\":10,\"sub\":4}'"`
 	CreatedAt       time.Time `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt       time.Time `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }
