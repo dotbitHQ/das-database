@@ -44,7 +44,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		return
 	}
 
-	oldHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[oldBuilder.Index].Lock.Args)
+	oldHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[oldBuilder.Index].PreviousOutput.Index].Lock.Args)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
