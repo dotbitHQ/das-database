@@ -392,18 +392,19 @@ CREATE TABLE `t_smt_info`
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `t_register_info`
 (
-    `id`              BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '',
-    `register_date`   VARCHAR(255)        NOT NULL DEFAULT '' COMMENT '2022-01-02',
-    `total_account`   INT                 NOT NULL DEFAULT '0' COMMENT '',
-    `total_owner`     INT                 NOT NULL DEFAULT '0' COMMENT 'independent owner',
-    `one`             INT                 NOT NULL DEFAULT '0' COMMENT '',
-    `two`             INT                 NOT NULL DEFAULT '0' COMMENT '',
-    `three`           INT                 NOT NULL DEFAULT '0' COMMENT '',
-    `four`            INT                 NOT NULL DEFAULT '0' COMMENT '',
-    `five_and_more`   INT                 NOT NULL DEFAULT '0' COMMENT '',
-    `register_detail` TEXT                NOT NULL COMMENT '{"4":1,"5":10}',
-    `created_at`      timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
-    `updated_at`      timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
+    `id`                BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '',
+    `register_date`     VARCHAR(255)        NOT NULL DEFAULT '' COMMENT '2022-01-02',
+    `total_account`     INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `total_sub_account` INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `total_owner`       INT                 NOT NULL DEFAULT '0' COMMENT 'independent owner',
+    `one`               INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `two`               INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `three`             INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `four`              INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `five_and_more`     INT                 NOT NULL DEFAULT '0' COMMENT '',
+    `register_detail`   TEXT                NOT NULL COMMENT '{"4":1,"5":10,"sub":4}',
+    `created_at`        timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
+    `updated_at`        timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_register_date` (`register_date`) USING BTREE
 ) ENGINE = InnoDB
