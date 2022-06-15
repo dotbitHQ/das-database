@@ -8,6 +8,7 @@ import (
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/scorpiotzh/toolib"
 	"strconv"
+	"time"
 )
 
 func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -299,7 +300,76 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 }
 
 func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warn("not current version account cross chain tx")
+		return
+	}
 	log.Info("ActionRecycleExpiredAccount:", req.BlockNumber, req.TxHash)
+
+	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		return
+	}
+	builder, err := witness.AccountCellDataBuilderFromTx(res.Transaction, common.DataTypeNew)
+	if err != nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsAccount)
+	if err != nil {
+		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+		return
+	}
+	gracePeriod, err := builderConfig.ExpirationGracePeriod()
+	if err != nil {
+		resp.Err = fmt.Errorf("ExpirationGracePeriod err: %s", err.Error())
+		return
+	}
+
+	if builder.ExpiredAt+uint64(gracePeriod) > uint64(time.Now().Unix()) {
+		resp.Err = fmt.Errorf("ActionRecycleExpiredAccount: account has not expired yet")
+		return
+	}
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+	transactionInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.AccountId,
+		Account:        builder.Account,
+		Action:         common.DasActionRecycleExpiredAccount,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      oHex.ChainType,
+		Address:        oHex.AddressHex,
+		Capacity:       req.Tx.OutputsCapacity() - req.Tx.Outputs[0].Capacity,
+		Outpoint:       common.OutPoint2String(req.TxHash, 0),
+		BlockTimestamp: req.BlockTimestamp,
+	}
+	var subAccountIds []string
+	if builder.EnableSubAccount == 1 {
+		accountInfos, err := b.dbDao.GetAccountInfoByParentAccountId(builder.AccountId)
+		if err != nil {
+			resp.Err = fmt.Errorf("GetAccountInfoByParentAccountId err: %s", err.Error())
+			return
+		}
+		for _, accountInfo := range accountInfos {
+			subAccountIds = append(subAccountIds, accountInfo.AccountId)
+		}
+	}
+
+	log.Info("ActionRecycleExpiredAccount:", builder.Account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex, len(subAccountIds))
+
+	if err = b.dbDao.RecycleExpiredAccount(builder.AccountId, subAccountIds, transactionInfo); err != nil {
+		resp.Err = fmt.Errorf("RecycleExpiredAccount err: %s", err.Error())
+		return
+	}
+
 	return
 }
 

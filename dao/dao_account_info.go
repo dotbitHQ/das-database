@@ -174,6 +174,48 @@ func (d *DbDao) EnableSubAccount(accountInfo TableAccountInfo, transactionInfo T
 	})
 }
 
+func (d *DbDao) GetAccountInfoByParentAccountId(parentAccountId string) (accountInfos []TableAccountInfo, err error) {
+	err = d.db.Where("parent_account_id=?", parentAccountId).Find(&accountInfos).Error
+	return
+}
+
+func (d *DbDao) RecycleExpiredAccount(accountId string, subAccountIds []string, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("account_id=?", accountId).Delete(&TableAccountInfo{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id=?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		if len(subAccountIds) > 0 {
+			if err := tx.Where("account_id IN(?)", subAccountIds).Delete(&TableAccountInfo{}).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Where("account_id IN(?)", subAccountIds).Delete(&TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+
+			if err := tx.Where("account_id IN(?)", subAccountIds).Delete(&TableSmtInfo{}).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
 func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint",

@@ -402,7 +402,7 @@ CREATE TABLE IF NOT EXISTS `t_register_info`
     `three`             INT                 NOT NULL DEFAULT '0' COMMENT '',
     `four`              INT                 NOT NULL DEFAULT '0' COMMENT '',
     `five_and_more`     INT                 NOT NULL DEFAULT '0' COMMENT '',
-    `register_detail`   TEXT                NOT NULL COMMENT '{"4":1,"5":10,"sub":4}',
+    `register_detail`   VARCHAR(255)        NOT NULL DEFAULT '' COMMENT '{"4":1,"5":10,"sub":4}',
     `created_at`        timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
     `updated_at`        timestamp           NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
     PRIMARY KEY (`id`) USING BTREE,
