@@ -3,7 +3,7 @@ module das_database
 go 1.16
 
 require (
-	github.com/DeAccountSystems/das-lib v0.0.0-20220609082857-12aa48912226
+	github.com/DeAccountSystems/das-lib v0.0.0-20220616075235-a8d4d202ba1d
 	github.com/DeAccountSystems/das-notice v1.0.0
 	github.com/ethereum/go-ethereum v1.10.17
 	github.com/fsnotify/fsnotify v1.5.4

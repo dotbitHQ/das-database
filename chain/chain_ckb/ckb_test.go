@@ -201,11 +201,14 @@ func TestGenerateAddress(t *testing.T) {
 	}
 	fmt.Println(tnAddress)
 
-	tnAddress, err = address.ConvertScriptToFullAddress(address.FullTypeFormat, address.Testnet, script)
+	tnAddress, err = address.ConvertScriptToFullAddress(address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(tnAddress)
+
+	//ckt1qpvvtay34wndv9nckl8hah6fzzcltcqwcrx79apwp2a5lkd07fdxxqdzvm3jyepx4alnptsn8lq0mnwhv8nf4tq2t44mg
+	//ckt1q3vvtay34wndv9nckl8hah6fzzcltcqwcrx79apwp2a5lkd07fdx8gnxuv3xgf400uc2uyelcr7um4mpu6d2cu6sy2x
 }
 
 func TestGenerateDASAddress(t *testing.T) {
@@ -225,7 +228,7 @@ func TestGenerateDASAddress(t *testing.T) {
 		HashType: types.HashTypeType,
 		Args:     ethCommon.FromHex("0x05a266e3226426af7f30ae133fc0fdcdd761e69aac05a266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
-	tnAddress, err = address.ConvertScriptToFullAddress(address.FullTypeFormat, address.Testnet, script)
+	tnAddress, err = address.ConvertScriptToFullAddress(address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}

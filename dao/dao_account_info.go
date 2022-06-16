@@ -174,6 +174,31 @@ func (d *DbDao) EnableSubAccount(accountInfo TableAccountInfo, transactionInfo T
 	})
 }
 
+func (d *DbDao) ForceRecoverAccountStatus(oldStatus uint8, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&TableAccountInfo{}).Where("account_id=?", transactionInfo.AccountId).Update("status", 0).Error; err != nil {
+			return err
+		}
+
+		if oldStatus == 1 {
+			if err := tx.Where("account_id=?", transactionInfo.AccountId).Delete(&TableTradeInfo{}).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (d *DbDao) GetAccountInfoByParentAccountId(parentAccountId string) (accountInfos []TableAccountInfo, err error) {
 	err = d.db.Where("parent_account_id=?", parentAccountId).Find(&accountInfos).Error
 	return

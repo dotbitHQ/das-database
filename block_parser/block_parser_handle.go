@@ -33,6 +33,7 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionEditManager] = b.ActionEditManager
 	b.mapTransactionHandle[common.DasActionRenewAccount] = b.ActionRenewAccount
 	b.mapTransactionHandle[common.DasActionTransferAccount] = b.ActionTransferAccount
+	b.mapTransactionHandle[common.DasActionForceRecoverAccountStatus] = b.ActionForceRecoverAccountStatus
 	b.mapTransactionHandle[common.DasActionRecycleExpiredAccount] = b.ActionRecycleExpiredAccount
 	b.mapTransactionHandle[common.DasActionLockAccountForCrossChain] = b.ActionAccountCrossChain
 	b.mapTransactionHandle[common.DasActionUnlockAccountForCrossChain] = b.ActionAccountCrossChain

@@ -299,6 +299,59 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 	return
 }
 
+func (b *BlockParser) ActionForceRecoverAccountStatus(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warn("not current version force recover account status tx")
+		return
+	}
+	log.Info("ActionForceRecoverAccountStatus:", req.BlockNumber, req.TxHash)
+
+	oldBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
+	if err != nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
+	if err != nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+
+	if builder.Status != 0 {
+		resp.Err = fmt.Errorf("ActionForceRecoverAccountStatus: account is not normal status")
+		return
+	}
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+	transactionInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.AccountId,
+		Account:        builder.Account,
+		Action:         common.DasActionForceRecoverAccountStatus,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      oHex.ChainType,
+		Address:        oHex.AddressHex,
+		Capacity:       req.Tx.OutputsCapacity() - req.Tx.Outputs[0].Capacity,
+		Outpoint:       common.OutPoint2String(req.TxHash, 0),
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	log.Info("ActionForceRecoverAccountStatus:", oldBuilder.Status, builder.Account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex)
+
+	if err = b.dbDao.ForceRecoverAccountStatus(oldBuilder.Status, transactionInfo); err != nil {
+		resp.Err = fmt.Errorf("ForceRecoverAccountStatus err: %s", err.Error())
+		return
+	}
+
+	return
+}
+
 func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
 	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
@@ -309,7 +362,7 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
-		log.Warn("not current version account cross chain tx")
+		log.Warn("not current version recycle expired account tx")
 		return
 	}
 	log.Info("ActionRecycleExpiredAccount:", req.BlockNumber, req.TxHash)
@@ -330,6 +383,10 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		return
 	}
 
+	if builder.Status != 0 {
+		resp.Err = fmt.Errorf("ActionRecycleExpiredAccount: account is not normal status")
+		return
+	}
 	if builder.ExpiredAt+uint64(gracePeriod) > uint64(time.Now().Unix()) {
 		resp.Err = fmt.Errorf("ActionRecycleExpiredAccount: account has not expired yet")
 		return
