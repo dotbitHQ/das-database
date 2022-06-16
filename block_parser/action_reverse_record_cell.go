@@ -130,7 +130,7 @@ func (b *BlockParser) ActionRetractReverseRecord(req FuncTransactionHandleReq) (
 		listOutpoint = append(listOutpoint, common.OutPointStruct2String(v.PreviousOutput))
 	}
 
-	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[0].Lock.Args)
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index].Lock.Args)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return

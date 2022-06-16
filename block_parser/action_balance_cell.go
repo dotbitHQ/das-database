@@ -83,17 +83,17 @@ func (b *BlockParser) ActionBalanceCell(req FuncTransactionHandleReq) (resp Func
 		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
 		return
 	}
-	cellOutput := res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index]
-	if !dasLock.IsSameTypeId(cellOutput.Lock.CodeHash) {
+	output := res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index]
+	if !dasLock.IsSameTypeId(output.Lock.CodeHash) {
 		log.Warn("ActionBalanceCell: das lock not match", req.TxHash)
 		return
 	}
-	if cellOutput.Type != nil && !balanceType.IsSameTypeId(cellOutput.Type.CodeHash) {
+	if output.Type != nil && !balanceType.IsSameTypeId(output.Type.CodeHash) {
 		log.Warn("ActionBalanceCell: balance type not match", req.TxHash)
 		return
 	}
 
-	oHex, _, err := b.dasCore.Daf().ArgsToHex(cellOutput.Lock.Args)
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(output.Lock.Args)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return

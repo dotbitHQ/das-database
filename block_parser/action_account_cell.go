@@ -334,7 +334,7 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		resp.Err = fmt.Errorf("ActionRecycleExpiredAccount: account has not expired yet")
 		return
 	}
-	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[builder.Index].Lock.Args)
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
