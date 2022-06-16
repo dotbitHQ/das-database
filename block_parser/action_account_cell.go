@@ -300,7 +300,12 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 }
 
 func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		return
+	}
+	if isCV, err := isCurrentVersionTx(res.Transaction, common.DasContractNameAccountCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
@@ -309,11 +314,6 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 	}
 	log.Info("ActionRecycleExpiredAccount:", req.BlockNumber, req.TxHash)
 
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
-	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
-		return
-	}
 	builder, err := witness.AccountCellDataBuilderFromTx(res.Transaction, common.DataTypeNew)
 	if err != nil {
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
