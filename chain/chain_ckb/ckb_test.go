@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
-	ethCommon "github.com/ethereum/go-ethereum/common"
 	"github.com/nervosnetwork/ckb-sdk-go/address"
 	"github.com/nervosnetwork/ckb-sdk-go/indexer"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
@@ -193,7 +192,7 @@ func TestGenerateAddress(t *testing.T) {
 	script := &types.Script{
 		CodeHash: types.HexToHash("0x58c5f491aba6d61678b7cf7edf4910b1f5e00ec0cde2f42e0abb4fd9aff25a63"),
 		HashType: types.HashTypeType,
-		Args:     ethCommon.FromHex("0xa266e3226426af7f30ae133fc0fdcdd761e69aac"),
+		Args:     common.Hex2Bytes("0xa266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
 	tnAddress, err := address.ConvertScriptToAddress(address.Testnet, script)
 	if err != nil {
@@ -215,7 +214,7 @@ func TestGenerateDASAddress(t *testing.T) {
 	script := &types.Script{
 		CodeHash: types.HexToHash("0x326df166e3f0a900a0aee043e31a4dea0f01ea3307e6e235f09d1b4220b75fbd"),
 		HashType: types.HashTypeType,
-		Args:     ethCommon.FromHex("0x03a266e3226426af7f30ae133fc0fdcdd761e69aac03a266e3226426af7f30ae133fc0fdcdd761e69aac"),
+		Args:     common.Hex2Bytes("0x03a266e3226426af7f30ae133fc0fdcdd761e69aac03a266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
 	tnAddress, err := address.ConvertScriptToAddress(address.Testnet, script)
 	if err != nil {
@@ -226,13 +225,16 @@ func TestGenerateDASAddress(t *testing.T) {
 	script = &types.Script{
 		CodeHash: types.HexToHash("0x326df166e3f0a900a0aee043e31a4dea0f01ea3307e6e235f09d1b4220b75fbd"),
 		HashType: types.HashTypeType,
-		Args:     ethCommon.FromHex("0x05a266e3226426af7f30ae133fc0fdcdd761e69aac05a266e3226426af7f30ae133fc0fdcdd761e69aac"),
+		Args:     common.Hex2Bytes("0x05a266e3226426af7f30ae133fc0fdcdd761e69aac05a266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
 	tnAddress, err = address.ConvertScriptToFullAddress(address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(tnAddress)
+
+	//ckt1qqexmutxu0c2jq9q4msy8cc6fh4q7q02xvr7dc347zw3ks3qka0m6qgr5fnwxgnyy6hh7v9wzvluplwd6as7dx4vqw3xdcezvsn27les4cfnls8aehtkre564s9tursd
+	//ckt1qsexmutxu0c2jq9q4msy8cc6fh4q7q02xvr7dc347zw3ks3qka0m6pdzvm3jyepx4alnptsn8lq0mnwhv8nf4tq95fnwxgnyy6hh7v9wzvluplwd6as7dx4vr368uu
 }
 
 func TestGenerateShortAddress(t *testing.T) {

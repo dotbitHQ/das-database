@@ -5,7 +5,6 @@ go 1.16
 require (
 	github.com/DeAccountSystems/das-lib v0.0.0-20220616075235-a8d4d202ba1d
 	github.com/DeAccountSystems/das-notice v1.0.0
-	github.com/ethereum/go-ethereum v1.10.17
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gin-gonic/gin v1.8.1
 	github.com/nervosnetwork/ckb-sdk-go v1.0.4

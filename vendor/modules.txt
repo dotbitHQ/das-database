@@ -21,7 +21,6 @@ github.com/deckarep/golang-set
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
 # github.com/ethereum/go-ethereum v1.10.17
-## explicit
 github.com/ethereum/go-ethereum/common
 github.com/ethereum/go-ethereum/common/hexutil
 github.com/ethereum/go-ethereum/common/math
