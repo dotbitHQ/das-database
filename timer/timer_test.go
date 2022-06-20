@@ -66,7 +66,7 @@ func TestGetCnyRate(t *testing.T) {
 }
 
 func TestDailyRegister(t *testing.T) {
-	fmt.Println(time.Now().Format("2006-01-02"))
+	fmt.Println(time.Now().Add(-time.Hour * 24).Format("2006-01-02"))
 
 	var registerDetail RegisterDetail
 	registerDetail.Four = 1

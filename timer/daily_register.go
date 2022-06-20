@@ -17,7 +17,7 @@ type RegisterDetail struct {
 }
 
 func (p *ParserTimer) dailyRegister() {
-	registeredAt := time.Now().Format("2006-01-02")
+	registeredAt := time.Now().Add(-time.Hour * 24).Format("2006-01-02")
 	accountInfos, err := p.dbDao.GetAccountInfoByRegisteredAt(registeredAt)
 	if err != nil {
 		log.Error("GetAccountInfoByRegisteredAt err:", err.Error())
