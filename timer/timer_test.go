@@ -68,10 +68,14 @@ func TestGetCnyRate(t *testing.T) {
 func TestDailyRegister(t *testing.T) {
 	fmt.Println(time.Now().Add(-time.Hour * 24).Format("2006-01-02"))
 
-	var registerDetail RegisterDetail
-	registerDetail.Four = 1
-	registerDetail.Five = 10
-	registerDetail.Sub = 4
-	b, _ := json.Marshal(registerDetail)
-	fmt.Println(string(b))
+	now := time.Now()
+	origin := time.Date(2021, 7, 22, 0, 0, 0, 0, time.Local)
+	nowUnix := now.Unix()
+	originUnix := origin.Unix()
+
+	days := (nowUnix - originUnix) / (3600 * 24)
+	for i := int64(0); i < days; i++ {
+		fmt.Println(origin.Format("2006-01-02"))
+		origin = origin.Add(time.Hour * 24)
+	}
 }

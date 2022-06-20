@@ -29,6 +29,11 @@ func (t *TableRegisterInfo) TableName() string {
 	return TableNameRegisterInfo
 }
 
+func (d *DbDao) GetLastRegisterInfo() (registerInfo TableRegisterInfo, err error) {
+	err = d.db.Order("id DESC").Find(&registerInfo).Error
+	return
+}
+
 func (d *DbDao) CreateRegisterInfo(registerInfo TableRegisterInfo) error {
 	return d.db.Clauses(clause.Insert{
 		Modifier: "IGNORE",

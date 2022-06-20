@@ -200,7 +200,7 @@ func TestGenerateAddress(t *testing.T) {
 	}
 	fmt.Println(tnAddress)
 
-	tnAddress, err = address.ConvertScriptToFullAddress(address.Testnet, script)
+	tnAddress, err = address.ConvertScriptToFullAddress(address.FullTypeFormat, address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -227,7 +227,7 @@ func TestGenerateDASAddress(t *testing.T) {
 		HashType: types.HashTypeType,
 		Args:     common.Hex2Bytes("0x05a266e3226426af7f30ae133fc0fdcdd761e69aac05a266e3226426af7f30ae133fc0fdcdd761e69aac"),
 	}
-	tnAddress, err = address.ConvertScriptToFullAddress(address.Testnet, script)
+	tnAddress, err = address.ConvertScriptToFullAddress(address.FullTypeFormat, address.Testnet, script)
 	if err != nil {
 		log.Fatal(err)
 	}

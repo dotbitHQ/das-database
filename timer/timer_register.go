@@ -4,7 +4,6 @@ import (
 	"das_database/dao"
 	"encoding/json"
 	"github.com/DeAccountSystems/das-lib/common"
-	"time"
 )
 
 type RegisterDetail struct {
@@ -16,14 +15,10 @@ type RegisterDetail struct {
 	Sub   int `json:"sub,omitempty"`
 }
 
-func (p *ParserTimer) dailyRegister() {
-	registeredAt := time.Now().Add(-time.Hour * 24).Format("2006-01-02")
+func (p *ParserTimer) dailyRegister(registeredAt string) {
 	accountInfos, err := p.dbDao.GetAccountInfoByRegisteredAt(registeredAt)
 	if err != nil {
 		log.Error("GetAccountInfoByRegisteredAt err:", err.Error())
-		return
-	}
-	if len(accountInfos) == 0 {
 		return
 	}
 
