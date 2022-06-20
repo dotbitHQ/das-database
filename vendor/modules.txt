@@ -97,7 +97,7 @@ github.com/minio/blake2b-simd
 github.com/modern-go/concurrent
 # github.com/modern-go/reflect2 v1.0.2
 github.com/modern-go/reflect2
-# github.com/nervosnetwork/ckb-sdk-go v1.0.4
+# github.com/nervosnetwork/ckb-sdk-go v0.101.3
 ## explicit
 github.com/nervosnetwork/ckb-sdk-go/address
 github.com/nervosnetwork/ckb-sdk-go/collector
@@ -169,7 +169,7 @@ golang.org/x/net/idna
 golang.org/x/net/publicsuffix
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/syncmap
-# golang.org/x/sys v0.0.0-20220422013727-9388b58f7150
+# golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix

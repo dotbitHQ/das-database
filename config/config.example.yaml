@@ -1,6 +1,7 @@
 server:
   net: 1 # 1: mainnet 2: testnet
   http_server_addr: ":8118"
+  daily_register: false # false: close true: open
 notice:
   webhook_lark_err: ""
 chain:

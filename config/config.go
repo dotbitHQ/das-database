@@ -42,6 +42,7 @@ type CfgServer struct {
 	Server struct {
 		Net            common.DasNetType `json:"net" yaml:"net"`
 		HttpServerAddr string            `json:"http_server_addr" yaml:"http_server_addr"`
+		DailyRegister  bool              `json:"daily_register" yaml:"daily_register"`
 	} `json:"server" yaml:"server"`
 	Notice struct {
 		WebhookLarkErr string `json:"webhook_lark_err" yaml:"webhook_lark_err"`
@@ -60,7 +61,6 @@ type CfgServer struct {
 }
 
 type DbMysql struct {
-	LogMode     bool   `json:"log_mode" yaml:"log_mode"`
 	Addr        string `json:"addr" yaml:"addr"`
 	User        string `json:"user" yaml:"user"`
 	Password    string `json:"password" yaml:"password"`

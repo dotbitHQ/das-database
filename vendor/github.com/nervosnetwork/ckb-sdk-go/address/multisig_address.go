@@ -9,24 +9,19 @@ import (
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 )
 
-// GenerateSecp256k1MultisigScript generate scep256k1 multisig script.
-// It can accept public key (in compressed format, 33 bytes each) array or public key hash (20 bytes) array, and
-// return error if giving none of them.
-func GenerateSecp256k1MultisigScript(requireN, threshold int, publicKeysOrHashes [][]byte) (*types.Script, []byte, error) {
+func GenerateSecp256k1MultisigScript(requireN, threshold int, publicKeys [][]byte) (*types.Script, []byte, error) {
 	if requireN < 0 || requireN > 255 {
 		return nil, nil, errors.New("requireN must ranging from 0 to 255")
 	}
 	if threshold < 0 || threshold > 255 {
 		return nil, nil, errors.New("requireN must ranging from 0 to 255")
 	}
-	if len(publicKeysOrHashes) > 255 {
+	if len(publicKeys) > 255 {
 		return nil, nil, errors.New("public keys size must be less than 256")
 	}
-	if len(publicKeysOrHashes) < requireN || len(publicKeysOrHashes) < threshold {
+	if len(publicKeys) < requireN || len(publicKeys) < threshold {
 		return nil, nil, errors.New("public keys error")
 	}
-
-
 
 	var data []byte
 	data = append(data, 0)
@@ -40,28 +35,15 @@ func GenerateSecp256k1MultisigScript(requireN, threshold int, publicKeysOrHashes
 	data = append(data, b[:1]...)
 
 	b = make([]byte, 2)
-	binary.LittleEndian.PutUint16(b, uint16(len(publicKeysOrHashes)))
+	binary.LittleEndian.PutUint16(b, uint16(len(publicKeys)))
 	data = append(data, b[:1]...)
 
-	isPublicKeyHash := len(publicKeysOrHashes[0]) == 20
-	if isPublicKeyHash {
-		for _, publicKeyHash := range publicKeysOrHashes {
-			if len(publicKeyHash) != 20 {
-				return nil, nil, errors.New("public key hash length must be 20 bytes")
-			}
-			data = append(data, publicKeyHash...)
+	for _, pub := range publicKeys {
+		hash, err := blake2b.Blake160(pub)
+		if err != nil {
+			return nil, nil, err
 		}
-	} else {
-		for _, publicKey := range publicKeysOrHashes {
-			if len(publicKey) != 33 {
-				return nil, nil, errors.New("public key (compressed) length must be 33 bytes")
-			}
-			publicKeyHash, err := blake2b.Blake160(publicKey)
-			if err != nil {
-				return nil, nil, err
-			}
-			data = append(data, publicKeyHash...)
-		}
+		data = append(data, hash...)
 	}
 
 	args, err := blake2b.Blake160(data)

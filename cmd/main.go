@@ -83,7 +83,9 @@ func runServer(ctx *cli.Context) error {
 		CkbClient: ckbClient,
 	})
 	parserTimer.RunUpdateTokenPrice()
-	parserTimer.RunDailyRegister()
+	if config.Cfg.Server.DailyRegister {
+		parserTimer.RunDailyRegister()
+	}
 	log.Info("parser timer ok")
 
 	// das contract init
