@@ -11,7 +11,6 @@ import (
 
 var log = mylog.NewLogger("timer", mylog.LevelDebug)
 
-// ParserTimer
 type ParserTimer struct {
 	dbDao     *dao.DbDao
 	ctx       context.Context
@@ -35,7 +34,7 @@ func NewParserTimer(p ParserTimerParam) *ParserTimer {
 	return &t
 }
 
-func (p *ParserTimer) Run() error {
+func (p *ParserTimer) RunUpdateTokenPrice() {
 	p.updateTokenMap()
 
 	tickerToken := time.NewTicker(time.Second * 180)
@@ -60,5 +59,23 @@ func (p *ParserTimer) Run() error {
 			}
 		}
 	}()
-	return nil
+}
+
+func (p *ParserTimer) RunDailyRegister() {
+	tickerRegister := time.NewTicker(time.Hour * 24)
+
+	p.wg.Add(1)
+	go func() {
+		for {
+			select {
+			case <-tickerRegister.C:
+				log.Info("RunDailyRegister start ...", time.Now().Format("2006-01-02 15:04:05"))
+				p.dailyRegister()
+				log.Info("RunDailyRegister end ...", time.Now().Format("2006-01-02 15:04:05"))
+			case <-p.ctx.Done():
+				p.wg.Done()
+				return
+			}
+		}
+	}()
 }

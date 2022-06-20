@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -26,4 +27,10 @@ const (
 
 func (t *TableRegisterInfo) TableName() string {
 	return TableNameRegisterInfo
+}
+
+func (d *DbDao) CreateRegisterInfo(registerInfo TableRegisterInfo) error {
+	return d.db.Clauses(clause.Insert{
+		Modifier: "IGNORE",
+	}).Create(&registerInfo).Error
 }

@@ -82,9 +82,8 @@ func runServer(ctx *cli.Context) error {
 		Wg:        &wgServer,
 		CkbClient: ckbClient,
 	})
-	if err = parserTimer.Run(); err != nil {
-		return fmt.Errorf("NewParserTimer err: %s", err.Error())
-	}
+	parserTimer.RunUpdateTokenPrice()
+	parserTimer.RunDailyRegister()
 	log.Info("parser timer ok")
 
 	// das contract init

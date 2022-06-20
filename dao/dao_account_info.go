@@ -268,3 +268,8 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 		return nil
 	})
 }
+
+func (d *DbDao) GetAccountInfoByRegisteredAt(registeredAt string) (accountInfos []TableAccountInfo, err error) {
+	err = d.db.Where("FROM_UNIXTIME(registered_at, '%Y-%m-%d')=?", registeredAt).Find(&accountInfos).Error
+	return
+}

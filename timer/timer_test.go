@@ -10,6 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 	"sync"
 	"testing"
+	"time"
 )
 
 func getInit() (*dao.DbDao, error) {
@@ -38,9 +39,7 @@ func TestGetTokenInfo(t *testing.T) {
 		Ctx:   context.Background(),
 		Wg:    &sync.WaitGroup{},
 	})
-	if err = parserTimer.Run(); err != nil {
-		t.Fatal(err)
-	}
+	parserTimer.RunUpdateTokenPrice()
 	tokenInfo := GetTokenPriceInfo(TokenIdCkb)
 	fmt.Println(toolib.JsonString(tokenInfo))
 }
@@ -64,4 +63,15 @@ func TestGetTokenPriceBinance(t *testing.T) {
 
 func TestGetCnyRate(t *testing.T) {
 	fmt.Println(GetCnyRate())
+}
+
+func TestDailyRegister(t *testing.T) {
+	fmt.Println(time.Now().Format("2006-01-02"))
+
+	var registerDetail RegisterDetail
+	registerDetail.Four = 1
+	registerDetail.Five = 10
+	registerDetail.Sub = 4
+	b, _ := json.Marshal(registerDetail)
+	fmt.Println(string(b))
 }
