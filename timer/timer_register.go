@@ -38,14 +38,14 @@ func (p *ParserTimer) dailyRegister(registeredAt string) {
 	registerDetail := RegisterDetail{}
 
 	for _, accountInfo := range accountInfos {
+		ownerMap[accountInfo.Owner]++
 		if accountInfo.ParentAccountId != "" {
 			registerInfo.TotalSubAccount++
 			registerDetail.Sub = registerInfo.TotalSubAccount
 			continue
 		}
-		registerInfo.TotalAccount++
-		ownerMap[accountInfo.Owner]++
 
+		registerInfo.TotalAccount++
 		accLen := common.GetAccountLength(accountInfo.Account)
 		switch accLen {
 		case 1:
