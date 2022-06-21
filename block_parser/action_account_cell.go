@@ -357,11 +357,18 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 	}
 	log.Info("ActionRecycleExpiredAccount:", req.BlockNumber, req.TxHash)
 
-	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
+	var builder *witness.AccountCellDataBuilder
+	builderMap, err := witness.AccountCellDataBuilderMapFromTx(req.Tx, common.DataTypeOld)
 	if err != nil {
-		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		resp.Err = fmt.Errorf("AccountCellDataBuilderMapFromTx err: %s", err.Error())
 		return
 	}
+	for _, v := range builderMap {
+		if v.Index == 1 {
+			builder = v
+		}
+	}
+
 	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
