@@ -67,7 +67,7 @@ func (p *ParserTimer) RunDailyRegister() {
 		log.Error("GetLastRegisterInfo err:", err.Error())
 	} else if registerInfo.Id == 0 {
 		now := time.Now()
-		origin := time.Date(2021, 7, 22, 0, 0, 0, 0, time.Local)
+		origin := time.Date(2021, 7, 21, 0, 0, 0, 0, time.Local)
 		nowUnix := now.Unix()
 		originUnix := origin.Unix()
 

@@ -8,7 +8,6 @@ import (
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/scorpiotzh/toolib"
 	"strconv"
-	"time"
 )
 
 func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -349,12 +348,7 @@ func (b *BlockParser) ActionForceRecoverAccountStatus(req FuncTransactionHandleR
 }
 
 func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
-	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
-		return
-	}
-	if isCV, err := isCurrentVersionTx(res.Transaction, common.DasContractNameAccountCellType); err != nil {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
@@ -363,28 +357,14 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 	}
 	log.Info("ActionRecycleExpiredAccount:", req.BlockNumber, req.TxHash)
 
-	builder, err := witness.AccountCellDataBuilderFromTx(res.Transaction, common.DataTypeNew)
+	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeOld)
 	if err != nil {
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsAccount)
+	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
-		return
-	}
-	gracePeriod, err := builderConfig.ExpirationGracePeriod()
-	if err != nil {
-		resp.Err = fmt.Errorf("ExpirationGracePeriod err: %s", err.Error())
-		return
-	}
-
-	if builder.Status != 0 {
-		resp.Err = fmt.Errorf("ActionRecycleExpiredAccount: account is not normal status")
-		return
-	}
-	if builder.ExpiredAt+uint64(gracePeriod) > uint64(time.Now().Unix()) {
-		resp.Err = fmt.Errorf("ActionRecycleExpiredAccount: account has not expired yet")
+		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
 		return
 	}
 	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
