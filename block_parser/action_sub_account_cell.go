@@ -445,3 +445,26 @@ func (b *BlockParser) ActionSubAccountCrossChain(req FuncTransactionHandleReq) (
 	log.Info("ActionSubAccountCrossChain:", req.BlockNumber, req.TxHash, req.Action)
 	return
 }
+
+func (b *BlockParser) ActionConfigSubAccountCreatingScript(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		return
+	}
+	log.Info("ActionConfigSubAccountCreatingScript:", req.BlockNumber, req.TxHash)
+
+	// update account cell outpoint
+	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
+	if err != nil {
+		resp.Err = fmt.Errorf("witness.AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+	outpoint := common.OutPoint2String(req.TxHash, uint(builder.Index))
+	if err := b.dbDao.UpdateAccountOutpoint(builder.AccountId, outpoint); err != nil {
+		resp.Err = fmt.Errorf("UpdateAccountOutpoint err: %s", err.Error())
+	}
+
+	return
+}
