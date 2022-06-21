@@ -119,9 +119,6 @@ func runServer(ctx *cli.Context) error {
 		Wg:    &wgServer,
 	}
 	parserTimer.RunUpdateTokenPrice()
-	if config.Cfg.Server.DailyRegister {
-		parserTimer.RunDailyRegister()
-	}
 	log.Info("parser timer ok")
 
 	// http server
