@@ -2,7 +2,6 @@ package block_parser
 
 import (
 	"context"
-	"das_database/chain/chain_ckb"
 	"das_database/config"
 	"das_database/dao"
 	"fmt"
@@ -25,7 +24,6 @@ type BlockParser struct {
 	mapTransactionHandle map[common.DasAction]FuncTransactionHandle
 	currentBlockNumber   uint64
 	dbDao                *dao.DbDao
-	ckbClient            *chain_ckb.Client
 	concurrencyNum       uint64
 	confirmNum           uint64
 	ctx                  context.Context
@@ -36,7 +34,6 @@ type ParamsBlockParser struct {
 	DasCore            *core.DasCore
 	CurrentBlockNumber uint64
 	DbDao              *dao.DbDao
-	CkbClient          *chain_ckb.Client
 	ConcurrencyNum     uint64
 	ConfirmNum         uint64
 	Ctx                context.Context
@@ -48,7 +45,6 @@ func NewBlockParser(p ParamsBlockParser) (*BlockParser, error) {
 		dasCore:            p.DasCore,
 		currentBlockNumber: p.CurrentBlockNumber,
 		dbDao:              p.DbDao,
-		ckbClient:          p.CkbClient,
 		concurrencyNum:     p.ConcurrencyNum,
 		confirmNum:         p.ConfirmNum,
 		ctx:                p.Ctx,
@@ -83,7 +79,7 @@ func (b *BlockParser) RunParser() {
 			select {
 			default:
 				// get the new height and compare with current height
-				latestBlockNumber, err := b.ckbClient.GetTipBlockNumber()
+				latestBlockNumber, err := b.dasCore.Client().GetTipBlockNumber(b.ctx)
 				if err != nil {
 					log.Error("get latest block number err:", err.Error())
 				} else {
@@ -118,7 +114,7 @@ func (b *BlockParser) RunParser() {
 // subscribe mode
 func (b *BlockParser) parserSubMode() error {
 	log.Info("parserSubMode:", b.currentBlockNumber)
-	block, err := b.ckbClient.GetBlockByNumber(b.currentBlockNumber)
+	block, err := b.dasCore.Client().GetBlockByNumber(b.ctx, b.currentBlockNumber)
 	if err != nil {
 		return fmt.Errorf("GetBlockByNumber err: %s", err.Error())
 	} else {
@@ -203,7 +199,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 func (b *BlockParser) parserConcurrencyMode() error {
 	log.Info("parserConcurrencyMode:", b.currentBlockNumber, b.concurrencyNum)
 	for i := uint64(0); i < b.concurrencyNum; i++ {
-		block, err := b.ckbClient.GetBlockByNumber(b.currentBlockNumber)
+		block, err := b.dasCore.Client().GetBlockByNumber(b.ctx, b.currentBlockNumber)
 		if err != nil {
 			return fmt.Errorf("GetBlockByNumber err: %s [%d]", err.Error(), b.currentBlockNumber)
 		}

@@ -3,10 +3,10 @@ package handle
 import (
 	"context"
 	"das_database/block_parser"
-	"das_database/chain/chain_ckb"
 	"das_database/dao"
 	"das_database/http_server/api_code"
 	"fmt"
+	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/gin-gonic/gin"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
@@ -19,25 +19,25 @@ var (
 )
 
 type HttpHandle struct {
-	ctx       context.Context
-	dbDao     *dao.DbDao
-	ckbClient *chain_ckb.Client
-	bp        *block_parser.BlockParser
+	ctx     context.Context
+	dbDao   *dao.DbDao
+	dasCore *core.DasCore
+	bp      *block_parser.BlockParser
 }
 
 type HttpHandleParams struct {
-	DbDao     *dao.DbDao
-	CkbClient *chain_ckb.Client
-	Ctx       context.Context
-	Bp        *block_parser.BlockParser
+	DbDao   *dao.DbDao
+	DasCore *core.DasCore
+	Ctx     context.Context
+	Bp      *block_parser.BlockParser
 }
 
 func Initialize(p HttpHandleParams) *HttpHandle {
 	hh := HttpHandle{
-		dbDao:     p.DbDao,
-		ckbClient: p.CkbClient,
-		ctx:       p.Ctx,
-		bp:        p.Bp,
+		dbDao:   p.DbDao,
+		dasCore: p.DasCore,
+		ctx:     p.Ctx,
+		bp:      p.Bp,
 	}
 	return &hh
 }
@@ -50,9 +50,9 @@ func GetClientIp(ctx *gin.Context) string {
 func (h *HttpHandle) IsLatestBlockNumber(ctx *gin.Context) {
 	log.Info("IsLatestBlockNumber", GetClientIp(ctx))
 
-	blockNumber, err := h.ckbClient.GetTipBlockNumber()
+	blockNumber, err := h.dasCore.Client().GetTipBlockNumber(h.ctx)
 	if err != nil {
-		log.Error("ckbClient GetTipBlockNumber err: %s", err.Error())
+		log.Error("GetTipBlockNumber err: %s", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "search block number err"))
 		return
 	}
@@ -70,29 +70,29 @@ type ParserTransactionData struct {
 func (h *HttpHandle) ParserTransaction(ctx *gin.Context) {
 	var transactionData ParserTransactionData
 	if err := ctx.ShouldBindJSON(&transactionData); err != nil {
-		log.Error("ParserTransaction ShouldBindJSON err: %s", err.Error())
+		log.Error("ShouldBindJSON err: %s", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid"))
 		return
 	}
 
 	log.Info("ParserTransaction", transactionData.TxHash, GetClientIp(ctx))
 
-	tx, err := h.ckbClient.GetTxByHashOnChain(types.HexToHash(transactionData.TxHash))
+	tx, err := h.dasCore.Client().GetTransaction(h.ctx, types.HexToHash(transactionData.TxHash))
 	if err != nil {
-		log.Error("ParserTransaction GetTxByHashOnChain err: %s", err.Error())
+		log.Error("GetTransaction err: %s", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "search transaction err"))
 		return
 	}
-	header, err := h.ckbClient.GetHeaderByHashOnChain(types.HexToHash(tx.TxStatus.BlockHash.Hex()))
+	header, err := h.dasCore.Client().GetHeader(h.ctx, types.HexToHash(tx.TxStatus.BlockHash.Hex()))
 	if err != nil {
-		log.Error("ParserTransaction GetHeaderByHashOnChain err: %s", err.Error())
+		log.Error("GetHeader err: %s", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "search header err"))
 		return
 	}
 
 	builder, err := witness.ActionDataBuilderFromTx(tx.Transaction)
 	if err != nil {
-		log.Error("ParserTransaction ActionDataBuilderFromTx err: %s", err.Error())
+		log.Error("ActionDataBuilderFromTx err: %s", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "builder from tx err"))
 		return
 	}

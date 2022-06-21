@@ -248,9 +248,9 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 	}
 
 	// sale cell
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
 	builder, err := witness.AccountSaleCellDataBuilderFromTx(res.Transaction, common.DataTypeNew)

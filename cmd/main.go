@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"das_database/block_parser"
-	"das_database/chain/chain_ckb"
 	"das_database/config"
 	"das_database/dao"
 	"das_database/http_server"
 	"das_database/timer"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/core"
+	"github.com/nervosnetwork/ckb-sdk-go/rpc"
 	"github.com/scorpiotzh/mylog"
 	"github.com/scorpiotzh/toolib"
 	"github.com/urfave/cli/v2"
@@ -68,30 +68,17 @@ func runServer(ctx *cli.Context) error {
 	}
 	log.Info("db ok")
 
-	// ckb 节点
-	ckbClient, err := chain_ckb.NewClient(context.Background(), config.Cfg.Chain.CkbUrl, config.Cfg.Chain.IndexUrl)
+	// ckb node
+	ckbClient, err := rpc.DialWithIndexer(config.Cfg.Chain.CkbUrl, config.Cfg.Chain.IndexUrl)
 	if err != nil {
-		return fmt.Errorf("chain_ckb.NewClient err: %s", err.Error())
+		return fmt.Errorf("DialWithIndexer err: %s", err.Error())
 	}
 	log.Info("ckb node ok")
 
-	// timer
-	parserTimer := timer.NewParserTimer(timer.ParserTimerParam{
-		DbDao:     dbDao,
-		Ctx:       ctxServer,
-		Wg:        &wgServer,
-		CkbClient: ckbClient,
-	})
-	parserTimer.RunUpdateTokenPrice()
-	if config.Cfg.Server.DailyRegister {
-		parserTimer.RunDailyRegister()
-	}
-	log.Info("parser timer ok")
-
-	// das contract init
+	// das core
 	env := core.InitEnv(config.Cfg.Server.Net)
 	opts := []core.DasCoreOption{
-		core.WithClient(ckbClient.Client()),
+		core.WithClient(ckbClient),
 		core.WithDasContractArgs(env.ContractArgs),
 		core.WithDasContractCodeHash(env.ContractCodeHash),
 		core.WithDasNetType(config.Cfg.Server.Net),
@@ -115,7 +102,6 @@ func runServer(ctx *cli.Context) error {
 		DasCore:            dc,
 		CurrentBlockNumber: config.Cfg.Chain.CurrentBlockNumber,
 		DbDao:              dbDao,
-		CkbClient:          ckbClient,
 		ConcurrencyNum:     config.Cfg.Chain.ConcurrencyNum,
 		ConfirmNum:         config.Cfg.Chain.ConfirmNum,
 		Ctx:                ctxServer,
@@ -126,13 +112,25 @@ func runServer(ctx *cli.Context) error {
 	}
 	bp.RunParser()
 
+	// timer
+	parserTimer := timer.ParserTimer{
+		DbDao: dbDao,
+		Ctx:   ctxServer,
+		Wg:    &wgServer,
+	}
+	parserTimer.RunUpdateTokenPrice()
+	if config.Cfg.Server.DailyRegister {
+		parserTimer.RunDailyRegister()
+	}
+	log.Info("parser timer ok")
+
 	// http server
 	hs, err := http_server.Initialize(http_server.HttpServerParams{
-		Address:   config.Cfg.Server.HttpServerAddr,
-		DbDao:     dbDao,
-		Ctx:       ctxServer,
-		CkbClient: ckbClient,
-		Bp:        bp,
+		Address: config.Cfg.Server.HttpServerAddr,
+		DbDao:   dbDao,
+		Ctx:     ctxServer,
+		DasCore: dc,
+		Bp:      bp,
 	})
 	if err != nil {
 		return fmt.Errorf("http server Initialize err:%s", err.Error())

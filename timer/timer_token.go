@@ -20,7 +20,7 @@ var (
 )
 
 func (p *ParserTimer) updateTokenMap() {
-	list, err := p.dbDao.SearchTokenPriceInfoList()
+	list, err := p.DbDao.SearchTokenPriceInfoList()
 	if err != nil {
 		log.Errorf("SearchTokenPriceInfoList err:%s", err.Error())
 	}
@@ -48,7 +48,7 @@ func GetTokenPriceInfoList() map[string]dao.TableTokenPriceInfo {
 
 func (p *ParserTimer) updateTokenPriceInfoList() {
 	var geckoIds []string
-	if list, err := p.dbDao.SearchTokenPriceInfoList(); err != nil {
+	if list, err := p.DbDao.SearchTokenPriceInfoList(); err != nil {
 		log.Error("SearchTokenPriceInfoList err:", err.Error())
 	} else {
 		for _, v := range list {
@@ -70,7 +70,7 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 				LastUpdatedAt: v.LastUpdatedAt,
 			})
 		}
-		if err := p.dbDao.UpdateTokenPriceInfoList(tokenList); err != nil {
+		if err := p.DbDao.UpdateTokenPriceInfoList(tokenList); err != nil {
 			log.Error("UpdateTokenPriceInfoList err:", err.Error())
 		}
 	}
@@ -85,7 +85,7 @@ func (p *ParserTimer) updateUSDRate() {
 	log.Info("updateUSDRate:", toolib.JsonString(&rate))
 	if rate != nil && rate.Value > 0 {
 		dec := decimal.NewFromInt(1).DivRound(decimal.NewFromFloat(rate.Value), 4)
-		if err = p.dbDao.UpdateCNYToUSDRate([]string{"wx_cny"}, dec); err != nil {
+		if err = p.DbDao.UpdateCNYToUSDRate([]string{"wx_cny"}, dec); err != nil {
 			log.Errorf("UpdateCNYToUSDRate err:%s", err)
 		}
 	}

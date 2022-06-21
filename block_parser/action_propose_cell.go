@@ -143,9 +143,9 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		})
 
 		if preAcc, ok := preMap[v.Account]; ok {
-			preTx, err := b.ckbClient.Client().GetTransaction(b.ctx, req.Tx.Inputs[preAcc.Index].PreviousOutput.TxHash)
+			preTx, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[preAcc.Index].PreviousOutput.TxHash)
 			if err != nil {
-				resp.Err = fmt.Errorf("pretx GetTransaction err: %s", err.Error())
+				resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 				return
 			}
 
@@ -179,7 +179,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 
 			inviterLock, _ := preAcc.InviterLock()
 			if inviterLock == nil {
-				log.Warn("pre InviterLock nil:", req.BlockNumber, req.TxHash, preAcc.Account)
+				log.Warn("InviterLock nil:", req.BlockNumber, req.TxHash, preAcc.Account)
 				tmp := molecule.ScriptDefault()
 				inviterLock = &tmp
 			}
@@ -209,7 +209,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 
 			channelLock, _ := preAcc.ChannelLock()
 			if channelLock == nil {
-				log.Warn("pre ChannelLock nil:", req.BlockNumber, req.TxHash, preAcc.Account)
+				log.Warn("ChannelLock nil:", req.BlockNumber, req.TxHash, preAcc.Account)
 				tmp := molecule.ScriptDefault()
 				channelLock = &tmp
 			}

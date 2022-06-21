@@ -239,9 +239,9 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[oldBuilder.Index].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[oldBuilder.Index].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
 
@@ -362,9 +362,9 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
 	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)

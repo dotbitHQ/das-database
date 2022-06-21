@@ -16,7 +16,7 @@ type RegisterDetail struct {
 }
 
 func (p *ParserTimer) dailyRegister(registeredAt string) {
-	accountInfos, err := p.dbDao.GetAccountInfoByRegisteredAt(registeredAt)
+	accountInfos, err := p.DbDao.GetAccountInfoByRegisteredAt(registeredAt)
 	if err != nil {
 		log.Error("GetAccountInfoByRegisteredAt err:", err.Error())
 		return
@@ -70,7 +70,7 @@ func (p *ParserTimer) dailyRegister(registeredAt string) {
 	b, _ := json.Marshal(registerDetail)
 	registerInfo.RegisterDetail = string(b)
 
-	if err = p.dbDao.CreateRegisterInfo(registerInfo); err != nil {
+	if err = p.DbDao.CreateRegisterInfo(registerInfo); err != nil {
 		log.Error("CreateRegisterInfo err:", err.Error())
 	}
 }

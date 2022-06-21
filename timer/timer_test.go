@@ -34,11 +34,11 @@ func TestGetTokenInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	parserTimer := NewParserTimer(ParserTimerParam{
+	parserTimer := ParserTimer{
 		DbDao: dbDao,
 		Ctx:   context.Background(),
 		Wg:    &sync.WaitGroup{},
-	})
+	}
 	parserTimer.RunUpdateTokenPrice()
 	tokenInfo := GetTokenPriceInfo(TokenIdCkb)
 	fmt.Println(toolib.JsonString(tokenInfo))

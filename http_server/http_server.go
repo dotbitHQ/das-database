@@ -3,9 +3,9 @@ package http_server
 import (
 	"context"
 	"das_database/block_parser"
-	"das_database/chain/chain_ckb"
 	"das_database/dao"
 	"das_database/http_server/handle"
+	"github.com/DeAccountSystems/das-lib/core"
 	"github.com/gin-gonic/gin"
 	"github.com/scorpiotzh/mylog"
 	"net/http"
@@ -24,11 +24,11 @@ type HttpServer struct {
 }
 
 type HttpServerParams struct {
-	Address   string
-	DbDao     *dao.DbDao
-	Ctx       context.Context
-	CkbClient *chain_ckb.Client
-	Bp        *block_parser.BlockParser
+	Address string
+	DbDao   *dao.DbDao
+	Ctx     context.Context
+	DasCore *core.DasCore
+	Bp      *block_parser.BlockParser
 }
 
 func Initialize(p HttpServerParams) (*HttpServer, error) {
@@ -36,10 +36,10 @@ func Initialize(p HttpServerParams) (*HttpServer, error) {
 		address: p.Address,
 		engine:  gin.New(),
 		h: handle.Initialize(handle.HttpHandleParams{
-			DbDao:     p.DbDao,
-			CkbClient: p.CkbClient,
-			Ctx:       p.Ctx,
-			Bp:        p.Bp,
+			DbDao:   p.DbDao,
+			DasCore: p.DasCore,
+			Ctx:     p.Ctx,
+			Bp:      p.Bp,
 		}),
 		ctx: p.Ctx,
 	}

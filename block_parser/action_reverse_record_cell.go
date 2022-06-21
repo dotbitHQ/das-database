@@ -111,7 +111,7 @@ func (b *BlockParser) ActionRedeclareReverseRecord(req FuncTransactionHandleReq)
 }
 
 func (b *BlockParser) ActionRetractReverseRecord(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	res, err := b.ckbClient.Client().GetTransaction(b.ctx, req.Tx.Inputs[0].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[0].PreviousOutput.TxHash)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return

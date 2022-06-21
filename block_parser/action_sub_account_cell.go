@@ -138,9 +138,9 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[2].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[2].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
 	output := res.Transaction.Outputs[req.Tx.Inputs[2].PreviousOutput.Index]

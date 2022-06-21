@@ -139,9 +139,9 @@ func (b *BlockParser) ActionEditOffer(req FuncTransactionHandleReq) (resp FuncTr
 }
 
 func (b *BlockParser) ActionCancelOffer(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[0].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[0].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
 
@@ -196,9 +196,9 @@ func (b *BlockParser) ActionCancelOffer(req FuncTransactionHandleReq) (resp Func
 }
 
 func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	res, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[0].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[0].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
 	if isCV, err := isCurrentVersionTx(res.Transaction, common.DASContractNameOfferCellType); err != nil {
@@ -234,9 +234,9 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 	}
 
 	// res account cell
-	resAccount, err := b.ckbClient.GetTxByHashOnChain(req.Tx.Inputs[1].PreviousOutput.TxHash)
+	resAccount, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetTxByHashOnChain err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
 
