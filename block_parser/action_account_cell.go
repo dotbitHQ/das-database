@@ -368,6 +368,10 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 			builder = v
 		}
 	}
+	if builder == nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilder is nil")
+		return
+	}
 
 	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
