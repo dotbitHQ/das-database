@@ -273,3 +273,11 @@ func (d *DbDao) GetAccountInfoByRegisteredAt(registeredAt string) (accountInfos 
 	err = d.db.Where("FROM_UNIXTIME(registered_at, '%Y-%m-%d')=?", registeredAt).Find(&accountInfos).Error
 	return
 }
+
+func (d *DbDao) UpdateAccountOutpoint(accountId, outpoint string) error {
+	return d.db.Model(TableAccountInfo{}).
+		Where("account_id=?", accountId).
+		Updates(map[string]interface{}{
+			"outpoint": outpoint,
+		}).Error
+}
