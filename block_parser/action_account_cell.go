@@ -1,6 +1,7 @@
 package block_parser
 
 import (
+	"bytes"
 	"das_database/dao"
 	"fmt"
 	"github.com/DeAccountSystems/das-lib/common"
@@ -383,6 +384,18 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
 	}
+	oArgs, err := b.dasCore.Daf().HexToArgs(oHex, oHex)
+	if err != nil {
+		resp.Err = fmt.Errorf("HexToArgs err: %s", err.Error())
+		return
+	}
+	var oCapacity uint64
+	for _, output := range req.Tx.Outputs[1:] {
+		if bytes.Compare(oArgs, output.Lock.Args) == 0 {
+			oCapacity += output.Capacity
+		}
+	}
+
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      builder.AccountId,
@@ -391,7 +404,7 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		ServiceType:    dao.ServiceTypeRegister,
 		ChainType:      oHex.ChainType,
 		Address:        oHex.AddressHex,
-		Capacity:       req.Tx.OutputsCapacity() - req.Tx.Outputs[0].Capacity,
+		Capacity:       oCapacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
