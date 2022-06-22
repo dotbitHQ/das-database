@@ -204,7 +204,7 @@ func (d *DbDao) GetAccountInfoByParentAccountId(parentAccountId string) (account
 	return
 }
 
-func (d *DbDao) RecycleExpiredAccount(accountId string, subAccountIds []string, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) RecycleExpiredAccount(accountId string, enableSubAccount uint8, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("account_id=?", accountId).Delete(&TableAccountInfo{}).Error; err != nil {
 			return err
@@ -223,16 +223,16 @@ func (d *DbDao) RecycleExpiredAccount(accountId string, subAccountIds []string, 
 			return err
 		}
 
-		if len(subAccountIds) > 0 {
-			if err := tx.Where("account_id IN(?)", subAccountIds).Delete(&TableAccountInfo{}).Error; err != nil {
+		if enableSubAccount == 1 {
+			if err := tx.Where("parent_account_id=?", accountId).Delete(&TableAccountInfo{}).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Where("account_id IN(?)", subAccountIds).Delete(&TableRecordsInfo{}).Error; err != nil {
+			if err := tx.Where("parent_account_id=?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Where("account_id IN(?)", subAccountIds).Delete(&TableSmtInfo{}).Error; err != nil {
+			if err := tx.Where("parent_account_id=?", accountId).Delete(&TableSmtInfo{}).Error; err != nil {
 				return err
 			}
 		}

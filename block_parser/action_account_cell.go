@@ -408,21 +408,10 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	var subAccountIds []string
-	if builder.EnableSubAccount == 1 {
-		accountInfos, err := b.dbDao.GetAccountInfoByParentAccountId(builder.AccountId)
-		if err != nil {
-			resp.Err = fmt.Errorf("GetAccountInfoByParentAccountId err: %s", err.Error())
-			return
-		}
-		for _, accountInfo := range accountInfos {
-			subAccountIds = append(subAccountIds, accountInfo.AccountId)
-		}
-	}
 
-	log.Info("ActionRecycleExpiredAccount:", builder.Account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex, len(subAccountIds))
+	log.Info("ActionRecycleExpiredAccount:", builder.Account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex)
 
-	if err = b.dbDao.RecycleExpiredAccount(builder.AccountId, subAccountIds, transactionInfo); err != nil {
+	if err = b.dbDao.RecycleExpiredAccount(builder.AccountId, builder.EnableSubAccount, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("RecycleExpiredAccount err: %s", err.Error())
 		return
 	}
