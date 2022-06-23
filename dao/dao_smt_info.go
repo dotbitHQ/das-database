@@ -25,7 +25,7 @@ func (t *TableSmtInfo) TableName() string {
 	return TableNameSmtInfo
 }
 
-func (d *DbDao) CreateSubAccount(subAccountIds []string, accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfo TableTransactionInfo, accountInfo TableAccountInfo) error {
+func (d *DbDao) CreateSubAccount(subAccountIds []string, accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfo TableTransactionInfo, parentAccountInfo TableAccountInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(subAccountIds) > 0 {
 			if err := tx.Where(" account_id IN(?) ", subAccountIds).
@@ -66,10 +66,12 @@ func (d *DbDao) CreateSubAccount(subAccountIds []string, accountInfos []TableAcc
 			return err
 		}
 
-		if err := tx.Select("block_number", "outpoint").
-			Where("account_id = ?", accountInfo.AccountId).
-			Updates(accountInfo).Error; err != nil {
-			return err
+		if parentAccountInfo.AccountId != "" {
+			if err := tx.Select("block_number", "outpoint").
+				Where("account_id = ?", parentAccountInfo.AccountId).
+				Updates(parentAccountInfo).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil
