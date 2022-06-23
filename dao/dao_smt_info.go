@@ -25,8 +25,14 @@ func (t *TableSmtInfo) TableName() string {
 	return TableNameSmtInfo
 }
 
-func (d *DbDao) CreateSubAccount(accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfo TableTransactionInfo, accountInfo TableAccountInfo) error {
+func (d *DbDao) CreateSubAccount(subAccountIds []string, accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfo TableTransactionInfo, accountInfo TableAccountInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
+		if len(subAccountIds) > 0 {
+			if err := tx.Where(" account_id IN(?) ", subAccountIds).
+				Delete(&TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+		}
 		if len(accountInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
 				DoUpdates: clause.AssignmentColumns([]string{

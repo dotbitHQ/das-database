@@ -93,6 +93,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 	}
 
 	var accountInfos []dao.TableAccountInfo
+	var subAccountIds []string
 	var smtInfos []dao.TableSmtInfo
 	var capacity uint64
 	for _, v := range builderMap {
@@ -122,6 +123,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ExpiredAt:            v.SubAccount.ExpiredAt,
 			ConfirmProposalHash:  req.TxHash,
 		})
+		subAccountIds = append(subAccountIds, v.SubAccount.AccountId)
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:     req.BlockNumber,
 			Outpoint:        common.OutPoint2String(req.TxHash, 1),
@@ -171,7 +173,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		Outpoint:    common.OutPoint2String(req.TxHash, 0),
 	}
 
-	if err = b.dbDao.CreateSubAccount(accountInfos, smtInfos, transactionInfo, accountInfo); err != nil {
+	if err = b.dbDao.CreateSubAccount(subAccountIds, accountInfos, smtInfos, transactionInfo, accountInfo); err != nil {
 		resp.Err = fmt.Errorf("CreateSubAccount err: %s", err.Error())
 		return
 	}
