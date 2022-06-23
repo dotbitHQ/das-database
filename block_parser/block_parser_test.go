@@ -8,6 +8,7 @@ import (
 	"github.com/DeAccountSystems/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
+	"strings"
 	"sync/atomic"
 	"testing"
 )
@@ -50,4 +51,9 @@ func TestBuyAccount(t *testing.T) {
 	}
 	list := IncomeCellBuilder.Records()
 	fmt.Println(list)
+}
+
+func TestAccount(t *testing.T) {
+	acc := "tzh03.00acc2022042902.bit"
+	fmt.Println(acc[strings.Index(acc, ".")+1:])
 }
