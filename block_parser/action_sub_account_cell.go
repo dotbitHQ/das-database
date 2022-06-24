@@ -7,6 +7,7 @@ import (
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
 	"strconv"
+	"strings"
 )
 
 func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -69,10 +70,34 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 	}
 	log.Info("ActionCreateSubAccount:", req.BlockNumber, req.TxHash)
 
-	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
+	// check sub-account config custom-script-args or not
+	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
 	if err != nil {
-		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 		return
+	}
+	contractAcc, err := core.GetDasContractInfo(common.DasContractNameAccountCellType)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+		return
+	}
+	var subAccountCellOutpoint, parentAccountId, accountCellOutpoint string
+	for i, v := range req.Tx.Outputs {
+		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
+			parentAccountId = common.Bytes2Hex(v.Type.Args)
+			subAccountCellOutpoint = common.OutPoint2String(req.TxHash, uint(i))
+		}
+		if v.Type != nil && contractAcc.IsSameTypeId(v.Type.CodeHash) {
+			accountCellOutpoint = common.OutPoint2String(req.TxHash, uint(i))
+		}
+	}
+	var parentAccountInfo dao.TableAccountInfo
+	if accountCellOutpoint != "" {
+		parentAccountInfo = dao.TableAccountInfo{
+			BlockNumber: req.BlockNumber,
+			Outpoint:    accountCellOutpoint,
+			AccountId:   parentAccountId,
+		}
 	}
 
 	builderMap, err := witness.SubAccountBuilderMapFromTx(req.Tx)
@@ -93,8 +118,10 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 	}
 
 	var accountInfos []dao.TableAccountInfo
+	var subAccountIds []string
 	var smtInfos []dao.TableSmtInfo
 	var capacity uint64
+	var parentAccount string
 	for _, v := range builderMap {
 		ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(v.SubAccount.Lock.Args)
 		if err != nil {
@@ -106,7 +133,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			BlockNumber:          req.BlockNumber,
 			Outpoint:             common.OutPoint2String(req.TxHash, 0),
 			AccountId:            v.SubAccount.AccountId,
-			ParentAccountId:      builder.AccountId,
+			ParentAccountId:      parentAccountId,
 			Account:              v.Account,
 			OwnerChainType:       ownerHex.ChainType,
 			Owner:                ownerHex.AddressHex,
@@ -122,11 +149,13 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ExpiredAt:            v.SubAccount.ExpiredAt,
 			ConfirmProposalHash:  req.TxHash,
 		})
+		parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
+		subAccountIds = append(subAccountIds, v.SubAccount.AccountId)
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:     req.BlockNumber,
 			Outpoint:        common.OutPoint2String(req.TxHash, 1),
 			AccountId:       v.SubAccount.AccountId,
-			ParentAccountId: builder.AccountId,
+			ParentAccountId: parentAccountId,
 			LeafDataHash:    common.Bytes2Hex(v.SubAccount.ToH256()),
 		})
 		capacity += (v.SubAccount.ExpiredAt - v.SubAccount.RegisteredAt) / uint64(common.OneYearSec) * newPrice
@@ -138,12 +167,13 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 
-	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[2].PreviousOutput.TxHash)
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[len(req.Tx.Inputs)-1].PreviousOutput.TxHash)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
-	output := res.Transaction.Outputs[req.Tx.Inputs[2].PreviousOutput.Index]
+
+	output := res.Transaction.Outputs[req.Tx.Inputs[len(req.Tx.Inputs)-1].PreviousOutput.Index]
 	oCT, oA := common.ChainTypeCkb, common.Bytes2Hex(output.Lock.Args)
 	if dasLock.IsSameTypeId(output.Lock.CodeHash) {
 		tmpHex, _, err := b.dasCore.Daf().ArgsToHex(output.Lock.Args)
@@ -155,23 +185,18 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
-		AccountId:      builder.AccountId,
-		Account:        builder.Account,
+		AccountId:      parentAccountId,
+		Account:        parentAccount,
 		Action:         common.DasActionCreateSubAccount,
 		ServiceType:    dao.ServiceTypeRegister,
 		ChainType:      oCT,
 		Address:        oA,
 		Capacity:       capacity,
-		Outpoint:       common.OutPoint2String(req.TxHash, 1),
+		Outpoint:       subAccountCellOutpoint,
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	accountInfo := dao.TableAccountInfo{
-		BlockNumber: req.BlockNumber,
-		AccountId:   builder.AccountId,
-		Outpoint:    common.OutPoint2String(req.TxHash, 0),
-	}
 
-	if err = b.dbDao.CreateSubAccount(accountInfos, smtInfos, transactionInfo, accountInfo); err != nil {
+	if err = b.dbDao.CreateSubAccount(subAccountIds, accountInfos, smtInfos, transactionInfo, parentAccountInfo); err != nil {
 		resp.Err = fmt.Errorf("CreateSubAccount err: %s", err.Error())
 		return
 	}
