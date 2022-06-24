@@ -14,7 +14,7 @@ A block parser tool that allows extraction of various data types on DAS
 ### Source Compile
 ```bash
 # get the code
-git clone https://github.com/DeAccountSystems/das-database.git
+git clone https://github.com/dotbitHQ/das-database.git
 
 # init config/config.yaml
 cp config/config.example.yaml config/config.yaml
@@ -91,8 +91,8 @@ buy_account
 * t_transaction_info 
 * t_reverse_records_info (All transactions on DAS)
 
-More details see [das_database.sql](https://github.com/DeAccountSystems/das-database/blob/main/dao/das_database.sql)
+More details see [das_database.sql](https://github.com/dotbitHQ/das-database/blob/main/dao/das_database.sql)
 
 ## Others
-* [What is DAS](https://github.com/DeAccountSystems/das-contracts/blob/master/docs/en/Overview-of-DAS.md)
-* [What is a DAS transaction on CKB](https://github.com/DeAccountSystems/das-contracts/blob/master/docs/en/Data-Structure-and-Protocol/Transaction-Structure.md)
+* [What is DAS](https://github.com/dotbitHQ/das-contracts/blob/master/docs/en/Overview-of-DAS.md)
+* [What is a DAS transaction on CKB](https://github.com/dotbitHQ/das-contracts/blob/master/docs/en/Data-Structure-and-Protocol/Transaction-Structure.md)

@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"github.com/DeAccountSystems/das-lib/common"
+	"github.com/dotbitHQ/das-lib/common"
 	"time"
 )
 
