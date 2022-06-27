@@ -59,7 +59,7 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionRecycleSubAccount] = b.ActionRecycleSubAccount
 	b.mapTransactionHandle[common.DasActionLockSubAccountForCrossChain] = b.ActionSubAccountCrossChain
 	b.mapTransactionHandle[common.DasActionUnlockSubAccountForCrossChain] = b.ActionSubAccountCrossChain
-	b.mapTransactionHandle[common.DasActionConfigSubAccountCreatingScript] = b.ActionConfigSubAccountCreatingScript
+	b.mapTransactionHandle[common.DasActionConfigSubAccountCustomScript] = b.ActionConfigSubAccountCreatingScript
 }
 
 func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {
