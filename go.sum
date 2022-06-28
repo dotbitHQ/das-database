@@ -119,8 +119,8 @@ github.com/docker/docker v1.4.2-0.20180625184442-8e610b2b55bf/go.mod h1:eEKB0N0r
 github.com/dop251/goja v0.0.0-20200219165308-d1232e640a87/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
 github.com/dop251/goja v0.0.0-20211011172007-d99e4b8cbf48/go.mod h1:R9ET47fwRVRPZnOGvHxxhuZcbrMCuiqOz3Rlrh4KSnk=
 github.com/dop251/goja_nodejs v0.0.0-20210225215109-d91c329300e7/go.mod h1:hn7BA7c8pLvoGndExHudxTDKZ84Pyvv+90pbBjbTz0Y=
-github.com/dotbitHQ/das-lib v0.0.0-20220627094103-16e251842f6a h1:K/SJJ7PhIFp2mzTmGxZzGNA5phqtEpRSTTH1jmKArak=
-github.com/dotbitHQ/das-lib v0.0.0-20220627094103-16e251842f6a/go.mod h1:skWynuwYMogsn/u80lfk/mgy3XABx/BXU5b1JDD8sBY=
+github.com/dotbitHQ/das-lib v0.0.0-20220628071144-833b00293cd7 h1:nX0qrzfqXkZjg/CGFQ+W1B9FBqOzyHGIJzd101dZbhQ=
+github.com/dotbitHQ/das-lib v0.0.0-20220628071144-833b00293cd7/go.mod h1:skWynuwYMogsn/u80lfk/mgy3XABx/BXU5b1JDD8sBY=
 github.com/dotbitHQ/das-notice v1.0.1 h1:pCI9KRP8v5FUinMjO627v5iSVa0lqQHlQb739SBsnBM=
 github.com/dotbitHQ/das-notice v1.0.1/go.mod h1:9J1BchLWF/9rMqasUFI13LyJIatG55rEidKRB9v7z/4=
 github.com/eclipse/paho.mqtt.golang v1.2.0/go.mod h1:H9keYFcgq3Qr5OUJm/JZI/i6U7joQ8SYLhZwfeOo6Ts=
