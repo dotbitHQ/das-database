@@ -4,11 +4,11 @@ import (
 	"context"
 	"das_database/config"
 	"das_database/dao"
+	"das_database/notify"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
-	"github.com/dotbitHQ/das-notice/lark"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"github.com/scorpiotzh/mylog"
 	"sync"
@@ -181,9 +181,9 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 				if resp.Err != nil {
 					log.Error("action handle resp:", builder.Action, blockNumber, txHash, resp.Err.Error())
 					// notify
-					msg := "> Block number：%d\n> Action：%s\n> Timestamp：%s\n> Transaction hash：%s"
-					msg = fmt.Sprintf(msg, blockNumber, builder.Action, time.Now().Format("2006-01-02 15:04:05"), txHash)
-					err = lark.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "DasDatabase block parser", msg)
+					msg := "> Transaction hash：%s\n> Action：%s\n> Timestamp：%s\n> Error message：%s"
+					msg = fmt.Sprintf(msg, txHash, builder.Action, time.Now().Format("2006-01-02 15:04:05"), resp.Err.Error())
+					err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "DasDatabase block parser", msg)
 					if err != nil {
 						log.Error("SendLarkTextNotify err:", err.Error())
 					}
