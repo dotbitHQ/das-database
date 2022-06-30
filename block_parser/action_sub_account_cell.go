@@ -487,8 +487,15 @@ func (b *BlockParser) ActionConfigSubAccountCreatingScript(req FuncTransactionHa
 		resp.Err = fmt.Errorf("witness.AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	outpoint := common.OutPoint2String(req.TxHash, uint(builder.Index))
-	if err := b.dbDao.UpdateAccountOutpoint(builder.AccountId, outpoint); err != nil {
+	accountCellOutpoint := common.OutPoint2String(req.TxHash, uint(builder.Index))
+
+	cs := dao.TableCustomScriptInfo{
+		BlockNumber:    req.BlockNumber,
+		Outpoint:       common.OutPoint2String(req.TxHash, 1),
+		BlockTimestamp: req.BlockTimestamp,
+		AccountId:      builder.AccountId,
+	}
+	if err = b.dbDao.UpdateCustomScript(cs, accountCellOutpoint); err != nil {
 		resp.Err = fmt.Errorf("UpdateAccountOutpoint err: %s", err.Error())
 	}
 

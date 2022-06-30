@@ -387,3 +387,20 @@ CREATE TABLE `t_smt_info`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='current account info';
+
+
+-- t_custom_script_info
+CREATE TABLE `t_custom_script_info`
+(
+    `id`              bigint(20) unsigned                                           NOT NULL AUTO_INCREMENT COMMENT '',
+    `block_number`    bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
+    `outpoint`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `block_timestamp` bigint(20) unsigned                                           NOT NULL DEFAULT '0' COMMENT '',
+    `account_id`      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '',
+    `created_at`      timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '',
+    `updated_at`      timestamp                                                     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uk_account_id` (`account_id`) USING BTREE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci COMMENT ='custom script info';
