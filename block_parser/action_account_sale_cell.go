@@ -347,7 +347,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		BlockTimestamp: req.BlockTimestamp,
 	}
 	var recordsInfos []dao.TableRecordsInfo
-	recordList := accBuilder.RecordList()
+	recordList := accBuilder.Records
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
 			AccountId: accountId,

@@ -336,7 +336,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		BlockTimestamp: req.BlockTimestamp,
 	}
 	var recordsInfos []dao.TableRecordsInfo
-	recordList := buyerBuilder.RecordList()
+	recordList := buyerBuilder.Records
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
 			AccountId: buyerBuilder.AccountId,

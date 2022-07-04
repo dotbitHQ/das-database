@@ -29,7 +29,7 @@ func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp Func
 	var recordsInfos []dao.TableRecordsInfo
 	account := accBuilder.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
-	recordList := accBuilder.RecordList()
+	recordList := accBuilder.Records
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
 			AccountId: accountId,
@@ -276,7 +276,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		ManagerAlgorithmId: mHex.DasAlgorithmId,
 	}
 	var recordsInfos []dao.TableRecordsInfo
-	recordList := builder.RecordList()
+	recordList := builder.Records
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
 			AccountId: accountId,
