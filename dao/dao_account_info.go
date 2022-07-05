@@ -174,7 +174,7 @@ func (d *DbDao) EnableSubAccount(accountInfo TableAccountInfo, transactionInfo T
 	})
 }
 
-func (d *DbDao) ForceRecoverAccountStatus(oldStatus, newStatus uint8, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) ForceRecoverAccountStatus(oldStatus uint8, accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if oldStatus == 1 {
 			if err := tx.Where("account_id=?", transactionInfo.AccountId).Delete(&TableTradeInfo{}).Error; err != nil {
@@ -182,7 +182,9 @@ func (d *DbDao) ForceRecoverAccountStatus(oldStatus, newStatus uint8, transactio
 			}
 		}
 
-		if err := tx.Model(&TableAccountInfo{}).Where("account_id=?", transactionInfo.AccountId).Update("status", newStatus).Error; err != nil {
+		if err := tx.Select("block_number", "outpoint", "status").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
 			return err
 		}
 
