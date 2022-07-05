@@ -320,6 +320,12 @@ func (b *BlockParser) ActionForceRecoverAccountStatus(req FuncTransactionHandleR
 		return
 	}
 
+	accountInfo := dao.TableAccountInfo{
+		BlockNumber: req.BlockNumber,
+		Outpoint:    common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:   builder.AccountId,
+		Status:      dao.AccountStatus(builder.Status),
+	}
 	oHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
@@ -340,7 +346,7 @@ func (b *BlockParser) ActionForceRecoverAccountStatus(req FuncTransactionHandleR
 
 	log.Info("ActionForceRecoverAccountStatus:", builder.Account, oldBuilder.Status, builder.Status)
 
-	if err = b.dbDao.ForceRecoverAccountStatus(oldBuilder.Status, builder.Status, transactionInfo); err != nil {
+	if err = b.dbDao.ForceRecoverAccountStatus(oldBuilder.Status, accountInfo, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("ForceRecoverAccountStatus err: %s", err.Error())
 		return
 	}
