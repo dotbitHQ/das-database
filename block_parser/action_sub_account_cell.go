@@ -36,7 +36,7 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		BlockNumber:          req.BlockNumber,
 		Outpoint:             common.OutPoint2String(req.TxHash, 0),
 		AccountId:            builder.AccountId,
-		EnableSubAccount:     dao.AccountEnableStatusOn,
+		EnableSubAccount:     builder.EnableSubAccount,
 		RenewSubAccountPrice: builder.RenewSubAccountPrice,
 	}
 	transactionInfo := dao.TableTransactionInfo{
@@ -141,8 +141,8 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			ManagerChainType:     managerHex.ChainType,
 			Manager:              managerHex.AddressHex,
 			ManagerAlgorithmId:   managerHex.DasAlgorithmId,
-			Status:               dao.AccountStatus(v.SubAccount.Status),
-			EnableSubAccount:     dao.EnableSubAccount(v.SubAccount.EnableSubAccount),
+			Status:               v.SubAccount.Status,
+			EnableSubAccount:     v.SubAccount.EnableSubAccount,
 			RenewSubAccountPrice: v.SubAccount.RenewSubAccountPrice,
 			Nonce:                v.SubAccount.Nonce,
 			RegisteredAt:         v.SubAccount.RegisteredAt,

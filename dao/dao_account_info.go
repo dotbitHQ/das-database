@@ -20,8 +20,8 @@ type TableAccountInfo struct {
 	ManagerChainType     common.ChainType      `json:"manager_chain_type" gorm:"column:manager_chain_type;index:k_mct_m;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
 	Manager              string                `json:"manager" gorm:"column:manager;index:k_mct_m;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'manager address'"`
 	ManagerAlgorithmId   common.DasAlgorithmId `json:"manager_algorithm_id" gorm:"column:manager_algorithm_id;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
-	Status               AccountStatus         `json:"status" gorm:"column:status;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
-	EnableSubAccount     EnableSubAccount      `json:"enable_sub_account" gorm:"column:enable_sub_account;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
+	Status               uint8                 `json:"status" gorm:"column:status;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
+	EnableSubAccount     uint8                 `json:"enable_sub_account" gorm:"column:enable_sub_account;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
 	RenewSubAccountPrice uint64                `json:"renew_sub_account_price" gorm:"column:renew_sub_account_price;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	Nonce                uint64                `json:"nonce" gorm:"column:nonce;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	RegisteredAt         uint64                `json:"registered_at" gorm:"column:registered_at;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
@@ -31,8 +31,8 @@ type TableAccountInfo struct {
 	UpdatedAt            time.Time             `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }
 
-type AccountStatus int
-type EnableSubAccount int
+type AccountStatus uint8
+type EnableSubAccount uint8
 
 const (
 	AccountStatusNormal    AccountStatus = 0

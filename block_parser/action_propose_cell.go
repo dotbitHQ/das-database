@@ -136,7 +136,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			ManagerChainType:    managerHex.ChainType,
 			Manager:             managerHex.AddressHex,
 			ManagerAlgorithmId:  managerHex.DasAlgorithmId,
-			Status:              dao.AccountStatus(v.Status),
+			Status:              v.Status,
 			RegisteredAt:        v.RegisteredAt,
 			ExpiredAt:           v.ExpiredAt,
 			ConfirmProposalHash: req.TxHash,

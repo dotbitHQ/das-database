@@ -44,7 +44,6 @@ func (b *BlockParser) ActionEditRecords(req FuncTransactionHandleReq) (resp Func
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber: req.BlockNumber,
 		Outpoint:    common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
-		Account:     account,
 		AccountId:   accountId,
 	}
 	_, mHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[accBuilder.Index].Lock.Args)
@@ -319,17 +318,17 @@ func (b *BlockParser) ActionForceRecoverAccountStatus(req FuncTransactionHandleR
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber: req.BlockNumber,
 		Outpoint:    common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		AccountId:   builder.AccountId,
-		Status:      dao.AccountStatus(builder.Status),
-	}
-	oHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
-	if err != nil {
-		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-		return
+		Status:      builder.Status,
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
@@ -385,21 +384,17 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
-	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
+	oArgs := res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args
+	var oCapacity uint64
+	for _, output := range req.Tx.Outputs[1:] {
+		if bytes.EqualFold(oArgs, output.Lock.Args) {
+			oCapacity += output.Capacity
+		}
+	}
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(oArgs)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
-	}
-	oArgs, err := b.dasCore.Daf().HexToArgs(oHex, oHex)
-	if err != nil {
-		resp.Err = fmt.Errorf("HexToArgs err: %s", err.Error())
-		return
-	}
-	var oCapacity uint64
-	for _, output := range req.Tx.Outputs[1:] {
-		if bytes.Compare(oArgs, output.Lock.Args) == 0 {
-			oCapacity += output.Capacity
-		}
 	}
 
 	transactionInfo := dao.TableTransactionInfo{
@@ -435,37 +430,33 @@ func (b *BlockParser) ActionAccountCrossChain(req FuncTransactionHandleReq) (res
 	}
 	log.Info("ActionAccountCrossChain:", req.BlockNumber, req.TxHash, req.Action)
 
-	accBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
+	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
 	if err != nil {
 		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	status := dao.AccountStatusOnLock
-	if req.Action == common.DasActionUnlockAccountForCrossChain {
-		status = dao.AccountStatusNormal
-	}
-
 	ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[0].Lock.Args)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
 	}
+
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, 0),
-		AccountId:          accBuilder.AccountId,
+		AccountId:          builder.AccountId,
 		OwnerChainType:     ownerHex.ChainType,
 		Owner:              ownerHex.AddressHex,
 		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
-		Status:             status,
+		Status:             builder.Status,
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
-		AccountId:      accBuilder.AccountId,
-		Account:        accBuilder.Account,
+		AccountId:      builder.AccountId,
+		Account:        builder.Account,
 		Action:         req.Action,
 		ServiceType:    dao.ServiceTypeRegister,
 		ChainType:      ownerHex.ChainType,
