@@ -279,7 +279,7 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
-		Status:             dao.AccountStatusNormal,
+		Status:             buyerBuilder.Status,
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,

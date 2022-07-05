@@ -44,7 +44,7 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(accBuilder.Index)),
 		AccountId:          accBuilder.AccountId,
 		Account:            accBuilder.Account,
-		Status:             dao.AccountStatusOnSale,
+		Status:             accBuilder.Status,
 		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
 		OwnerChainType:     ownerHex.ChainType,
 		Owner:              ownerHex.AddressHex,
@@ -75,7 +75,7 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		PriceUsd:         priceUsd,
 		ProfitRate:       builder.BuyerInviterProfitRate,
 		BlockTimestamp:   req.BlockTimestamp,
-		Status:           dao.AccountStatusOnSale,
+		Status:           uint8(dao.AccountStatusOnSale),
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
@@ -137,7 +137,6 @@ func (b *BlockParser) ActionEditAccountSale(req FuncTransactionHandleReq) (resp 
 		PriceCkb:       builder.Price,
 		PriceUsd:       priceUsd,
 		ProfitRate:     builder.BuyerInviterProfitRate,
-		Status:         dao.AccountStatusOnSale,
 	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
@@ -183,7 +182,7 @@ func (b *BlockParser) ActionCancelAccountSale(req FuncTransactionHandleReq) (res
 		Outpoint:    common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		AccountId:   builder.AccountId,
 		Account:     builder.Account,
-		Status:      dao.AccountStatusNormal,
+		Status:      builder.Status,
 	}
 
 	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[0].Lock.Args)
@@ -290,7 +289,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
-		Status:             dao.AccountStatusNormal,
+		Status:             accBuilder.Status,
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,

@@ -23,7 +23,7 @@ type TableTradeInfo struct {
 	PriceCkb         uint64                `json:"price_ckb" gorm:"column:price_ckb;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	PriceUsd         decimal.Decimal       `json:"price_usd" gorm:"column:price_usd;type:decimal(50, 8) NOT NULL DEFAULT '0.00000000' COMMENT ''"`
 	ProfitRate       uint32                `json:"profit_rate" gorm:"column:profit_rate;type:int(11) unsigned NOT NULL DEFAULT '100' COMMENT ''"`
-	Status           AccountStatus         `json:"status" gorm:"column:status;type:smallint(6) NOT NULL DEFAULT '0' COMMENT '0: normal 1: on sale 2: on auction'"`
+	Status           uint8                 `json:"status" gorm:"column:status;type:smallint(6) NOT NULL DEFAULT '0' COMMENT '0: normal 1: on sale 2: on auction'"`
 	CreatedAt        time.Time             `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt        time.Time             `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }
