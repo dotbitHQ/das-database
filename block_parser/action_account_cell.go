@@ -384,17 +384,21 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
-	oArgs := res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args
+	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+	oArgs, err := b.dasCore.Daf().HexToArgs(oHex, oHex)
+	if err != nil {
+		resp.Err = fmt.Errorf("HexToArgs err: %s", err.Error())
+		return
+	}
 	var oCapacity uint64
 	for _, output := range req.Tx.Outputs[1:] {
 		if bytes.EqualFold(oArgs, output.Lock.Args) {
 			oCapacity += output.Capacity
 		}
-	}
-	oHex, _, err := b.dasCore.Daf().ArgsToHex(oArgs)
-	if err != nil {
-		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-		return
 	}
 
 	transactionInfo := dao.TableTransactionInfo{
