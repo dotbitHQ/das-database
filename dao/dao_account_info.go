@@ -206,13 +206,11 @@ func (d *DbDao) GetAccountInfoByParentAccountId(parentAccountId string) (account
 	return
 }
 
-func (d *DbDao) RecycleExpiredAccount(accountId string, enableSubAccount uint8, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) RecycleExpiredAccount(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, accountId string, enableSubAccount uint8) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("account_id=?", accountId).Delete(&TableAccountInfo{}).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Where("account_id=?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+		if err := tx.Select("block_number", "outpoint").
+			Where("account_id=?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
 			return err
 		}
 
@@ -222,6 +220,14 @@ func (d *DbDao) RecycleExpiredAccount(accountId string, enableSubAccount uint8, 
 				"chain_type", "address", "capacity", "status",
 			}),
 		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id=?", accountId).Delete(&TableAccountInfo{}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id=?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
 
@@ -269,17 +275,4 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 
 		return nil
 	})
-}
-
-func (d *DbDao) GetAccountInfoByRegisteredAt(registeredAt string) (accountInfos []TableAccountInfo, err error) {
-	err = d.db.Where("FROM_UNIXTIME(registered_at, '%Y-%m-%d')=?", registeredAt).Find(&accountInfos).Error
-	return
-}
-
-func (d *DbDao) UpdateAccountOutpoint(accountId, outpoint string) error {
-	return d.db.Model(TableAccountInfo{}).
-		Where("account_id=?", accountId).
-		Updates(map[string]interface{}{
-			"outpoint": outpoint,
-		}).Error
 }

@@ -401,6 +401,16 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		}
 	}
 
+	accountId, err := common.OutputDataToAccountId(req.Tx.OutputsData[0])
+	if err != nil {
+		resp.Err = fmt.Errorf("OutputDataToAccountId err: %s", err.Error())
+		return
+	}
+	accountInfo := dao.TableAccountInfo{
+		BlockNumber: req.BlockNumber,
+		Outpoint:    common.OutPoint2String(req.TxHash, 0),
+		AccountId:   common.Bytes2Hex(accountId),
+	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      builder.AccountId,
@@ -416,7 +426,7 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 
 	log.Info("ActionRecycleExpiredAccount:", builder.Account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex)
 
-	if err = b.dbDao.RecycleExpiredAccount(builder.AccountId, builder.EnableSubAccount, transactionInfo); err != nil {
+	if err = b.dbDao.RecycleExpiredAccount(accountInfo, transactionInfo, builder.AccountId, builder.EnableSubAccount); err != nil {
 		resp.Err = fmt.Errorf("RecycleExpiredAccount err: %s", err.Error())
 		return
 	}
