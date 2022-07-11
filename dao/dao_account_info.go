@@ -249,7 +249,7 @@ func (d *DbDao) RecycleExpiredAccount(accountInfo TableAccountInfo, transactionI
 	})
 }
 
-func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, records []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint",
 			"owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id", "status").
@@ -267,9 +267,15 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 			return err
 		}
 
-		if transactionInfo.Action == common.DasActionLockAccountForCrossChain {
+		if transactionInfo.Action == common.DasActionUnlockAccountForCrossChain {
 			if err := tx.Where("account_id = ?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 				return err
+			}
+
+			if len(records) > 0 {
+				if err := tx.Create(&records).Error; err != nil {
+					return err
+				}
 			}
 		}
 

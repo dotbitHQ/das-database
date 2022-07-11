@@ -479,8 +479,20 @@ func (b *BlockParser) ActionAccountCrossChain(req FuncTransactionHandleReq) (res
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
+	var records []dao.TableRecordsInfo
+	for _, v := range builder.Records {
+		records = append(records, dao.TableRecordsInfo{
+			Account:   builder.Account,
+			AccountId: builder.AccountId,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+		})
+	}
 
-	if err = b.dbDao.AccountCrossChain(accountInfo, transactionInfo); err != nil {
+	if err = b.dbDao.AccountCrossChain(accountInfo, transactionInfo, records); err != nil {
 		log.Error("AccountCrossChain err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("AccountCrossChain err: %s ", err.Error())
 		return
