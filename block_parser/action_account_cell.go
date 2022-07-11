@@ -454,6 +454,18 @@ func (b *BlockParser) ActionAccountCrossChain(req FuncTransactionHandleReq) (res
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
 	}
+	var isTrans bool
+	if req.Action == common.DasActionUnlockAccountForCrossChain {
+		res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[0].PreviousOutput.TxHash)
+		if err != nil {
+			resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
+			return
+		}
+		args := res.Transaction.Outputs[req.Tx.Inputs[0].PreviousOutput.Index].Lock.Args
+		if !bytes.EqualFold(args, req.Tx.Outputs[0].Lock.Args) {
+			isTrans = true
+		}
+	}
 
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
@@ -479,20 +491,8 @@ func (b *BlockParser) ActionAccountCrossChain(req FuncTransactionHandleReq) (res
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
-	var records []dao.TableRecordsInfo
-	for _, v := range builder.Records {
-		records = append(records, dao.TableRecordsInfo{
-			Account:   builder.Account,
-			AccountId: builder.AccountId,
-			Key:       v.Key,
-			Type:      v.Type,
-			Label:     v.Label,
-			Value:     v.Value,
-			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
-		})
-	}
 
-	if err = b.dbDao.AccountCrossChain(accountInfo, transactionInfo, records); err != nil {
+	if err = b.dbDao.AccountCrossChain(accountInfo, transactionInfo, isTrans); err != nil {
 		log.Error("AccountCrossChain err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("AccountCrossChain err: %s ", err.Error())
 		return
