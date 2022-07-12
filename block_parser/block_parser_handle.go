@@ -16,6 +16,7 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[dao.DasActionTransferBalance] = b.ActionBalanceCells
 	b.mapTransactionHandle[dao.DasActionOrderRefund] = b.ActionBalanceCells
 	b.mapTransactionHandle[dao.DasActionBalanceDeposit] = b.ActionBalanceCells
+	b.mapTransactionHandle[dao.DasActionCrossRefund] = b.ActionBalanceCells
 	b.mapTransactionHandle[common.DasActionWithdrawFromWallet] = b.ActionBalanceCell
 	b.mapTransactionHandle[common.DasActionTransfer] = b.ActionBalanceCell
 
