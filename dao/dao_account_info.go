@@ -25,7 +25,7 @@ type TableAccountInfo struct {
 	RenewSubAccountPrice uint64                `json:"renew_sub_account_price" gorm:"column:renew_sub_account_price;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	Nonce                uint64                `json:"nonce" gorm:"column:nonce;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	RegisteredAt         uint64                `json:"registered_at" gorm:"column:registered_at;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
-	ExpiredAt            uint64                `json:"expired_at" gorm:"column:expired_at;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
+	ExpiredAt            uint64                `json:"expired_at" gorm:"column:expired_at;index:k_expired_at;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	ConfirmProposalHash  string                `json:"confirm_proposal_hash" gorm:"column:confirm_proposal_hash;index:k_confirm_proposal_hash;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT ''"`
 	CreatedAt            time.Time             `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt            time.Time             `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`

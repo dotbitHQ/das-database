@@ -39,7 +39,8 @@ CREATE TABLE `t_account_info`
     KEY `k_oct_o` (`owner_chain_type`, `owner`) USING BTREE,
     KEY `k_mct_m` (`manager_chain_type`, `manager`) USING BTREE,
     KEY `k_confirm_proposal_hash` (`confirm_proposal_hash`) USING BTREE,
-    KEY `k_parent_account_id` (`parent_account_id`)
+    KEY `k_parent_account_id` (`parent_account_id`),
+    KEY `k_expired_at` (`expired_at`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='current account info';
