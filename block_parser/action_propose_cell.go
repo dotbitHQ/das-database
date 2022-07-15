@@ -8,6 +8,7 @@ import (
 	"github.com/dotbitHQ/das-lib/molecule"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/shopspring/decimal"
+	"strconv"
 )
 
 func (b *BlockParser) ActionPropose(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -108,6 +109,8 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 	var accountInfos []dao.TableAccountInfo
 	var transactionInfos []dao.TableTransactionInfo
 	var rebateInfos []dao.TableRebateInfo
+	var records []dao.TableRecordsInfo
+	var recordAccountIds []string
 	// account basic store fee
 	configCell, err := b.dasCore.ConfigCellDataBuilderByTypeArgsList(common.ConfigCellTypeArgsAccount, common.ConfigCellTypeArgsProfitRate)
 	if err != nil {
@@ -234,10 +237,24 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				InviterAddress:   channelHex.AddressHex,
 				BlockTimestamp:   req.BlockTimestamp,
 			})
+
+			recordList := v.Records
+			recordAccountIds = append(recordAccountIds, v.AccountId)
+			for _, record := range recordList {
+				records = append(records, dao.TableRecordsInfo{
+					AccountId: v.AccountId,
+					Account:   v.Account,
+					Key:       record.Key,
+					Type:      record.Type,
+					Label:     record.Label,
+					Value:     record.Value,
+					Ttl:       strconv.FormatUint(uint64(record.TTL), 10),
+				})
+			}
 		}
 	}
 
-	if err = b.dbDao.ConfirmProposal(incomeCellInfos, accountInfos, transactionInfos, rebateInfos); err != nil {
+	if err = b.dbDao.ConfirmProposal(incomeCellInfos, accountInfos, transactionInfos, rebateInfos, records, recordAccountIds); err != nil {
 		log.Error("ConfirmProposal err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("ConfirmProposal err: %s ", err.Error())
 		return
