@@ -488,6 +488,11 @@ func (b *BlockParser) ActionConfigSubAccountCreatingScript(req FuncTransactionHa
 		return
 	}
 	accountCellOutpoint := common.OutPoint2String(req.TxHash, uint(builder.Index))
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
 
 	cs := dao.TableCustomScriptInfo{
 		BlockNumber:    req.BlockNumber,
@@ -495,8 +500,85 @@ func (b *BlockParser) ActionConfigSubAccountCreatingScript(req FuncTransactionHa
 		BlockTimestamp: req.BlockTimestamp,
 		AccountId:      builder.AccountId,
 	}
-	if err = b.dbDao.UpdateCustomScript(cs, accountCellOutpoint); err != nil {
+
+	transactionInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.AccountId,
+		Account:        builder.Account,
+		Action:         common.DasActionConfigSubAccountCustomScript,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
+		Capacity:       0,
+		Outpoint:       common.OutPoint2String(req.TxHash, 0),
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	if err = b.dbDao.UpdateCustomScript(cs, accountCellOutpoint, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("UpdateAccountOutpoint err: %s", err.Error())
+	}
+
+	return
+}
+
+func (b *BlockParser) ActionCollectSubAccountProfit(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		return
+	}
+	log.Info("ActionCollectSubAccountProfit:", req.BlockNumber, req.TxHash)
+
+	accBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeDep)
+	if err != nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+
+	var txs []dao.TableTransactionInfo
+	if len(req.Tx.Outputs) >= 2 {
+		ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[1].Lock)
+		if err != nil {
+			resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
+			return
+		}
+		txs = append(txs, dao.TableTransactionInfo{
+			BlockNumber:    req.BlockNumber,
+			AccountId:      accBuilder.AccountId,
+			Account:        accBuilder.Account,
+			Action:         req.Action,
+			ServiceType:    dao.ServiceTypeRegister,
+			ChainType:      ownerHex.ChainType,
+			Address:        ownerHex.AddressHex,
+			Capacity:       req.Tx.Outputs[1].Capacity,
+			Outpoint:       common.OutPoint2String(req.TxHash, 1),
+			BlockTimestamp: req.BlockTimestamp,
+		})
+	}
+	if len(req.Tx.Outputs) >= 3 {
+		ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[2].Lock)
+		if err != nil {
+			resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
+			return
+		}
+		txs = append(txs, dao.TableTransactionInfo{
+			BlockNumber:    req.BlockNumber,
+			AccountId:      accBuilder.AccountId,
+			Account:        accBuilder.Account,
+			Action:         req.Action,
+			ServiceType:    dao.ServiceTypeRegister,
+			ChainType:      ownerHex.ChainType,
+			Address:        ownerHex.AddressHex,
+			Capacity:       req.Tx.Outputs[2].Capacity,
+			Outpoint:       common.OutPoint2String(req.TxHash, 2),
+			BlockTimestamp: req.BlockTimestamp,
+		})
+	}
+
+	if err := b.dbDao.CreateTxs(txs); err != nil {
+		resp.Err = fmt.Errorf("CreateTxs err: %s", err.Error())
+		return
 	}
 
 	return

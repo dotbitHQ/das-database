@@ -67,6 +67,15 @@ func (d *DbDao) CreateTransactionInfoList(transactionInfos []TableTransactionInf
 	return nil
 }
 
+func (d *DbDao) CreateTxs(txs []TableTransactionInfo) error {
+	if len(txs) == 0 {
+		return nil
+	}
+	return d.db.Clauses(clause.Insert{
+		Modifier: "IGNORE",
+	}).Create(&txs).Error
+}
+
 func (d *DbDao) FindTransactionInfoByAccountAction(account, action string) (transactionInfo TableTransactionInfo, err error) {
 	err = d.db.Where("account = ? AND action = ?", account, action).Limit(1).Find(&transactionInfo).Error
 	return

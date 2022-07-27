@@ -24,7 +24,7 @@ func (t *TableCustomScriptInfo) TableName() string {
 	return TableNameCustomScriptInfo
 }
 
-func (d *DbDao) UpdateCustomScript(cs TableCustomScriptInfo, accountCellOutpoint string) error {
+func (d *DbDao) UpdateCustomScript(cs TableCustomScriptInfo, accountCellOutpoint string, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(TableAccountInfo{}).Where("account_id=?", cs.AccountId).
 			Updates(map[string]interface{}{
@@ -45,6 +45,12 @@ func (d *DbDao) UpdateCustomScript(cs TableCustomScriptInfo, accountCellOutpoint
 				"outpoint":        cs.Outpoint,
 				"block_timestamp": cs.BlockTimestamp,
 			}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
 
