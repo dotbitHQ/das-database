@@ -5,6 +5,8 @@
 ##
 FROM golang:1.16-buster AS build
 
+ENV GOPROXY https://goproxy.cn,direct
+
 WORKDIR /app
 
 COPY . ./
