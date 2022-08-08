@@ -193,13 +193,11 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 						}
 					}
 					return resp.Err
-				} else {
-					b.errCountHandle = 0
 				}
 			}
-
 		}
 	}
+	b.errCountHandle = 0
 	return nil
 }
 
