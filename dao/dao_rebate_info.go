@@ -20,8 +20,8 @@ type TableRebateInfo struct {
 	InviterArgs      string           `json:"inviter_args" gorm:"column:inviter_args;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT ''"`
 	InviterId        string           `json:"inviter_id" gorm:"column:inviter_id;index:k_inviter_id;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'account id of inviter'"`
 	InviterAccount   string           `json:"inviter_account" gorm:"column:inviter_account;index:k_inviter_account;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'inviter account'"`
-	InviterChainType common.ChainType `json:"inviter_chain_type" gorm:"column:inviter_chain_type;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
-	InviterAddress   string           `json:"inviter_address" gorm:"column:inviter_address;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'address of inviter'"`
+	InviterChainType common.ChainType `json:"inviter_chain_type" gorm:"column:inviter_chain_type;index:k_irct_ia;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
+	InviterAddress   string           `json:"inviter_address" gorm:"column:inviter_address;index:k_irct_ia;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'address of inviter'"`
 	BlockTimestamp   uint64           `json:"block_timestamp" gorm:"column:block_timestamp;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	CreatedAt        time.Time        `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt        time.Time        `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
