@@ -4,6 +4,7 @@ import (
 	"das_database/dao"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
+	"github.com/dotbitHQ/das-lib/molecule"
 	"github.com/dotbitHQ/das-lib/witness"
 )
 
@@ -24,7 +25,11 @@ func (b *BlockParser) ActionPreRegister(req FuncTransactionHandleReq) (resp Func
 	}
 	log.Info("ActionPreRegister:", preBuilder.Account)
 
-	refundLock, _ := preBuilder.RefundLock()
+	refundLock := preBuilder.RefundLock
+	if refundLock == nil {
+		tmp := molecule.ScriptDefault()
+		refundLock = &tmp
+	}
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(preBuilder.Account))
 	var transactionInfo = dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,

@@ -165,13 +165,13 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				BlockTimestamp: req.BlockTimestamp,
 			})
 
-			argsStr, _ := preAcc.OwnerLockArgsStr()
+			argsStr := preAcc.OwnerLockArgs
 			inviteeHex, _, err := b.dasCore.Daf().ArgsToHex(common.Hex2Bytes(argsStr))
 			if err != nil {
 				resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 				return
 			}
-			inviterId, _ := preAcc.InviterId()
+			inviterId := preAcc.InviterId
 			accLen := uint64(len([]byte(preAcc.Account))) * common.OneCkb
 
 			basicCapacity, _ := configCell.BasicCapacityFromOwnerDasAlgorithmId(argsStr)
@@ -180,7 +180,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			preCapacity := preTx.Transaction.Outputs[req.Tx.Inputs[preAcc.Index].PreviousOutput.Index].Capacity - basicCapacity - accLen // 扣除存储费，账号长度
 			capacity, _ := decimal.NewFromString(fmt.Sprintf("%d", preCapacity))
 
-			inviterLock, _ := preAcc.InviterLock()
+			inviterLock := preAcc.InviterLock
 			if inviterLock == nil {
 				log.Warn("InviterLock nil:", req.BlockNumber, req.TxHash, preAcc.Account)
 				tmp := molecule.ScriptDefault()
@@ -210,7 +210,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				BlockTimestamp:   req.BlockTimestamp,
 			})
 
-			channelLock, _ := preAcc.ChannelLock()
+			channelLock := preAcc.ChannelLock
 			if channelLock == nil {
 				log.Warn("ChannelLock nil:", req.BlockNumber, req.TxHash, preAcc.Account)
 				tmp := molecule.ScriptDefault()

@@ -28,6 +28,8 @@ type BlockParser struct {
 	confirmNum           uint64
 	ctx                  context.Context
 	wg                   *sync.WaitGroup
+
+	errCountHandle int
 }
 
 type ParamsBlockParser struct {
@@ -180,19 +182,22 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 				})
 				if resp.Err != nil {
 					log.Error("action handle resp:", builder.Action, blockNumber, txHash, resp.Err.Error())
-					// notify
-					msg := "> Transaction hash：%s\n> Action：%s\n> Timestamp：%s\n> Error message：%s"
-					msg = fmt.Sprintf(msg, txHash, builder.Action, time.Now().Format("2006-01-02 15:04:05"), resp.Err.Error())
-					err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "DasDatabase BlockParser", msg)
-					if err != nil {
-						log.Error("SendLarkTextNotify err:", err.Error())
+					b.errCountHandle++
+					if b.errCountHandle < 100 {
+						// notify
+						msg := "> Transaction hash：%s\n> Action：%s\n> Timestamp：%s\n> Error message：%s"
+						msg = fmt.Sprintf(msg, txHash, builder.Action, time.Now().Format("2006-01-02 15:04:05"), resp.Err.Error())
+						err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "DasDatabase BlockParser", msg)
+						if err != nil {
+							log.Error("SendLarkTextNotify err:", err.Error())
+						}
 					}
 					return resp.Err
 				}
 			}
-
 		}
 	}
+	b.errCountHandle = 0
 	return nil
 }
 
