@@ -77,6 +77,22 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		BlockTimestamp:   req.BlockTimestamp,
 		Status:           uint8(dao.AccountStatusOnSale),
 	}
+	tradeHistory := dao.TableTradeHistoryInfo{
+		BlockNumber:      tradeInfo.BlockNumber,
+		Outpoint:         tradeInfo.Outpoint,
+		AccountId:        tradeInfo.AccountId,
+		Account:          tradeInfo.Account,
+		OwnerAlgorithmId: tradeInfo.OwnerAlgorithmId,
+		OwnerChainType:   tradeInfo.OwnerChainType,
+		OwnerAddress:     tradeInfo.OwnerAddress,
+		Description:      tradeInfo.Description,
+		StartedAt:        tradeInfo.StartedAt,
+		BlockTimestamp:   tradeInfo.BlockTimestamp,
+		PriceCkb:         tradeInfo.PriceCkb,
+		PriceUsd:         tradeInfo.PriceUsd,
+		ProfitRate:       tradeInfo.ProfitRate,
+		Status:           tradeInfo.Status,
+	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      tradeInfo.AccountId,
@@ -92,7 +108,7 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 
 	log.Info("ActionStartAccountSale:", transactionInfo.Account)
 
-	if err = b.dbDao.StartAccountSale(accountInfo, tradeInfo, transactionInfo); err != nil {
+	if err = b.dbDao.StartAccountSale(accountInfo, tradeInfo, tradeHistory, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("StartAccountSale err: %s", err.Error())
 		return
 	}
@@ -138,6 +154,29 @@ func (b *BlockParser) ActionEditAccountSale(req FuncTransactionHandleReq) (resp 
 		PriceUsd:       priceUsd,
 		ProfitRate:     builder.BuyerInviterProfitRate,
 	}
+
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+	tradeHistory := dao.TableTradeHistoryInfo{
+		BlockNumber:      tradeInfo.BlockNumber,
+		Outpoint:         tradeInfo.Outpoint,
+		AccountId:        tradeInfo.AccountId,
+		Account:          tradeInfo.Account,
+		OwnerAlgorithmId: ownerHex.DasAlgorithmId,
+		OwnerChainType:   ownerHex.ChainType,
+		OwnerAddress:     ownerHex.AddressHex,
+		Description:      tradeInfo.Description,
+		StartedAt:        tradeInfo.StartedAt,
+		BlockTimestamp:   tradeInfo.BlockTimestamp,
+		PriceCkb:         tradeInfo.PriceCkb,
+		PriceUsd:         tradeInfo.PriceUsd,
+		ProfitRate:       tradeInfo.ProfitRate,
+		Status:           uint8(dao.AccountStatusOnSale),
+	}
+
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      accountId,
@@ -153,7 +192,7 @@ func (b *BlockParser) ActionEditAccountSale(req FuncTransactionHandleReq) (resp 
 
 	log.Info("ActionEditAccountSale:", transactionInfo.Account)
 
-	if err := b.dbDao.EditAccountSale(tradeInfo, transactionInfo); err != nil {
+	if err := b.dbDao.EditAccountSale(tradeInfo, tradeHistory, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("EditAccountSale err: %s", err.Error())
 		return
 	}

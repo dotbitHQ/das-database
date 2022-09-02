@@ -44,7 +44,7 @@ type SaleAccount struct {
 	Account string `json:"account" gorm:"column:account"`
 }
 
-func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTradeInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTradeInfo, tradeHistory TableTradeHistoryInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "manager", "manager_chain_type", "manager_algorithm_id", "owner", "owner_algorithm_id", "owner_chain_type", "outpoint", "status").
 			Where("account_id = ?", accountInfo.AccountId).
@@ -61,6 +61,12 @@ func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTr
 			return err
 		}
 
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&tradeHistory).Error; err != nil {
+			return err
+		}
+
 		if err := tx.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{
 				"account_id", "account", "service_type",
@@ -74,11 +80,17 @@ func (d *DbDao) StartAccountSale(accountInfo TableAccountInfo, tradeInfo TableTr
 	})
 }
 
-func (d *DbDao) EditAccountSale(tradeInfo TableTradeInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) EditAccountSale(tradeInfo TableTradeInfo, tradeHistory TableTradeHistoryInfo, transactionInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "description", "block_timestamp", "price_ckb", "price_usd", "profit_rate").
 			Where("account_id = ?", tradeInfo.AccountId).
 			Updates(tradeInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&tradeHistory).Error; err != nil {
 			return err
 		}
 
