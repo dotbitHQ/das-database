@@ -50,6 +50,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		&TableTradeInfo{},
 		&TableTransactionInfo{},
 		&TableCustomScriptInfo{},
+		&TableTradeHistoryInfo{},
 	); err != nil {
 		return nil, err
 	}
