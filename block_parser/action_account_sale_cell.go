@@ -148,7 +148,7 @@ func (b *BlockParser) ActionEditAccountSale(req FuncTransactionHandleReq) (resp 
 		AccountId:      accountId,
 		Account:        builder.Account,
 		Description:    builder.Description,
-		StartedAt:      builder.StartedAt,
+		StartedAt:      builder.StartedAt * 1e3,
 		BlockTimestamp: req.BlockTimestamp,
 		PriceCkb:       builder.Price,
 		PriceUsd:       priceUsd,
