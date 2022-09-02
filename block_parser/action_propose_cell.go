@@ -128,6 +128,15 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 			return
 		}
+		// charset
+		charsetList := common.ConvertToAccountCharSets(v.AccountChars)
+		var charsetMap = make(map[common.AccountCharType]struct{})
+		common.GetAccountCharType(charsetMap, charsetList)
+		var charsetNum uint64
+		for k, _ := range charsetMap {
+			numTmp := common.AccountCharTypeToUint64(k)
+			charsetNum += numTmp
+		}
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
 			BlockNumber:         req.BlockNumber,
 			Outpoint:            common.OutPoint2String(req.TxHash, uint(v.Index)),
@@ -143,6 +152,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			RegisteredAt:        v.RegisteredAt,
 			ExpiredAt:           v.ExpiredAt,
 			ConfirmProposalHash: req.TxHash,
+			CharsetNum:          charsetNum,
 		})
 
 		if preAcc, ok := preMap[v.Account]; ok {
