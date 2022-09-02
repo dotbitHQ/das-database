@@ -2,6 +2,7 @@ package dao
 
 import (
 	"github.com/dotbitHQ/das-lib/common"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -18,6 +19,7 @@ type TableOfferInfo struct {
 	Address        string                `json:"address" gorm:"column:address;index:k_ct_a;type:varchar(255) NOT NULL DEFAULT '' COMMENT ''"`
 	BlockTimestamp uint64                `json:"block_timestamp" gorm:"column:block_timestamp;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	Price          uint64                `json:"price" gorm:"column:price;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
+	PriceUsd       decimal.Decimal       `json:"price_usd" gorm:"column:price_usd;type:decimal(50, 8) NOT NULL DEFAULT '0' COMMENT ''"`
 	Message        string                `json:"message" gorm:"column:message;type:varchar(2048) NOT NULL DEFAULT '' COMMENT ''"`
 	InviterArgs    string                `json:"inviter_args" gorm:"column:inviter_args;type:varchar(255) NOT NULL DEFAULT '' COMMENT ''"`
 	ChannelArgs    string                `json:"channel_args" gorm:"column:channel_args;type:varchar(255) NOT NULL DEFAULT '' COMMENT ''"`

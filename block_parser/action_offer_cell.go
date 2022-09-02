@@ -36,6 +36,8 @@ func (b *BlockParser) ActionMakeOffer(req FuncTransactionHandleReq) (resp FuncTr
 	}
 
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(builder.Account))
+	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
+	priceUsd := tokenInfo.GetPriceUsd(builder.Price)
 	offerInfo := dao.TableOfferInfo{
 		BlockNumber:    req.BlockNumber,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
@@ -46,6 +48,7 @@ func (b *BlockParser) ActionMakeOffer(req FuncTransactionHandleReq) (resp FuncTr
 		Address:        ownerHex.AddressHex,
 		BlockTimestamp: req.BlockTimestamp,
 		Price:          builder.Price,
+		PriceUsd:       priceUsd,
 		Message:        builder.Message,
 		InviterArgs:    common.Bytes2Hex(builder.InviterLock.Args().RawData()),
 		ChannelArgs:    common.Bytes2Hex(builder.ChannelLock.Args().RawData()),
@@ -101,6 +104,8 @@ func (b *BlockParser) ActionEditOffer(req FuncTransactionHandleReq) (resp FuncTr
 	}
 
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(builder.Account))
+	tokenInfo := timer.GetTokenPriceInfo(timer.TokenIdCkb)
+	priceUsd := tokenInfo.GetPriceUsd(builder.Price)
 	offerInfo := dao.TableOfferInfo{
 		BlockNumber:    req.BlockNumber,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
@@ -108,6 +113,7 @@ func (b *BlockParser) ActionEditOffer(req FuncTransactionHandleReq) (resp FuncTr
 		Account:        builder.Account,
 		BlockTimestamp: req.BlockTimestamp,
 		Price:          builder.Price,
+		PriceUsd:       priceUsd,
 		Message:        builder.Message,
 	}
 	transactionInfo := dao.TableTransactionInfo{
