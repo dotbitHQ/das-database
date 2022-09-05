@@ -290,7 +290,7 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 }
 
 func (d *DbDao) GetNeedFixCharsetAccountList() (list []TableAccountInfo, err error) {
-	err = d.db.Where("parent_account_id='' AND charset_num=0").Limit(200).Find(&list).Error
+	err = d.db.Where("parent_account_id='' AND charset_num=0 AND account_id!='0x0000000000000000000000000000000000000000' ").Limit(200).Find(&list).Error
 	return
 }
 
