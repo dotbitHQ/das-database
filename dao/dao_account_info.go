@@ -288,3 +288,27 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 		return nil
 	})
 }
+
+func (d *DbDao) GetNeedFixCharsetAccountList() (list []TableAccountInfo, err error) {
+	err = d.db.Where("parent_account_id='' AND charset_num=0").Limit(200).Find(&list).Error
+	return
+}
+
+func (d *DbDao) UpdateAccountCharsetNum(accCharset map[string]uint64) error {
+	if len(accCharset) == 0 {
+		return nil
+	}
+
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		for k, v := range accCharset {
+			if err := tx.Model(TableAccountInfo{}).
+				Where("account_id=? AND charset_num=0", k).
+				Updates(map[string]interface{}{
+					"charset_num": v,
+				}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}

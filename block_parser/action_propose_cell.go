@@ -129,14 +129,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			return
 		}
 		// charset
-		charsetList := common.ConvertToAccountCharSets(v.AccountChars)
-		var charsetMap = make(map[common.AccountCharType]struct{})
-		common.GetAccountCharType(charsetMap, charsetList)
-		var charsetNum uint64
-		for k, _ := range charsetMap {
-			numTmp := common.AccountCharTypeToUint64(k)
-			charsetNum += numTmp
-		}
+		charsetNum := common.ConvertAccountCharsToCharsetNum(v.AccountChars)
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
 			BlockNumber:         req.BlockNumber,
 			Outpoint:            common.OutPoint2String(req.TxHash, uint(v.Index)),

@@ -114,11 +114,13 @@ func runServer(ctx *cli.Context) error {
 
 	// timer
 	parserTimer := timer.ParserTimer{
-		DbDao: dbDao,
-		Ctx:   ctxServer,
-		Wg:    &wgServer,
+		DbDao:   dbDao,
+		Ctx:     ctxServer,
+		Wg:      &wgServer,
+		DasCore: dc,
 	}
 	parserTimer.RunUpdateTokenPrice()
+	parserTimer.RunFixCharset()
 	log.Info("parser timer ok")
 
 	// http server

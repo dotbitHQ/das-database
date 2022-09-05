@@ -3,6 +3,7 @@ package timer
 import (
 	"context"
 	"das_database/dao"
+	"github.com/dotbitHQ/das-lib/core"
 	"github.com/scorpiotzh/mylog"
 	"sync"
 	"time"
@@ -11,9 +12,10 @@ import (
 var log = mylog.NewLogger("timer", mylog.LevelDebug)
 
 type ParserTimer struct {
-	DbDao *dao.DbDao
-	Ctx   context.Context
-	Wg    *sync.WaitGroup
+	DbDao   *dao.DbDao
+	Ctx     context.Context
+	Wg      *sync.WaitGroup
+	DasCore *core.DasCore
 }
 
 func (p *ParserTimer) RunUpdateTokenPrice() {
