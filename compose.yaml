@@ -1,6 +1,6 @@
 version: '3'
 networks:
-  mynetwork:
+  dotbit:
     ipam:
       driver: default
       config:
@@ -9,31 +9,35 @@ networks:
 
 services:
   das-database:
-    image: slagga/das-database:latest
+    image: dotbitteam/das-database:latest
     restart: always
     working_dir: /app
     entrypoint: [ "/app/das-database", "--config", "/app/config/config.yaml" ]
     ports:
-      - "8118:8118"
+      - ${DAS_DATABASE_PORT:-8118}:8118
     volumes:
       - $PWD/config/config.yaml:/app/config/config.yaml
     depends_on:
       - mysql
     networks:
-      - mynetwork
+      - dotbit
+    extra_hosts:
+      - host.docker.internal:host-gateway
 
   mysql:
     image: mysql/mysql-server:8.0
     restart: always
     ports:
-      - "3306:3306"
+      - ${MYSQL_PORT:-3306}:3306
     volumes:
       - $PWD/mysql-data:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: ${DAS_DB_PORT:-123456}
       MYSQL_DATABASE: das_database
       TZ: Asia/Shanghai
       # This allows ip ranges from 182.17.0.1 to 182.17.255.255 to connect to root
       MYSQL_ROOT_HOST: "182.17.%.%"
     networks:
-      - mynetwork
+      - dotbit
+    extra_hosts:
+      - host.docker.internal:host-gateway

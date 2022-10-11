@@ -4,6 +4,7 @@ server:
 notice:
   webhook_lark_err: ""
 chain:
+  # Use host.docker.internal instead if running with docker compose
   ckb_url: "http://127.0.0.1:8114"
   index_url: "http://127.0.0.1:8116"
   current_block_number: 4872287 # 4872287: mainnet 1927285: testnet
@@ -11,7 +12,8 @@ chain:
   concurrency_num: 100
 db:
   mysql:
-    addr: "127.0.0.1" # 172.17.0.1: docker 182.17.0.1: docker-compose
+    # Use host.docker.internal instead if running with docker compose
+    addr: "127.0.0.1" 
     user: "root"
     password: "123456"
     db_name: "das_database"
