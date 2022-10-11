@@ -12,7 +12,7 @@ chain:
   concurrency_num: 100
 db:
   mysql:
-    # Use host.docker.internal instead if running with docker compose
+    # Use mysql instead if running with docker compose
     addr: "127.0.0.1" 
     user: "root"
     password: "123456"
