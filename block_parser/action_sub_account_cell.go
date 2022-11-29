@@ -388,36 +388,20 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		capacity += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * newPrice
 	}
 
-	dasLock, err := core.GetDasContractInfo(common.DasContractNameDispatchCellType)
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock.Args)
 	if err != nil {
-		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
 	}
 
-	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[len(req.Tx.Inputs)-1].PreviousOutput.TxHash)
-	if err != nil {
-		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
-		return
-	}
-
-	output := res.Transaction.Outputs[req.Tx.Inputs[len(req.Tx.Inputs)-1].PreviousOutput.Index]
-	oCT, oA := common.ChainTypeCkb, common.Bytes2Hex(output.Lock.Args)
-	if dasLock.IsSameTypeId(output.Lock.CodeHash) {
-		tmpHex, _, err := b.dasCore.Daf().ArgsToHex(output.Lock.Args)
-		if err != nil {
-			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-			return
-		}
-		oCT, oA = tmpHex.ChainType, tmpHex.AddressHex
-	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      parentAccountId,
 		Account:        parentAccount,
 		Action:         common.DasActionCreateSubAccount,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oCT,
-		Address:        oA,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
 		Capacity:       capacity,
 		Outpoint:       subAccountCellOutpoint,
 		BlockTimestamp: req.BlockTimestamp,
@@ -496,8 +480,6 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 			accountInfo.ManagerAlgorithmId = mHex.DasAlgorithmId
 			accountInfo.ManagerChainType = mHex.ChainType
 			accountInfo.Manager = mHex.AddressHex
-			transactionInfo.ChainType = oHex.ChainType
-			transactionInfo.Address = oHex.AddressHex
 			if err = b.dbDao.EditOwnerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
 				resp.Err = fmt.Errorf("EditOwnerSubAccount err: %s", err.Error())
 			}

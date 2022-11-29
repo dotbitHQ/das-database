@@ -128,11 +128,8 @@ func (d *DbDao) EditOwnerSubAccount(accountInfo TableAccountInfo, smtInfo TableS
 			return err
 		}
 
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{
-				"account_id", "account", "service_type",
-				"chain_type", "address", "capacity", "status",
-			}),
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
@@ -159,11 +156,8 @@ func (d *DbDao) EditManagerSubAccount(accountInfo TableAccountInfo, smtInfo Tabl
 			return err
 		}
 
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{
-				"account_id", "account", "service_type",
-				"chain_type", "address", "capacity", "status",
-			}),
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
@@ -185,11 +179,8 @@ func (d *DbDao) EditRecordsSubAccount(accountInfo TableAccountInfo, smtInfo Tabl
 			return err
 		}
 
-		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{
-				"account_id", "account", "service_type",
-				"chain_type", "address", "capacity", "status",
-			}),
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
 		}
