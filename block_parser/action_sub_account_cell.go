@@ -104,7 +104,7 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 }
 
 func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleReq, createBuilderMap map[string]*witness.SubAccountNew) error {
-	if len(createBuilderMap) > 0 {
+	if len(createBuilderMap) == 0 {
 		return nil
 	}
 	// check sub-account config custom-script-args or not
@@ -199,7 +199,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 }
 
 func (b *BlockParser) actionUpdateSubAccountForEdit(req FuncTransactionHandleReq, editBuilderMap map[string]*witness.SubAccountNew) error {
-	if len(editBuilderMap) > 0 {
+	if len(editBuilderMap) == 0 {
 		return nil
 	}
 
