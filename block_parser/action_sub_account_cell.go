@@ -432,88 +432,9 @@ func (b *BlockParser) ActionEditSubAccount(req FuncTransactionHandleReq) (resp F
 		return
 	}
 
-	var index uint
-	for _, builder := range builderMap {
-		ownerHex, _, err := b.dasCore.Daf().ArgsToHex(builder.SubAccountData.Lock.Args)
-		if err != nil {
-			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-			return
-		}
-		outpoint := common.OutPoint2String(req.TxHash, 0)
-
-		accountInfo := dao.TableAccountInfo{
-			BlockNumber: req.BlockNumber,
-			Outpoint:    outpoint,
-			AccountId:   builder.SubAccountData.AccountId,
-			Nonce:       builder.CurrentSubAccountData.Nonce,
-		}
-		smtInfo := dao.TableSmtInfo{
-			BlockNumber:  req.BlockNumber,
-			Outpoint:     outpoint,
-			AccountId:    builder.SubAccountData.AccountId,
-			LeafDataHash: common.Bytes2Hex(builder.CurrentSubAccountData.ToH256()),
-		}
-		transactionInfo := dao.TableTransactionInfo{
-			BlockNumber:    req.BlockNumber,
-			AccountId:      builder.SubAccountData.AccountId,
-			Account:        builder.Account,
-			Action:         common.DasActionEditSubAccount,
-			ServiceType:    dao.ServiceTypeRegister,
-			ChainType:      ownerHex.ChainType,
-			Address:        ownerHex.AddressHex,
-			Capacity:       0,
-			Outpoint:       common.OutPoint2String(outpoint, index),
-			BlockTimestamp: req.BlockTimestamp,
-		}
-		index++
-
-		switch builder.EditKey {
-		case common.EditKeyOwner:
-			oHex, mHex, err := b.dasCore.Daf().ArgsToHex(builder.EditLockArgs)
-			if err != nil {
-				resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-				return
-			}
-			accountInfo.OwnerAlgorithmId = oHex.DasAlgorithmId
-			accountInfo.OwnerChainType = oHex.ChainType
-			accountInfo.Owner = oHex.AddressHex
-			accountInfo.ManagerAlgorithmId = mHex.DasAlgorithmId
-			accountInfo.ManagerChainType = mHex.ChainType
-			accountInfo.Manager = mHex.AddressHex
-			if err = b.dbDao.EditOwnerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
-				resp.Err = fmt.Errorf("EditOwnerSubAccount err: %s", err.Error())
-			}
-		case common.EditKeyManager:
-			_, mHex, err := b.dasCore.Daf().ArgsToHex(builder.EditLockArgs)
-			if err != nil {
-				resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-				return
-			}
-			accountInfo.ManagerAlgorithmId = mHex.DasAlgorithmId
-			accountInfo.ManagerChainType = mHex.ChainType
-			accountInfo.Manager = mHex.AddressHex
-			if err = b.dbDao.EditManagerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
-				resp.Err = fmt.Errorf("EditManagerSubAccount err: %s", err.Error())
-			}
-		case common.EditKeyRecords:
-			var recordsInfos []dao.TableRecordsInfo
-			for _, v := range builder.EditRecords {
-				recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
-					AccountId:       builder.SubAccountData.AccountId,
-					ParentAccountId: common.Bytes2Hex(req.Tx.Outputs[0].Type.Args),
-					Account:         builder.Account,
-					Key:             v.Key,
-					Type:            v.Type,
-					Label:           v.Label,
-					Value:           v.Value,
-					Ttl:             strconv.FormatUint(uint64(v.TTL), 10),
-				})
-			}
-			if err = b.dbDao.EditRecordsSubAccount(accountInfo, smtInfo, transactionInfo, recordsInfos); err != nil {
-				resp.Err = fmt.Errorf("EditRecordsSubAccount err: %s", err.Error())
-				return
-			}
-		}
+	if err := b.actionUpdateSubAccountForEdit(req, builderMap); err != nil {
+		resp.Err = fmt.Errorf("edit err: %s", err.Error())
+		return
 	}
 
 	return
