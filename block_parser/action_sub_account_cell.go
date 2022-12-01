@@ -95,7 +95,7 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 
-	if err := b.actionUpdateSubAccountForEdit(req, createBuilderMap); err != nil {
+	if err := b.actionUpdateSubAccountForEdit(req, editBuilderMap); err != nil {
 		resp.Err = fmt.Errorf("edit err: %s", err.Error())
 		return
 	}
