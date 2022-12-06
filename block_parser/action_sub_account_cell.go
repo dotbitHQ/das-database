@@ -173,7 +173,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		capacity += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * newPrice
 	}
 
-	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock.Args)
+	ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
 	if err != nil {
 		return fmt.Errorf("ArgsToHex err: %s", err.Error())
 	}
@@ -388,7 +388,7 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		capacity += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * newPrice
 	}
 
-	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock.Args)
+	ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
 	if err != nil {
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
