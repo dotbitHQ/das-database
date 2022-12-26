@@ -5,10 +5,12 @@ import (
 	"das_database/config"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
+	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 )
@@ -56,4 +58,72 @@ func TestBuyAccount(t *testing.T) {
 func TestAccount(t *testing.T) {
 	acc := "tzh03.00acc2022042902.bit"
 	fmt.Println(acc[strings.Index(acc, ".")+1:])
+}
+
+func TestCheckContractVersion(t *testing.T) {
+	dc, err := getNewDasCoreTestnet2()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	bp, err := NewBlockParser(ParamsBlockParser{
+		DasCore:            dc,
+		CurrentBlockNumber: config.Cfg.Chain.CurrentBlockNumber,
+		DbDao:              nil,
+		ConcurrencyNum:     config.Cfg.Chain.ConcurrencyNum,
+		ConfirmNum:         config.Cfg.Chain.ConfirmNum,
+		Ctx:                context.Background(),
+		Wg:                 &wg,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := bp.checkContractVersion(); err != nil {
+		t.Log(err)
+	}
+	fmt.Println(1111222)
+}
+
+func getClientTestnet2() (rpc.Client, error) {
+	ckbUrl := "https://testnet.ckb.dev/"
+	indexerUrl := "https://testnet.ckb.dev/"
+	return rpc.DialWithIndexer(ckbUrl, indexerUrl)
+}
+
+func getNewDasCoreTestnet2() (*core.DasCore, error) {
+	client, err := getClientTestnet2()
+	if err != nil {
+		return nil, err
+	}
+
+	env := core.InitEnvOpt(common.DasNetTypeTestnet2,
+		common.DasContractNameConfigCellType,
+		//common.DasContractNameAccountCellType,
+		//common.DasContractNameDispatchCellType,
+		//common.DasContractNameBalanceCellType,
+		common.DasContractNameAlwaysSuccess,
+		common.DasContractNameIncomeCellType,
+		//common.DASContractNameSubAccountCellType,
+		//common.DasContractNamePreAccountCellType,
+	)
+	var wg sync.WaitGroup
+	ops := []core.DasCoreOption{
+		core.WithClient(client),
+		core.WithDasContractArgs(env.ContractArgs),
+		core.WithDasContractCodeHash(env.ContractCodeHash),
+		core.WithDasNetType(common.DasNetTypeTestnet2),
+		core.WithTHQCodeHash(env.THQCodeHash),
+	}
+	dc := core.NewDasCore(context.Background(), &wg, ops...)
+	// contract
+	dc.InitDasContract(env.MapContract)
+	// config cell
+	if err = dc.InitDasConfigCell(); err != nil {
+		return nil, err
+	}
+	// so script
+	if err = dc.InitDasSoScript(); err != nil {
+		return nil, err
+	}
+	return dc, nil
 }
