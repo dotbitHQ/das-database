@@ -9,10 +9,13 @@ import (
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
+	"github.com/scorpiotzh/toolib"
+	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestBlockNumber(t *testing.T) {
@@ -65,6 +68,7 @@ func TestCheckContractVersion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	ctx := context.Background()
 	var wg sync.WaitGroup
 	bp, err := NewBlockParser(ParamsBlockParser{
 		DasCore:            dc,
@@ -72,16 +76,53 @@ func TestCheckContractVersion(t *testing.T) {
 		DbDao:              nil,
 		ConcurrencyNum:     config.Cfg.Chain.ConcurrencyNum,
 		ConfirmNum:         config.Cfg.Chain.ConfirmNum,
-		Ctx:                context.Background(),
+		Ctx:                ctx,
 		Wg:                 &wg,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := bp.checkContractVersion(); err != nil {
-		t.Log(err)
-	}
+
+	wg.Add(2)
+	go func() {
+		ticker := time.NewTicker(time.Second * 2)
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Println("checkContractVersion")
+				if err := bp.checkContractVersion(); err != nil {
+					t.Log(err)
+				}
+			case <-ctx.Done():
+				wg.Done()
+			}
+		}
+	}()
+
+	go func() {
+		ticker := time.NewTicker(time.Second * 2)
+		count := 0
+		for {
+			select {
+			case <-ticker.C:
+				if count == 3 {
+					core.ContractStatusMapTestNet[common.DasContractNameAccountCellType] = common.ContractStatus{Version: "1.6.0"}
+				}
+				fmt.Println("count:", count)
+				count++
+
+			case <-ctx.Done():
+				wg.Done()
+			}
+		}
+	}()
 	fmt.Println(1111222)
+	wg.Wait()
+	toolib.ExitMonitoring(func(sig os.Signal) {
+		log.Warn("ExitMonitoring:", sig.String())
+	})
+	fmt.Println(1111222)
+	time.Sleep(time.Second * 5)
 }
 
 func getClientTestnet2() (rpc.Client, error) {
