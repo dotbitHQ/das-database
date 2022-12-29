@@ -9,8 +9,6 @@ import (
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
-	"github.com/scorpiotzh/toolib"
-	"os"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -68,7 +66,8 @@ func TestCheckContractVersion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+
 	var wg sync.WaitGroup
 	bp, err := NewBlockParser(ParamsBlockParser{
 		DasCore:            dc,
@@ -77,6 +76,7 @@ func TestCheckContractVersion(t *testing.T) {
 		ConcurrencyNum:     config.Cfg.Chain.ConcurrencyNum,
 		ConfirmNum:         config.Cfg.Chain.ConfirmNum,
 		Ctx:                ctx,
+		Cancel:             cancel,
 		Wg:                 &wg,
 	})
 	if err != nil {
@@ -89,12 +89,14 @@ func TestCheckContractVersion(t *testing.T) {
 		for {
 			select {
 			case <-ticker.C:
-				fmt.Println("checkContractVersion")
+				fmt.Println("checkContractVersion1")
 				if err := bp.checkContractVersion(); err != nil {
 					t.Log(err)
 				}
 			case <-ctx.Done():
+				fmt.Println(1111)
 				wg.Done()
+				return
 			}
 		}
 	}()
@@ -110,17 +112,15 @@ func TestCheckContractVersion(t *testing.T) {
 				}
 				fmt.Println("count:", count)
 				count++
-
 			case <-ctx.Done():
+				fmt.Println(22232)
 				wg.Done()
+				return
 			}
 		}
 	}()
 	fmt.Println(1111222)
 	wg.Wait()
-	toolib.ExitMonitoring(func(sig os.Signal) {
-		log.Warn("ExitMonitoring:", sig.String())
-	})
 	fmt.Println(1111222)
 	time.Sleep(time.Second * 5)
 }

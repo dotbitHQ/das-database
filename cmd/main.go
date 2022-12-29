@@ -105,6 +105,7 @@ func runServer(ctx *cli.Context) error {
 		ConcurrencyNum:     config.Cfg.Chain.ConcurrencyNum,
 		ConfirmNum:         config.Cfg.Chain.ConfirmNum,
 		Ctx:                ctxServer,
+		Cancel:             cancel,
 		Wg:                 &wgServer,
 	})
 	if err != nil {
