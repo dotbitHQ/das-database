@@ -43,6 +43,7 @@ type CfgServer struct {
 		Net            common.DasNetType `json:"net" yaml:"net"`
 		HttpServerAddr string            `json:"http_server_addr" yaml:"http_server_addr"`
 		FixCharset     bool              `json:"fix_charset" yaml:"fix_charset"`
+		NotExit        bool              `json:"not_exit" yaml:"not_exit"`
 	} `json:"server" yaml:"server"`
 	Notice struct {
 		WebhookLarkErr string `json:"webhook_lark_err" yaml:"webhook_lark_err"`
