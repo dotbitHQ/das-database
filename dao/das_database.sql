@@ -405,3 +405,46 @@ CREATE TABLE `t_custom_script_info`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci COMMENT ='custom script info';
+
+-- t_snapshot_tx_info
+create table `t_snapshot_tx_info`
+(
+    `id`              bigint(20) unsigned not null auto_increment comment '',
+    `block_number`    bigint(20) unsigned not null default '0' comment '',
+    `hash`            varchar(255)        not null default '' comment '',
+    `action`          varchar(255)        not null default '' comment '',
+    `block_timestamp` bigint(20) unsigned not null default '0' comment '',
+    `created_at`      timestamp           not null default CURRENT_TIMESTAMP comment '',
+    `updated_at`      timestamp           not null default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP comment '',
+    primary key (`id`) using btree,
+    unique key `uk_hash` (`hash`) using btree,
+    key `k_block_number` (`block_number`) using btree,
+    key `k_action` (`action`) using btree
+) engine = InnoDB
+  default charset = utf8mb4
+  collate = utf8mb4_0900_ai_ci comment ='tx snapshot';
+
+-- t_snapshot_permissions_info
+create table `t_snapshot_permissions_info`
+(
+    `id`                   bigint(20) unsigned                                           not null auto_increment comment '',
+    `block_number`         bigint(20) unsigned                                           not null default '0' comment '',
+    `account_id`           varchar(255)                                                  not null default '' comment '',
+    `outpoint`             varchar(255)                                                  not null default '' comment '',
+    `account`              varchar(255) character set utf8mb4 collate utf8mb4_0900_ai_ci not null default '' comment '',
+    `block_timestamp`      bigint(20) unsigned                                           not null default '0' comment '',
+    `owner`                varchar(255)                                                  not null default '' comment '',
+    `manager`              varchar(255)                                                  not null default '' comment '',
+    `owner_algorithm_id`   smallint(6)                                                   not null default '0' comment '3,5-evm 4-tron',
+    `manager_algorithm_id` smallint(6)                                                   not null default '0' comment '3,5-evm 4-tron',
+    `created_at`           timestamp                                                     not null default CURRENT_TIMESTAMP comment '',
+    `updated_at`           timestamp                                                     not null default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP comment '',
+    primary key (`id`) using btree,
+    unique key `uk_account_id` (`account_id`, `outpoint`) using btree,
+    key `k_outpoint` (`outpoint`) using btree,
+    key `k_block_number` (`block_number`) using btree,
+    key `k_owner` (`owner`) using btree,
+    key `k_manager` (`manager`) using btree
+) engine = InnoDB
+  default charset = utf8mb4
+  collate = utf8mb4_0900_ai_ci comment ='permissions snapshot';
