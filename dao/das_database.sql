@@ -455,6 +455,7 @@ create table `t_snapshot_register_info`
     `id`                 bigint(20) unsigned                                           not null auto_increment comment '',
     `block_number`       bigint(20) unsigned                                           not null default '0' comment '',
     `account_id`         varchar(255)                                                  not null default '' comment '',
+    `parent_account_id`  varchar(255)                                                  not null default '' comment '',
     `outpoint`           varchar(255)                                                  not null default '' comment '',
     `account`            varchar(255) character set utf8mb4 collate utf8mb4_0900_ai_ci not null default '' comment '',
     `block_timestamp`    bigint(20) unsigned                                           not null default '0' comment '',
@@ -468,7 +469,8 @@ create table `t_snapshot_register_info`
     key `k_outpoint` (`outpoint`) using btree,
     key `k_block_number` (`block_number`) using btree,
     key `k_owner` (`owner`) using btree,
-    key `k_registered_at` (`registered_at`) using btree
+    key `k_registered_at` (`registered_at`) using btree,
+    key `k_parent_account_id` (`parent_account_id`) using btree
 ) engine = InnoDB
   default charset = utf8mb4
   collate = utf8mb4_0900_ai_ci comment ='register snapshot';

@@ -1,6 +1,9 @@
 package dao
 
-import "time"
+import (
+	"gorm.io/gorm/clause"
+	"time"
+)
 
 type TableSnapshotTxInfo struct {
 	Id             uint64    `json:"id" gorm:"column:id; primaryKey; type:bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '';"`
@@ -18,4 +21,13 @@ const (
 
 func (t *TableSnapshotTxInfo) TableName() string {
 	return TableNameSnapshotTxInfo
+}
+
+func (d *DbDao) CreateSnapshotTxInfo(info TableSnapshotTxInfo) error {
+	if err := d.db.Clauses(clause.Insert{
+		Modifier: "IGNORE",
+	}).Create(&info).Error; err != nil {
+		return err
+	}
+	return nil
 }
