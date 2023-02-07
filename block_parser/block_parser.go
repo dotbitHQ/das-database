@@ -30,6 +30,7 @@ type BlockParser struct {
 	cancel               context.CancelFunc
 	wg                   *sync.WaitGroup
 
+	parserType     dao.ParserType
 	errCountHandle int
 }
 
@@ -54,6 +55,7 @@ func NewBlockParser(p ParamsBlockParser) (*BlockParser, error) {
 		ctx:                p.Ctx,
 		cancel:             p.Cancel,
 		wg:                 p.Wg,
+		parserType:         dao.ParserTypeCKB,
 	}
 	bp.registerTransactionHandle()
 	if err := bp.initCurrentBlockNumber(); err != nil {
@@ -68,7 +70,7 @@ func (b *BlockParser) GetMapTransactionHandle(action common.DasAction) (FuncTran
 }
 
 func (b *BlockParser) initCurrentBlockNumber() error {
-	if block, err := b.dbDao.FindBlockInfo(); err != nil {
+	if block, err := b.dbDao.FindBlockInfo(b.parserType); err != nil {
 		return err
 	} else if block.Id > 0 {
 		b.currentBlockNumber = block.BlockNumber
@@ -135,12 +137,12 @@ func (b *BlockParser) parserSubMode() error {
 		} else if err = b.parsingBlockData(block); err != nil {
 			return fmt.Errorf("parsingBlockData err: %s", err.Error())
 		} else {
-			if err = b.dbDao.CreateBlockInfo(b.currentBlockNumber, blockHash, parentHash); err != nil {
+			if err = b.dbDao.CreateBlockInfo(b.parserType, b.currentBlockNumber, blockHash, parentHash); err != nil {
 				return fmt.Errorf("CreateBlockInfo err: %s", err.Error())
 			} else {
 				atomic.AddUint64(&b.currentBlockNumber, 1)
 			}
-			if err = b.dbDao.DeleteBlockInfo(b.currentBlockNumber - 20); err != nil {
+			if err = b.dbDao.DeleteBlockInfo(b.parserType, b.currentBlockNumber-20); err != nil {
 				return fmt.Errorf("DeleteBlockInfo err: %s", err.Error())
 			}
 		}
@@ -150,7 +152,7 @@ func (b *BlockParser) parserSubMode() error {
 
 // rollback checking
 func (b *BlockParser) checkFork(parentHash string) (bool, error) {
-	block, err := b.dbDao.FindBlockInfoByBlockNumber(b.currentBlockNumber - 1)
+	block, err := b.dbDao.FindBlockInfoByBlockNumber(b.parserType, b.currentBlockNumber-1)
 	if err != nil {
 		return false, err
 	}
@@ -221,14 +223,14 @@ func (b *BlockParser) parserConcurrencyMode() error {
 		if err = b.parsingBlockData(block); err != nil {
 			return fmt.Errorf("parsingBlockData err: %s", err.Error())
 		} else {
-			if err = b.dbDao.CreateBlockInfo(b.currentBlockNumber, blockHash, parentHash); err != nil {
+			if err = b.dbDao.CreateBlockInfo(b.parserType, b.currentBlockNumber, blockHash, parentHash); err != nil {
 				return fmt.Errorf("CreateBlockInfo err: %s", err.Error())
 			} else {
 				atomic.AddUint64(&b.currentBlockNumber, 1)
 			}
 		}
 	}
-	if err := b.dbDao.DeleteBlockInfo(b.currentBlockNumber - 20); err != nil {
+	if err := b.dbDao.DeleteBlockInfo(b.parserType, b.currentBlockNumber-20); err != nil {
 		return fmt.Errorf("DeleteBlockInfo err: %s", err.Error())
 	}
 	return nil
