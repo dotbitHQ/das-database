@@ -30,7 +30,16 @@ type ToolSnapshot struct {
 
 type FuncTransactionHandle func(info dao.TableSnapshotTxInfo, tx *types.Transaction) error
 
-func (t *ToolSnapshot) registerTransactionHandle() {
+func (t *ToolSnapshot) Run(open bool) {
+	if !open {
+		return
+	}
+	t.RegisterTransactionHandle()
+	t.RunTxSnapshot()
+	t.RunDataSnapshot()
+}
+
+func (t *ToolSnapshot) RegisterTransactionHandle() {
 	t.mapTransactionHandle = make(map[string][]FuncTransactionHandle)
 
 	t.mapTransactionHandle[common.DasActionTransferAccount] = []FuncTransactionHandle{t.addAccountPermissions}

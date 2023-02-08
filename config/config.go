@@ -55,6 +55,11 @@ type CfgServer struct {
 		ConfirmNum         uint64 `json:"confirm_num" yaml:"confirm_num"`
 		ConcurrencyNum     uint64 `json:"concurrency_num" yaml:"concurrency_num"`
 	} `json:"chain" yaml:"chain"`
+	Snapshot struct {
+		Open           bool   `json:"open" yaml:"open"`
+		ConcurrencyNum uint64 `json:"concurrency_num" yaml:"concurrency_num"`
+		ConfirmNum     uint64 `json:"confirm_num" yaml:"confirm_num"`
+	} `json:"snapshot" yaml:"snapshot"`
 	DB struct {
 		Mysql DbMysql `json:"mysql" yaml:"mysql"`
 	} `json:"db" yaml:"db"`

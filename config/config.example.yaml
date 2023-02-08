@@ -10,10 +10,14 @@ chain:
   current_block_number: 4872287 # 4872287: mainnet 1927285: testnet
   confirm_num: 4 # confirm nums before written into DB
   concurrency_num: 100
+snapshot:
+  open: false
+  concurrency_num: 100
+  confirm_num: 4
 db:
   mysql:
     # Use mysql instead if running with docker compose
-    addr: "127.0.0.1" 
+    addr: "127.0.0.1"
     user: "root"
     password: "123456"
     db_name: "das_database"

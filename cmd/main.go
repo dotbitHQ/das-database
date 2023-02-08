@@ -6,6 +6,7 @@ import (
 	"das_database/config"
 	"das_database/dao"
 	"das_database/http_server"
+	"das_database/snapshot"
 	"das_database/timer"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/core"
@@ -123,6 +124,17 @@ func runServer(ctx *cli.Context) error {
 	parserTimer.RunUpdateTokenPrice()
 	parserTimer.RunFixCharset()
 	log.Info("parser timer ok")
+
+	// snapshot
+	toolSnapshot := snapshot.ToolSnapshot{
+		Ctx:            ctxServer,
+		Wg:             &wgServer,
+		DbDao:          dbDao,
+		DasCore:        dc,
+		ConcurrencyNum: config.Cfg.Snapshot.ConcurrencyNum,
+		ConfirmNum:     config.Cfg.Snapshot.ConfirmNum,
+	}
+	toolSnapshot.Run(config.Cfg.Snapshot.Open)
 
 	// http server
 	hs, err := http_server.Initialize(http_server.HttpServerParams{
