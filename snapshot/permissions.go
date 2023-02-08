@@ -74,6 +74,13 @@ func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx
 	}
 	var list []dao.TableSnapshotPermissionsInfo
 	for k, v := range mapSubAcc {
+		if info.Action == common.DasActionEditSubAccount && v.EditKey != common.EditKeyOwner && v.EditKey != common.EditKeyManager {
+			continue
+		}
+		if info.Action == common.DasActionUpdateSubAccount && v.Action == common.SubActionEdit && v.EditKey != common.EditKeyOwner && v.EditKey != common.EditKeyManager {
+			continue
+		}
+
 		owner, manager, err := t.DasCore.Daf().ArgsToHex(v.CurrentSubAccountData.Lock.Args)
 		if err != nil {
 			return fmt.Errorf("ArgsToHex err: %s", err.Error())
@@ -96,7 +103,6 @@ func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx
 		return fmt.Errorf("CreateSnapshotPermissions err: %s", err.Error())
 	}
 
-	// todo
 	return nil
 }
 
