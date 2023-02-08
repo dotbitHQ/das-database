@@ -53,8 +53,8 @@ func (t *ToolSnapshot) RegisterTransactionHandle() {
 	t.mapTransactionHandle[common.DasActionConfirmProposal] = []FuncTransactionHandle{t.addAccountPermissionsByDasActionConfirmProposal, t.addAccountRegisterByDasActionConfirmProposal}
 	t.mapTransactionHandle[common.DasActionRecycleExpiredAccount] = []FuncTransactionHandle{t.addAccountPermissionsByDasActionRecycleExpiredAccount}
 
-	t.mapTransactionHandle[common.DasActionCreateSubAccount] = []FuncTransactionHandle{t.addSubAccountPermissions, t.addSubAccountRegister}
-	t.mapTransactionHandle[common.DasActionEditSubAccount] = []FuncTransactionHandle{t.addSubAccountPermissions}
+	t.mapTransactionHandle[common.DasActionCreateSubAccount] = []FuncTransactionHandle{t.addSubAccountPermissionsByDasActionCreateSubAccount, t.addSubAccountRegisterByDasActionCreateSubAccount}
+	t.mapTransactionHandle[common.DasActionEditSubAccount] = []FuncTransactionHandle{t.addSubAccountPermissionsByDasActionEditSubAccount}
 	t.mapTransactionHandle[common.DasActionUpdateSubAccount] = []FuncTransactionHandle{t.addSubAccountPermissions, t.addSubAccountRegister}
 }
 

@@ -64,6 +64,80 @@ func (t *ToolSnapshot) addAccountPermissions(info dao.TableSnapshotTxInfo, tx *t
 	return nil
 }
 
+func (t *ToolSnapshot) addSubAccountPermissionsByDasActionCreateSubAccount(info dao.TableSnapshotTxInfo, tx *types.Transaction) error {
+	log.Info("addSubAccountPermissions:", info.Action, info.Hash)
+
+	var sanb witness.SubAccountNewBuilder
+	mapSubAcc, err := sanb.SubAccountNewMapFromTx(tx)
+	if err != nil {
+		return fmt.Errorf("SubAccountNewMapFromTx err: %s", err.Error())
+	}
+	var list []dao.TableSnapshotPermissionsInfo
+	for k, v := range mapSubAcc {
+		owner, manager, err := t.DasCore.Daf().ArgsToHex(v.CurrentSubAccountData.Lock.Args)
+		if err != nil {
+			return fmt.Errorf("ArgsToHex err: %s", err.Error())
+		}
+		tmp := dao.TableSnapshotPermissionsInfo{
+			BlockNumber:        info.BlockNumber,
+			AccountId:          k,
+			Hash:               info.Hash,
+			Account:            v.Account,
+			BlockTimestamp:     info.BlockTimestamp,
+			Owner:              owner.AddressHex,
+			Manager:            manager.AddressHex,
+			OwnerAlgorithmId:   owner.DasAlgorithmId,
+			ManagerAlgorithmId: manager.DasAlgorithmId,
+		}
+		list = append(list, tmp)
+	}
+
+	if err := t.DbDao.CreateSnapshotPermissions(list); err != nil {
+		return fmt.Errorf("CreateSnapshotPermissions err: %s", err.Error())
+	}
+
+	return nil
+}
+
+func (t *ToolSnapshot) addSubAccountPermissionsByDasActionEditSubAccount(info dao.TableSnapshotTxInfo, tx *types.Transaction) error {
+	log.Info("addSubAccountPermissions:", info.Action, info.Hash)
+
+	var sanb witness.SubAccountNewBuilder
+	mapSubAcc, err := sanb.SubAccountNewMapFromTx(tx)
+	if err != nil {
+		return fmt.Errorf("SubAccountNewMapFromTx err: %s", err.Error())
+	}
+	var list []dao.TableSnapshotPermissionsInfo
+	for k, v := range mapSubAcc {
+		if v.EditKey != common.EditKeyOwner && v.EditKey != common.EditKeyManager {
+			continue
+		}
+
+		owner, manager, err := t.DasCore.Daf().ArgsToHex(v.CurrentSubAccountData.Lock.Args)
+		if err != nil {
+			return fmt.Errorf("ArgsToHex err: %s", err.Error())
+		}
+		tmp := dao.TableSnapshotPermissionsInfo{
+			BlockNumber:        info.BlockNumber,
+			AccountId:          k,
+			Hash:               info.Hash,
+			Account:            v.Account,
+			BlockTimestamp:     info.BlockTimestamp,
+			Owner:              owner.AddressHex,
+			Manager:            manager.AddressHex,
+			OwnerAlgorithmId:   owner.DasAlgorithmId,
+			ManagerAlgorithmId: manager.DasAlgorithmId,
+		}
+		list = append(list, tmp)
+	}
+
+	if err := t.DbDao.CreateSnapshotPermissions(list); err != nil {
+		return fmt.Errorf("CreateSnapshotPermissions err: %s", err.Error())
+	}
+
+	return nil
+}
+
 func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx *types.Transaction) error {
 	log.Info("addSubAccountPermissions:", info.Action, info.Hash)
 
@@ -74,9 +148,6 @@ func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx
 	}
 	var list []dao.TableSnapshotPermissionsInfo
 	for k, v := range mapSubAcc {
-		if info.Action == common.DasActionEditSubAccount && v.EditKey != common.EditKeyOwner && v.EditKey != common.EditKeyManager {
-			continue
-		}
 		if info.Action == common.DasActionUpdateSubAccount && v.Action == common.SubActionEdit && v.EditKey != common.EditKeyOwner && v.EditKey != common.EditKeyManager {
 			continue
 		}
