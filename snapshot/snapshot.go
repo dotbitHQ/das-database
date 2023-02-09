@@ -8,7 +8,6 @@ import (
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"github.com/scorpiotzh/mylog"
-	"golang.org/x/sync/errgroup"
 	"sync"
 	"time"
 )
@@ -93,31 +92,17 @@ func (t *ToolSnapshot) runDataSnapshot() error {
 	}
 
 	// parser
-	ch := make(chan dao.TableSnapshotTxInfo, 10)
-	errGroup := &errgroup.Group{}
-	errGroup.Go(func() error {
-		for i := range list {
-			ch <- list[i]
+	for _, v := range list {
+		if er := t.doDataSnapshotParser(v); er != nil {
+			return fmt.Errorf("doDataSnapshotParser err: %s", er.Error())
 		}
-		close(ch)
-		return nil
-	})
-
-	errGroup.Go(func() error {
-		for v := range ch {
-			if er := t.doDataSnapshotParser(v); er != nil {
-				return fmt.Errorf("doDataSnapshotParser err: %s", er.Error())
+		if v.BlockNumber > currentBlockNumber {
+			currentBlockNumber = v.BlockNumber
+			// update
+			if err := t.DbDao.UpdateTxSnapshotSchedule(currentBlockNumber); err != nil {
+				return fmt.Errorf("UpdateTxSnapshotSchedule err: %s", err.Error())
 			}
 		}
-		return nil
-	})
-	if err = errGroup.Wait(); err != nil {
-		return err
-	}
-
-	// update
-	if err := t.DbDao.UpdateTxSnapshotSchedule(list[len(list)-1].BlockNumber - 1); err != nil {
-		return fmt.Errorf("UpdateTxSnapshotSchedule err: %s", err.Error())
 	}
 
 	return nil

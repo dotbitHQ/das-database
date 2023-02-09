@@ -40,7 +40,7 @@ func (d *DbDao) GetTxSnapshotSchedule() (info TableSnapshotTxInfo, err error) {
 
 func (d *DbDao) GetTxSnapshotByBlockNumber(blockNumber uint64) (list []TableSnapshotTxInfo, err error) {
 	err = d.db.Where("block_number>?", blockNumber).
-		Order("block_number").Limit(1000).Find(&list).Error
+		Order("block_number").Limit(200).Find(&list).Error
 	return
 }
 

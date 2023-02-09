@@ -42,7 +42,6 @@ func Initialize(p HttpHandleParams) *HttpHandle {
 	return &hh
 }
 
-// GetClientIp 获取IP
 func GetClientIp(ctx *gin.Context) string {
 	return fmt.Sprintf("%v", ctx.Request.Header.Get("X-Real-IP"))
 }
@@ -98,7 +97,6 @@ func (h *HttpHandle) ParserTransaction(ctx *gin.Context) {
 	}
 
 	if handle, ok := h.bp.GetMapTransactionHandle(builder.Action); ok {
-		// 根据对应的 action 进行交易解析
 		resp := handle(block_parser.FuncTransactionHandleReq{
 			DbDao:          h.dbDao,
 			Tx:             tx.Transaction,
@@ -115,4 +113,25 @@ func (h *HttpHandle) ParserTransaction(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, api_code.ApiRespOK())
+}
+
+type Pagination struct {
+	Page int `json:"page"`
+	Size int `json:"size"`
+}
+
+func (p Pagination) GetLimit() int {
+	if p.Size < 1 || p.Size > 100 {
+		return 100
+	}
+	return p.Size
+}
+
+func (p Pagination) GetOffset() int {
+	page := p.Page
+	if p.Page < 1 {
+		page = 1
+	}
+	size := p.GetLimit()
+	return (page - 1) * size
 }

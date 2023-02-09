@@ -437,6 +437,8 @@ create table `t_snapshot_permissions_info`
     `manager`              varchar(255)                                                  not null default '' comment '',
     `owner_algorithm_id`   smallint(6)                                                   not null default '0' comment '3,5-evm 4-tron',
     `manager_algorithm_id` smallint(6)                                                   not null default '0' comment '3,5-evm 4-tron',
+    `owner_block_number`   bigint(20) unsigned                                           not null default '0' comment '',
+    `manager_block_number` bigint(20) unsigned                                           not null default '0' comment '',
     `created_at`           timestamp                                                     not null default CURRENT_TIMESTAMP comment '',
     `updated_at`           timestamp                                                     not null default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP comment '',
     primary key (`id`) using btree,
