@@ -16,6 +16,7 @@ const (
 	ApiCodeAccountHasBeenRevoked        ApiCode = 30021
 	ApiCodeAccountIsCrossChained        ApiCode = 30022
 	ApiCodeParentAccountIsRecycled      ApiCode = 30023
+	ApiCodeSnapshotBehindSchedule       ApiCode = 30024
 )
 
 type ApiResp struct {

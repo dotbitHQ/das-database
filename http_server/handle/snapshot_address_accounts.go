@@ -18,7 +18,11 @@ type ReqSnapshotAddressAccounts struct {
 }
 
 type RespSnapshotAddressAccounts struct {
-	Accounts []string `json:"accounts"`
+	Accounts []SnapshotAddressAccount `json:"accounts"`
+}
+
+type SnapshotAddressAccount struct {
+	Account string `json:"account"`
 }
 
 func (h *HttpHandle) JsonRpcSnapshotAddressAccounts(p json.RawMessage, apiResp *api_code.ApiResp) {
@@ -65,7 +69,7 @@ func (h *HttpHandle) SnapshotAddressAccounts(ctx *gin.Context) {
 
 func (h *HttpHandle) doSnapshotAddressAccounts(req *ReqSnapshotAddressAccounts, apiResp *api_code.ApiResp) error {
 	var resp RespSnapshotAddressAccounts
-	resp.Accounts = make([]string, 0)
+	resp.Accounts = make([]SnapshotAddressAccount, 0)
 
 	addrHex, err := req.ChainTypeAddress.FormatChainTypeAddress(h.dasCore.NetType(), false)
 	if err != nil {
@@ -73,13 +77,23 @@ func (h *HttpHandle) doSnapshotAddressAccounts(req *ReqSnapshotAddressAccounts, 
 		return nil
 	}
 
+	// check
+	ok, err := h.checkSnapshotProgress(req.BlockNumber, apiResp)
+	if apiResp.ErrNo != api_code.ApiCodeSuccess {
+		return err
+	} else if !ok {
+		apiResp.ApiRespErr(api_code.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
+		return nil
+	}
+
+	// snapshot
 	list, err := h.dbDao.GetSnapshotAddressAccounts(addrHex.AddressHex, req.RoleType, req.BlockNumber)
 	if err != nil {
 		apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to query historical account holding")
 		return fmt.Errorf("GetSnapshotAddressAccounts err: %s", err.Error())
 	}
 	for _, v := range list {
-		resp.Accounts = append(resp.Accounts, v.Account)
+		resp.Accounts = append(resp.Accounts, SnapshotAddressAccount{Account: v.Account})
 	}
 
 	apiResp.ApiRespOK(resp)

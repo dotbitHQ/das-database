@@ -70,6 +70,19 @@ func (h *HttpHandle) SnapshotPermissionsInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, apiResp)
 }
 
+func (h *HttpHandle) checkSnapshotProgress(blockNumber uint64, apiResp *api_code.ApiResp) (bool, error) {
+	txS, err := h.dbDao.GetTxSnapshotSchedule()
+	if err != nil {
+		apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to query snapshot progress")
+		return false, fmt.Errorf("GetTxSnapshotSchedule err: %s", err.Error())
+	} else if txS.Id > 0 {
+		if txS.BlockNumber >= blockNumber {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, apiResp *api_code.ApiResp) error {
 	var resp RespSnapshotPermissionsInfo
 
@@ -77,6 +90,17 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "Invalid account parameter")
 		return nil
 	}
+
+	// check
+	ok, err := h.checkSnapshotProgress(req.BlockNumber, apiResp)
+	if apiResp.ErrNo != api_code.ApiCodeSuccess {
+		return err
+	} else if !ok {
+		apiResp.ApiRespErr(api_code.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
+		return nil
+	}
+
+	// snapshot
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(req.Account))
 	info, err := h.dbDao.GetSnapshotPermissionsInfo(accountId, req.BlockNumber)
 	if err != nil {

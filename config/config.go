@@ -63,6 +63,13 @@ type CfgServer struct {
 	DB struct {
 		Mysql DbMysql `json:"mysql" yaml:"mysql"`
 	} `json:"db" yaml:"db"`
+	Cache struct {
+		Redis struct {
+			Addr     string `json:"addr" yaml:"addr"`
+			Password string `json:"password" yaml:"password"`
+			DbNum    int    `json:"db_num" yaml:"db_num"`
+		} `json:"redis" yaml:"redis"`
+	} `json:"cache" yaml:"cache"`
 	GeckoIds []string `json:"gecko_ids" yaml:"gecko_ids"`
 }
 

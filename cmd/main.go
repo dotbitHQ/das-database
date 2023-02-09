@@ -136,6 +136,12 @@ func runServer(ctx *cli.Context) error {
 	}
 	toolSnapshot.Run(config.Cfg.Snapshot.Open)
 
+	// cache
+	red, err := toolib.NewRedisClient(config.Cfg.Cache.Redis.Addr, config.Cfg.Cache.Redis.Password, config.Cfg.Cache.Redis.DbNum)
+	if err != nil {
+		log.Error("NewRedisClient err:", err.Error())
+	}
+
 	// http server
 	hs, err := http_server.Initialize(http_server.HttpServerParams{
 		Address: config.Cfg.Server.HttpServerAddr,
@@ -143,6 +149,7 @@ func runServer(ctx *cli.Context) error {
 		Ctx:     ctxServer,
 		DasCore: dc,
 		Bp:      bp,
+		Red:     red,
 	})
 	if err != nil {
 		return fmt.Errorf("http server Initialize err:%s", err.Error())

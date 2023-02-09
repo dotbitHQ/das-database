@@ -9,6 +9,7 @@ import (
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"github.com/scorpiotzh/mylog"
 	"net/http"
@@ -23,6 +24,7 @@ type HttpHandle struct {
 	dbDao   *dao.DbDao
 	dasCore *core.DasCore
 	bp      *block_parser.BlockParser
+	red     *redis.Client
 }
 
 type HttpHandleParams struct {
@@ -30,6 +32,7 @@ type HttpHandleParams struct {
 	DasCore *core.DasCore
 	Ctx     context.Context
 	Bp      *block_parser.BlockParser
+	Red     *redis.Client
 }
 
 func Initialize(p HttpHandleParams) *HttpHandle {
@@ -38,6 +41,7 @@ func Initialize(p HttpHandleParams) *HttpHandle {
 		dasCore: p.DasCore,
 		ctx:     p.Ctx,
 		bp:      p.Bp,
+		red:     p.Red,
 	}
 	return &hh
 }
@@ -113,25 +117,4 @@ func (h *HttpHandle) ParserTransaction(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, api_code.ApiRespOK())
-}
-
-type Pagination struct {
-	Page int `json:"page"`
-	Size int `json:"size"`
-}
-
-func (p Pagination) GetLimit() int {
-	if p.Size < 1 || p.Size > 100 {
-		return 100
-	}
-	return p.Size
-}
-
-func (p Pagination) GetOffset() int {
-	page := p.Page
-	if p.Page < 1 {
-		page = 1
-	}
-	size := p.GetLimit()
-	return (page - 1) * size
 }
