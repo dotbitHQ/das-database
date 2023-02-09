@@ -313,3 +313,8 @@ func (d *DbDao) UpdateAccountCharsetNum(accCharset map[string]uint64) error {
 		return nil
 	})
 }
+
+func (d *DbDao) GetAccountInfoByAccountId(accountId string) (info TableAccountInfo, err error) {
+	err = d.db.Where("account_id=?", accountId).Find(&info).Error
+	return
+}

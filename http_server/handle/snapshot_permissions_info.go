@@ -1,6 +1,7 @@
 package handle
 
 import (
+	"das_database/dao"
 	"das_database/http_server/api_code"
 	"encoding/json"
 	"fmt"
@@ -86,6 +87,35 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 		apiResp.ApiRespErr(api_code.ApiCodeAccountPermissionsDoNotExist, "Account permissions do not exist")
 		return nil
 	}
+	if info.Status == dao.AccountStatusRecycle {
+		apiResp.ApiRespErr(api_code.ApiCodeAccountHasBeenRevoked, "Account has been revoked")
+		return nil
+	}
+	if info.Status == dao.AccountStatusOnLock {
+		apiResp.ApiRespErr(api_code.ApiCodeAccountIsCrossChained, "Account is cross-chained")
+		return nil
+	}
+
+	// sub account
+	if count := strings.Count(info.Account, "."); count > 1 {
+		acc, err := h.dbDao.GetAccountInfoByAccountId(info.AccountId)
+		if err != nil {
+			apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to find account information")
+			return fmt.Errorf("GetAccountInfoByAccountId err: %s", err.Error())
+		}
+		if acc.ParentAccountId != "" {
+			recycleInfo, err := h.dbDao.GetRecycleInfo(acc.ParentAccountId, info.BlockNumber, req.BlockNumber)
+			if err != nil {
+				apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to find parent account permissions information")
+				return fmt.Errorf("GetRecycleInfo err: %s", err.Error())
+			}
+			if recycleInfo.Id > 0 {
+				apiResp.ApiRespErr(api_code.ApiCodeParentAccountIsRecycled, "Parent account is recycled")
+				return nil
+			}
+		}
+	}
+
 	owner, err := h.dasCore.Daf().HexToNormal(core.DasAddressHex{
 		DasAlgorithmId: info.OwnerAlgorithmId,
 		AddressHex:     info.Owner,

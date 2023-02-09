@@ -44,3 +44,9 @@ func (d *DbDao) GetSnapshotPermissionsInfo(accountId string, blockNumber uint64)
 		accountId, blockNumber).Limit(1).Find(&info).Error
 	return
 }
+
+func (d *DbDao) GetRecycleInfo(accountId string, startBlockNumber, endBlockNumber uint64) (info TableSnapshotPermissionsInfo, err error) {
+	err = d.db.Where("account_id=? AND block_number>=? AND block_number<=? AND `status`=?",
+		accountId, startBlockNumber, endBlockNumber, AccountStatusRecycle).Limit(1).Find(&info).Error
+	return
+}
