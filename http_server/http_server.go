@@ -50,7 +50,9 @@ func (h *HttpServer) Run() {
 	v1 := h.engine.Group("v1")
 	{
 		v1.POST("/latest/block/number", h.h.IsLatestBlockNumber) // check if the newest height
-		v1.POST("/parser/transaction", h.h.ParserTransaction)
+		//v1.POST("/parser/transaction", h.h.ParserTransaction)
+		v1.POST("/snapshot/permissions/info", h.h.SnapshotPermissionsInfo)
+		v1.POST("/snapshot/address/accounts", h.h.SnapshotAddressAccounts)
 	}
 
 	h.srv = &http.Server{
@@ -62,4 +64,13 @@ func (h *HttpServer) Run() {
 			log.Error("http_server run err:", err)
 		}
 	}()
+}
+
+func (h *HttpServer) Shutdown() {
+	log.Warn("http server Shutdown ... ")
+	if h.srv != nil {
+		if err := h.srv.Shutdown(h.ctx); err != nil {
+			log.Error("http server Shutdown err:", err.Error())
+		}
+	}
 }

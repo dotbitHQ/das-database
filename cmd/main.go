@@ -156,6 +156,7 @@ func runServer(ctx *cli.Context) error {
 			log.Warn("close watcher ... ")
 			_ = watcher.Close()
 		}
+		hs.Shutdown()
 		cancel()
 		wgServer.Wait()
 		exit <- struct{}{}

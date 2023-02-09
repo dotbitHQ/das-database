@@ -38,3 +38,9 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 		Modifier: "IGNORE",
 	}).Create(&list).Error
 }
+
+func (d *DbDao) GetSnapshotPermissionsInfo(accountId string, blockNumber uint64) (info TableSnapshotPermissionsInfo, err error) {
+	err = d.db.Where("account_id=? AND block_number<=?",
+		accountId, blockNumber).Limit(1).Find(&info).Error
+	return
+}

@@ -11,13 +11,24 @@ const (
 	ApiCodeCacheError     ApiCode = 10003
 	ApiCodeBlockError     ApiCode = 10005
 
-	ApiCodeSystemUpgrade ApiCode = 30019
+	ApiCodeSystemUpgrade                ApiCode = 30019
+	ApiCodeAccountPermissionsDoNotExist ApiCode = 30020
 )
 
 type ApiResp struct {
 	ErrNo  ApiCode     `json:"err_no"`
 	ErrMsg string      `json:"err_msg"`
 	Data   interface{} `json:"data,omitempty"`
+}
+
+func (a *ApiResp) ApiRespErr(errNo ApiCode, errMsg string) {
+	a.ErrNo = errNo
+	a.ErrMsg = errMsg
+}
+
+func (a *ApiResp) ApiRespOK(data interface{}) {
+	a.ErrNo = ApiCodeSuccess
+	a.Data = data
 }
 
 func ApiRespOK() ApiResp {
