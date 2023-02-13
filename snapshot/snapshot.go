@@ -29,20 +29,27 @@ type ToolSnapshot struct {
 
 type FuncTransactionHandle func(info dao.TableSnapshotTxInfo, tx *types.Transaction) error
 
+func (t *ToolSnapshot) init() error {
+	t.parserType = dao.ParserTypeSnapshot
+	t.registerTransactionHandle()
+	if err := t.initCurrentBlockNumber(); err != nil {
+		return fmt.Errorf("initCurrentBlockNumber err: %s", err.Error())
+	}
+	return nil
+}
 func (t *ToolSnapshot) Run(open bool) error {
 	if !open {
 		return nil
 	}
-	t.RegisterTransactionHandle()
-	if err := t.initCurrentBlockNumber(); err != nil {
-		return fmt.Errorf("initCurrentBlockNumber err: %s", err.Error())
+	if err := t.init(); err != nil {
+		return fmt.Errorf("ToolSnapshot init err: %s", err.Error())
 	}
 	t.RunTxSnapshot()
 	//t.RunDataSnapshot()
 	return nil
 }
 
-func (t *ToolSnapshot) RegisterTransactionHandle() {
+func (t *ToolSnapshot) registerTransactionHandle() {
 	t.mapTransactionHandle = make(map[string][]FuncTransactionHandle)
 
 	t.mapTransactionHandle[common.DasActionTransferAccount] = []FuncTransactionHandle{t.addAccountPermissions}
