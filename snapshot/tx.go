@@ -236,10 +236,10 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 		txHash := tx.Hash.Hex()
 		blockNumber := block.Header.Number
 		blockTimestamp := block.Header.Timestamp
-		log.Info("parsingBlockData txHash:", txHash)
+		//log.Info("parsingBlockData txHash:", txHash)
 
 		if builder, err := witness.ActionDataBuilderFromTx(tx); err != nil {
-			log.Warn("ActionDataBuilderFromTx err:", err.Error())
+			//log.Warn("ActionDataBuilderFromTx err:", err.Error())
 		} else {
 			log.Info("parsingBlockData action:", builder.Action, txHash)
 			if ok, err := t.checkContractCodeHash(tx); err != nil {
