@@ -29,13 +29,17 @@ type ToolSnapshot struct {
 
 type FuncTransactionHandle func(info dao.TableSnapshotTxInfo, tx *types.Transaction) error
 
-func (t *ToolSnapshot) Run(open bool) {
+func (t *ToolSnapshot) Run(open bool) error {
 	if !open {
-		return
+		return nil
 	}
 	t.RegisterTransactionHandle()
+	if err := t.initCurrentBlockNumber(); err != nil {
+		return fmt.Errorf("initCurrentBlockNumber err: %s", err.Error())
+	}
 	t.RunTxSnapshot()
-	t.RunDataSnapshot()
+	//t.RunDataSnapshot()
+	return nil
 }
 
 func (t *ToolSnapshot) RegisterTransactionHandle() {

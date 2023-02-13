@@ -3,6 +3,7 @@ package snapshot
 import (
 	"das_database/dao"
 	"fmt"
+	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
@@ -13,7 +14,21 @@ import (
 	"time"
 )
 
+func (t *ToolSnapshot) initCurrentBlockNumber() error {
+	if block, err := t.DbDao.FindBlockInfo(t.parserType); err != nil {
+		return err
+	} else if block.Id > 0 {
+		t.currentBlockNumber = block.BlockNumber
+	} else if t.DasCore.NetType() == common.DasNetTypeMainNet {
+		t.currentBlockNumber = 4872287
+	} else {
+		t.currentBlockNumber = 1927285
+	}
+	return nil
+}
+
 func (t *ToolSnapshot) RunTxSnapshot() {
+
 	atomic.AddUint64(&t.currentBlockNumber, 1)
 	t.Wg.Add(1)
 	go func() {
