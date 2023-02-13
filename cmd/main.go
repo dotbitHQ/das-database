@@ -6,7 +6,6 @@ import (
 	"das_database/config"
 	"das_database/dao"
 	"das_database/http_server"
-	"das_database/snapshot"
 	"das_database/timer"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/core"
@@ -126,15 +125,15 @@ func runServer(ctx *cli.Context) error {
 	log.Info("parser timer ok")
 
 	// snapshot
-	toolSnapshot := snapshot.ToolSnapshot{
-		Ctx:            ctxServer,
-		Wg:             &wgServer,
-		DbDao:          dbDao,
-		DasCore:        dc,
-		ConcurrencyNum: config.Cfg.Snapshot.ConcurrencyNum,
-		ConfirmNum:     config.Cfg.Snapshot.ConfirmNum,
-	}
-	toolSnapshot.Run(config.Cfg.Snapshot.Open)
+	//toolSnapshot := snapshot.ToolSnapshot{
+	//	Ctx:            ctxServer,
+	//	Wg:             &wgServer,
+	//	DbDao:          dbDao,
+	//	DasCore:        dc,
+	//	ConcurrencyNum: config.Cfg.Snapshot.ConcurrencyNum,
+	//	ConfirmNum:     config.Cfg.Snapshot.ConfirmNum,
+	//}
+	//toolSnapshot.Run(config.Cfg.Snapshot.Open)
 
 	// cache
 	red, err := toolib.NewRedisClient(config.Cfg.Cache.Redis.Addr, config.Cfg.Cache.Redis.Password, config.Cfg.Cache.Redis.DbNum)

@@ -23,6 +23,11 @@ db:
     db_name: "das_database"
     max_open_conn: 100
     max_idle_conn: 50
+cache:
+  redis:
+    addr: "127.0.0.1:6379"
+    password: ""
+    db_num: 0
 gecko_ids:
   - "nervos-network"
   - "ethereum"
