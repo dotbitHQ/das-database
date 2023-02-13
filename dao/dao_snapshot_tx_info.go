@@ -33,6 +33,18 @@ func (d *DbDao) CreateSnapshotTxInfo(info TableSnapshotTxInfo) error {
 	return nil
 }
 
+func (d *DbDao) InitSnapshotSchedule() error {
+	info := TableSnapshotTxInfo{
+		BlockNumber:    0,
+		Hash:           TxSnapshotSchedule,
+		Action:         TxSnapshotSchedule,
+		BlockTimestamp: 0,
+	}
+	return d.db.Clauses(clause.Insert{
+		Modifier: "IGNORE",
+	}).Create(&info).Error
+}
+
 func (d *DbDao) GetTxSnapshotSchedule() (info TableSnapshotTxInfo, err error) {
 	err = d.db.Where("hash=? AND action=?", TxSnapshotSchedule, TxSnapshotSchedule).Find(&info).Error
 	return

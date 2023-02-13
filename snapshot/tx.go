@@ -1,7 +1,9 @@
 package snapshot
 
 import (
+	"das_database/config"
 	"das_database/dao"
+	"das_database/notify"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
@@ -43,12 +45,28 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 						nowTime := time.Now()
 						if err = t.parserConcurrencyMode(); err != nil {
 							log.Error("parserConcurrencyMode err:", err.Error(), t.currentBlockNumber)
+							if t.errTxCount < 100 {
+								t.errTxCount++
+								if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "RunTxSnapshot parserConcurrencyMode", err.Error()); err != nil {
+									log.Error("SendLarkTextNotify err: %s", err.Error())
+								}
+							}
+						} else {
+							t.errTxCount = 0
 						}
 						log.Warn("parserConcurrencyMode time:", time.Since(nowTime).Seconds())
 					} else if t.currentBlockNumber < (latestBlockNumber - t.ConfirmNum) {
 						nowTime := time.Now()
 						if err = t.parserMode(); err != nil {
 							log.Error("parserMode err:", err.Error(), t.currentBlockNumber)
+							if t.errTxCount < 100 {
+								t.errTxCount++
+								if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "RunTxSnapshot parserMode", err.Error()); err != nil {
+									log.Error("SendLarkTextNotify err: %s", err.Error())
+								}
+							}
+						} else {
+							t.errTxCount = 0
 						}
 						log.Warn("parserMode time:", time.Since(nowTime).Seconds())
 					} else {
@@ -192,6 +210,7 @@ func (t *ToolSnapshot) checkContractCodeHash(tx *types.Transaction) (bool, error
 			if !ok {
 				return true
 			}
+			log.Info(item.ContractName, item.ContractTypeId.String(), v.Lock.CodeHash.String())
 			if item.IsSameTypeId(v.Lock.CodeHash) {
 				isSelf = true
 				return false

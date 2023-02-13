@@ -2,7 +2,9 @@ package snapshot
 
 import (
 	"context"
+	"das_database/config"
 	"das_database/dao"
+	"das_database/notify"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
@@ -25,6 +27,8 @@ type ToolSnapshot struct {
 	currentBlockNumber   uint64
 	parserType           dao.ParserType
 	mapTransactionHandle map[common.DasAction][]FuncTransactionHandle
+	errTxCount           int
+	errSnapshotCount     int
 }
 
 type FuncTransactionHandle func(info dao.TableSnapshotTxInfo, tx *types.Transaction) error
@@ -45,7 +49,8 @@ func (t *ToolSnapshot) Run(open bool) error {
 		return fmt.Errorf("ToolSnapshot init err: %s", err.Error())
 	}
 	t.RunTxSnapshot()
-	//t.RunDataSnapshot()
+
+	t.RunDataSnapshot()
 	return nil
 }
 
@@ -55,12 +60,13 @@ func (t *ToolSnapshot) registerTransactionHandle() {
 	t.mapTransactionHandle[common.DasActionTransferAccount] = []FuncTransactionHandle{t.addAccountPermissions}
 	t.mapTransactionHandle[common.DasActionEditManager] = []FuncTransactionHandle{t.addAccountPermissions}
 	t.mapTransactionHandle[common.DasActionBuyAccount] = []FuncTransactionHandle{t.addAccountPermissions}
+	t.mapTransactionHandle[common.DasActionCancelAccountSale] = []FuncTransactionHandle{t.addAccountPermissions}
 	t.mapTransactionHandle[common.DasActionAcceptOffer] = []FuncTransactionHandle{t.addAccountPermissions}
-	t.mapTransactionHandle[common.DasActionUnlockAccountForCrossChain] = []FuncTransactionHandle{t.addAccountPermissions}
 	t.mapTransactionHandle[common.DasActionStartAccountSale] = []FuncTransactionHandle{t.addAccountPermissions}
-	t.mapTransactionHandle[common.DasActionLockAccountForCrossChain] = []FuncTransactionHandle{t.addAccountPermissions}
-
 	t.mapTransactionHandle[common.DasActionConfirmProposal] = []FuncTransactionHandle{t.addAccountPermissionsByDasActionConfirmProposal, t.addAccountRegisterByDasActionConfirmProposal}
+
+	t.mapTransactionHandle[common.DasActionUnlockAccountForCrossChain] = []FuncTransactionHandle{t.addAccountPermissions}
+	t.mapTransactionHandle[common.DasActionLockAccountForCrossChain] = []FuncTransactionHandle{t.addAccountPermissions}
 	t.mapTransactionHandle[common.DasActionRecycleExpiredAccount] = []FuncTransactionHandle{t.addAccountPermissionsByDasActionRecycleExpiredAccount}
 
 	t.mapTransactionHandle[common.DasActionCreateSubAccount] = []FuncTransactionHandle{t.addSubAccountPermissionsByDasActionCreateSubAccount, t.addSubAccountRegisterByDasActionCreateSubAccount}
@@ -76,7 +82,15 @@ func (t *ToolSnapshot) RunDataSnapshot() {
 			select {
 			case <-tickerParser.C:
 				if err := t.runDataSnapshot(); err != nil {
-					log.Error("runDataSnapshot err:%s", err.Error())
+					log.Error("runDataSnapshot err:", err.Error())
+					if t.errSnapshotCount < 100 {
+						t.errSnapshotCount++
+						if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "runDataSnapshot", err.Error()); err != nil {
+							log.Error("SendLarkTextNotify err: %s", err.Error())
+						}
+					}
+				} else {
+					t.errSnapshotCount = 0
 				}
 			case <-t.Ctx.Done():
 				t.Wg.Done()
@@ -94,6 +108,10 @@ func (t *ToolSnapshot) runDataSnapshot() error {
 		return fmt.Errorf("GetTxSnapshotSchedule err: %s", err.Error())
 	} else if txS.Id > 0 {
 		currentBlockNumber = txS.BlockNumber
+	} else {
+		if err := t.DbDao.InitSnapshotSchedule(); err != nil {
+			return fmt.Errorf("InitSnapshotSchedule err: %s", err.Error())
+		}
 	}
 
 	// get parser list
