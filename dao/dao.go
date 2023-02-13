@@ -3,10 +3,13 @@ package dao
 import (
 	"das_database/config"
 	"fmt"
+	"github.com/scorpiotzh/mylog"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
+
+var log = mylog.NewLogger("dao", mylog.LevelDebug)
 
 type DbDao struct {
 	db *gorm.DB
@@ -33,6 +36,12 @@ func NewGormDataBase(addr, user, password, dbName string, maxOpenConn, maxIdleCo
 }
 
 func Initialize(db *gorm.DB) (*DbDao, error) {
+	if db.Migrator().HasIndex(&TableBlockInfo{}, "uk_block_number") {
+		log.Info("HasIndex: uk_block_number")
+		if err := db.Migrator().DropIndex(&TableBlockInfo{}, "uk_block_number"); err != nil {
+			return nil, fmt.Errorf("DropIndex err: %s", err.Error())
+		}
+	}
 	// AutoMigrate will create tables, missing foreign keys, constraints, columns and indexes.
 	// It will change existing column’s type if its size, precision, nullable changed.
 	// It WON’T delete unused columns to protect your data.
