@@ -12,8 +12,8 @@ type ReverseSmtInfo struct {
 	Outpoint     string    `gorm:"column:outpoint;NOT NULL"` // 设置反解的地址
 	Address      string    `gorm:"column:address;NOT NULL"`
 	LeafDataHash string    `gorm:"column:leaf_data_hash;NOT NULL"` // SMT叶子节点hash
-	CreatedAt    time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP;NOT NULL"`
-	UpdatedAt    time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP;NOT NULL"`
+	CreatedAt    time.Time `gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
+	UpdatedAt    time.Time `gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }
 
 const TableNameReverseSmtInfo = "t_reverse_smt_info"
