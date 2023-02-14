@@ -21,3 +21,7 @@ const TableNameReverseSmtInfo = "t_reverse_smt_info"
 func (m *ReverseSmtInfo) TableName() string {
 	return TableNameReverseSmtInfo
 }
+
+func (d *DbDao) CreateReverseSmtInfo(smtInfo []*ReverseSmtInfo) error {
+	return d.db.Create(smtInfo).Error
+}

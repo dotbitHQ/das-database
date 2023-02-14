@@ -137,3 +137,7 @@ var geckoIds = map[string]TableTokenPriceInfo{
 		Logo:      "https://app.did.id/images/components/polygon.svg",
 	},
 }
+
+func (d *DbDao) Transaction(fn func(tx *gorm.DB) error) error {
+	return d.db.Transaction(fn)
+}
