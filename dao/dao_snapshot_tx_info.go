@@ -50,9 +50,12 @@ func (d *DbDao) GetTxSnapshotSchedule() (info TableSnapshotTxInfo, err error) {
 	return
 }
 
-func (d *DbDao) GetTxSnapshotByBlockNumber(blockNumber uint64) (list []TableSnapshotTxInfo, err error) {
+func (d *DbDao) GetTxSnapshotByBlockNumber(blockNumber uint64, limit int) (list []TableSnapshotTxInfo, err error) {
+	if limit <= 0 || limit > 5000 {
+		limit = 200
+	}
 	err = d.db.Where("block_number>=?", blockNumber).
-		Order("block_number").Limit(200).Find(&list).Error
+		Order("block_number").Limit(limit).Find(&list).Error
 	return
 }
 
