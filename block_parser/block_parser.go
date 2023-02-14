@@ -173,10 +173,10 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 		txHash := tx.Hash.Hex()
 		blockNumber := block.Header.Number
 		blockTimestamp := block.Header.Timestamp
-		log.Info("parsingBlockData txHash:", txHash)
+		//log.Info("parsingBlockData txHash:", txHash)
 
 		if builder, err := witness.ActionDataBuilderFromTx(tx); err != nil {
-			log.Warn("ActionDataBuilderFromTx err:", err.Error())
+			//log.Warn("ActionDataBuilderFromTx err:", err.Error())
 		} else {
 			if handle, ok := b.mapTransactionHandle[builder.Action]; ok {
 				// transaction parse by action

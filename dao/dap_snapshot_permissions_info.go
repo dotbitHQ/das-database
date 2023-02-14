@@ -55,9 +55,9 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 		mapNewPermissions[v.AccountId] = list[i]
 	}
 
-	oldPermissions, err := d.GetSnapshotPermissionsByAccountIds(accountIds, list[0].BlockNumber)
+	oldPermissions, err := d.GetPreSnapshotPermissionsByAccountIds(accountIds, list[0].BlockNumber)
 	if err != nil {
-		return fmt.Errorf("GetSnapshotPermissionsByAccountIds err:%s", err.Error())
+		return fmt.Errorf("GetPreSnapshotPermissionsByAccountIds err:%s", err.Error())
 	}
 	for i, v := range oldPermissions {
 		newPermissions := mapNewPermissions[v.AccountId]
@@ -89,9 +89,10 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 	})
 }
 
-func (d *DbDao) GetSnapshotPermissionsByAccountIds(accountIds []string, blockNumber uint64) (list []TableSnapshotPermissionsInfo, err error) {
+func (d *DbDao) GetPreSnapshotPermissionsByAccountIds(accountIds []string, blockNumber uint64) (list []TableSnapshotPermissionsInfo, err error) {
 	err = d.db.Where("account_id IN(?) AND block_number<?",
-		accountIds, blockNumber).Group("account_id").Find(&list).Error
+		accountIds, blockNumber).Select("MAX(id) AS id").
+		Group("account_id").Find(&list).Error
 	return
 }
 

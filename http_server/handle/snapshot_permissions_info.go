@@ -162,7 +162,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 	}
 	resp.Account = req.Account
 	resp.AccountId = accountId
-	resp.BlockNumber = req.BlockNumber
+	resp.BlockNumber = info.BlockNumber
 	resp.Owner = owner.AddressNormal
 	resp.OwnerAlgorithmId = info.OwnerAlgorithmId
 	resp.Manager = manager.AddressNormal
