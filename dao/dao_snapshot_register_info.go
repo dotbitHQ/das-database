@@ -15,8 +15,9 @@ type TableSnapshotRegisterInfo struct {
 	Account          string                `json:"account" gorm:"column:account; type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '';"`
 	BlockTimestamp   uint64                `json:"block_timestamp" gorm:"column:block_timestamp; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
 	Owner            string                `json:"owner" gorm:"column:owner; index:k_owner; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
-	RegisteredAt     uint64                `json:"registered_at" gorm:"column:registered_at; index:k_registered_at; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
 	OwnerAlgorithmId common.DasAlgorithmId `json:"owner_algorithm_id" gorm:"column:owner_algorithm_id; type:SMALLINT(6) NOT NULL DEFAULT '0' COMMENT '';"`
+	RegisteredAt     uint64                `json:"registered_at" gorm:"column:registered_at; index:k_registered_at; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
+	ExpiredAt        uint64                `json:"expired_at" gorm:"column:expired_at; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
 	CreatedAt        time.Time             `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt        time.Time             `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }

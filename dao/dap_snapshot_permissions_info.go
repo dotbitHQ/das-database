@@ -23,6 +23,7 @@ type TableSnapshotPermissionsInfo struct {
 	OwnerBlockNumber   uint64                `json:"owner_block_number" gorm:"column:owner_block_number; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
 	ManagerBlockNumber uint64                `json:"manager_block_number" gorm:"column:manager_block_number; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
 	Status             AccountStatus         `json:"status" gorm:"column:status; type:SMALLINT(6) NOT NULL DEFAULT '0' COMMENT '';"`
+	ExpiredAt          uint64                `json:"expired_at" gorm:"column:expired_at; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
 	CreatedAt          time.Time             `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt          time.Time             `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }

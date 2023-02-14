@@ -32,6 +32,7 @@ func (t *ToolSnapshot) addAccountPermissions(info dao.TableSnapshotTxInfo, tx *t
 			OwnerAlgorithmId:   owner.DasAlgorithmId,
 			ManagerAlgorithmId: manager.DasAlgorithmId,
 			Status:             dao.AccountStatusNormal,
+			ExpiredAt:          v.ExpiredAt,
 		}
 		if info.Action == common.DasActionStartAccountSale {
 			tmp.Status = dao.AccountStatusOnSale
@@ -88,6 +89,7 @@ func (t *ToolSnapshot) addSubAccountPermissionsByDasActionCreateSubAccount(info 
 			Manager:            manager.AddressHex,
 			OwnerAlgorithmId:   owner.DasAlgorithmId,
 			ManagerAlgorithmId: manager.DasAlgorithmId,
+			ExpiredAt:          v.CurrentSubAccountData.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}
@@ -127,6 +129,7 @@ func (t *ToolSnapshot) addSubAccountPermissionsByDasActionEditSubAccount(info da
 			Manager:            manager.AddressHex,
 			OwnerAlgorithmId:   owner.DasAlgorithmId,
 			ManagerAlgorithmId: manager.DasAlgorithmId,
+			ExpiredAt:          v.CurrentSubAccountData.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}
@@ -166,6 +169,7 @@ func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx
 			Manager:            manager.AddressHex,
 			OwnerAlgorithmId:   owner.DasAlgorithmId,
 			ManagerAlgorithmId: manager.DasAlgorithmId,
+			ExpiredAt:          v.CurrentSubAccountData.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}
@@ -211,6 +215,7 @@ func (t *ToolSnapshot) addAccountPermissionsByDasActionConfirmProposal(info dao.
 			OwnerAlgorithmId:   owner.DasAlgorithmId,
 			ManagerAlgorithmId: manager.DasAlgorithmId,
 			Status:             dao.AccountStatusNormal,
+			ExpiredAt:          v.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}
@@ -261,6 +266,7 @@ func (t *ToolSnapshot) addAccountPermissionsByDasActionRecycleExpiredAccount(inf
 			OwnerAlgorithmId:   owner.DasAlgorithmId,
 			ManagerAlgorithmId: manager.DasAlgorithmId,
 			Status:             dao.AccountStatusRecycle,
+			ExpiredAt:          v.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}

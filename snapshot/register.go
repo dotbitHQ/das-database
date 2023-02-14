@@ -40,8 +40,9 @@ func (t *ToolSnapshot) addAccountRegisterByDasActionConfirmProposal(info dao.Tab
 			Account:          v.Account,
 			BlockTimestamp:   info.BlockTimestamp,
 			Owner:            owner.AddressHex,
-			RegisteredAt:     v.RegisteredAt,
 			OwnerAlgorithmId: owner.DasAlgorithmId,
+			RegisteredAt:     v.RegisteredAt,
+			ExpiredAt:        v.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}
@@ -89,6 +90,7 @@ func (t *ToolSnapshot) addSubAccountRegisterByDasActionCreateSubAccount(info dao
 			Owner:            owner.AddressHex,
 			RegisteredAt:     v.CurrentSubAccountData.RegisteredAt,
 			OwnerAlgorithmId: owner.DasAlgorithmId,
+			ExpiredAt:        v.CurrentSubAccountData.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}
@@ -138,6 +140,7 @@ func (t *ToolSnapshot) addSubAccountRegister(info dao.TableSnapshotTxInfo, tx *t
 			Owner:            owner.AddressHex,
 			RegisteredAt:     v.CurrentSubAccountData.RegisteredAt,
 			OwnerAlgorithmId: owner.DasAlgorithmId,
+			ExpiredAt:        v.CurrentSubAccountData.ExpiredAt,
 		}
 		list = append(list, tmp)
 	}
