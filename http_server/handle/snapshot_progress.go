@@ -10,6 +10,7 @@ import (
 )
 
 type ReqSnapshotProgress struct {
+	BlockNumber uint64 `json:"block_number"`
 }
 
 type RespSnapshotProgress struct {
@@ -68,6 +69,7 @@ func (h *HttpHandle) doSnapshotProgress(req *ReqSnapshotProgress, apiResp *api_c
 	} else if txS.Id > 0 {
 		resp.BlockNumber = txS.BlockNumber
 	}
+	log.Info("doSnapshotProgress:", resp.BlockNumber)
 
 	apiResp.ApiRespOK(resp)
 	return nil

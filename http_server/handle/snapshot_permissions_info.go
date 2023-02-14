@@ -168,6 +168,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 	resp.Manager = manager.AddressNormal
 	resp.ManagerAlgorithmId = info.ManagerAlgorithmId
 
+	log.Info("doSnapshotPermissionsInfo:", resp)
 	apiResp.ApiRespOK(resp)
 	return nil
 }
