@@ -7,27 +7,20 @@ import (
 	"github.com/dotbitHQ/das-lib/molecule"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/crypto/blake2b"
-	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"gorm.io/gorm"
 )
 
 func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
 	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameReverseRecordRootCellType); err != nil {
-		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err)
 		return
 	} else if !isCV {
 		return
 	}
 	log.Info("ActionReverseRecordRoot:", req.BlockNumber, req.TxHash)
 
-	res, err := b.dasCore.Client().GetTransaction(b.ctx, types.HexToHash(req.TxHash))
-	if err != nil {
-		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
-		return
-	}
-
 	smtBuilder := witness.NewReverseSmtBuilder()
-	txReverseSmtRecord, err := smtBuilder.FromTx(res.Transaction)
+	txReverseSmtRecord, err := smtBuilder.FromTx(req.Tx)
 	if err != nil {
 		resp.Err = err
 		return
@@ -55,12 +48,11 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 		}
 		smtRecords = append(smtRecords, smtRecord)
 	}
-	if err := b.dbDao.CreateReverseSmtInfo(smtRecords); err != nil {
-		resp.Err = err
-		return
-	}
 
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(smtRecords).Error; err != nil {
+			return err
+		}
 		for idx, v := range txReverseSmtRecord {
 			outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 			accountId := common.Bytes2Hex(common.GetAccountIdByAccount(v.NextAccount))
@@ -98,6 +90,5 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 		resp.Err = err
 		return
 	}
-
 	return
 }
