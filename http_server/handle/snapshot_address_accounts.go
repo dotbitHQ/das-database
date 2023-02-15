@@ -78,13 +78,13 @@ func (h *HttpHandle) doSnapshotAddressAccounts(req *ReqSnapshotAddressAccounts, 
 	}
 
 	// check
-	ok, err := h.checkSnapshotProgress(req.BlockNumber, apiResp)
-	if apiResp.ErrNo != api_code.ApiCodeSuccess {
-		return err
-	} else if !ok {
-		apiResp.ApiRespErr(api_code.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
-		return nil
-	}
+	//ok, err := h.checkSnapshotProgress(req.BlockNumber, apiResp)
+	//if apiResp.ErrNo != api_code.ApiCodeSuccess {
+	//	return err
+	//} else if !ok {
+	//	apiResp.ApiRespErr(api_code.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
+	//	return nil
+	//}
 
 	// snapshot
 	list, err := h.dbDao.GetSnapshotAddressAccounts(addrHex.AddressHex, req.RoleType, req.BlockNumber)

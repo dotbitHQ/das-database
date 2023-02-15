@@ -92,13 +92,13 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 	}
 
 	// check
-	ok, err := h.checkSnapshotProgress(req.BlockNumber, apiResp)
-	if apiResp.ErrNo != api_code.ApiCodeSuccess {
-		return err
-	} else if !ok {
-		apiResp.ApiRespErr(api_code.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
-		return nil
-	}
+	//ok, err := h.checkSnapshotProgress(req.BlockNumber, apiResp)
+	//if apiResp.ErrNo != api_code.ApiCodeSuccess {
+	//	return err
+	//} else if !ok {
+	//	apiResp.ApiRespErr(api_code.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
+	//	return nil
+	//}
 
 	// snapshot
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(req.Account))

@@ -61,6 +61,17 @@ func TestSnapshotAddressAccounts(t *testing.T) {
 	fmt.Println(toolib.JsonString(&data))
 }
 
+func TestSnapshotRegisterHistory(t *testing.T) {
+	url := ApiUrl + "/snapshot/register/history"
+	req := handle.ReqSnapshotRegisterHistory{StartTimestamp: 0}
+	var data handle.RespSnapshotRegisterHistory
+
+	if err := doReq(url, req, &data); err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(toolib.JsonString(&data))
+}
+
 func doReq(url string, req, data interface{}) error {
 	var resp api_code.ApiResp
 	resp.Data = &data

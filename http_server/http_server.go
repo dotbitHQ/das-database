@@ -67,6 +67,7 @@ func (h *HttpServer) Run() {
 		v1.POST("/snapshot/progress", cacheHandle, h.h.SnapshotProgress)
 		v1.POST("/snapshot/permissions/info", cacheHandle, h.h.SnapshotPermissionsInfo)
 		v1.POST("/snapshot/address/accounts", cacheHandle, h.h.SnapshotAddressAccounts)
+		v1.POST("/snapshot/register/history", cacheHandle, h.h.SnapshotRegisterHistory)
 	}
 
 	h.srv = &http.Server{

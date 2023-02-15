@@ -24,4 +24,5 @@ type JsonRpcMethod = string
 const (
 	MethodSnapshotPermissionsInfo JsonRpcMethod = "snapshot_permissions_info"
 	MethodSnapshotAddressAccounts JsonRpcMethod = "snapshot_address_accounts"
+	MethodSnapshotRegisterHistory JsonRpcMethod = "snapshot_register_history"
 )

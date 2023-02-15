@@ -38,3 +38,8 @@ func (d *DbDao) CreateSnapshotRegister(list []TableSnapshotRegisterInfo) error {
 		Modifier: "IGNORE",
 	}).Create(&list).Error
 }
+
+func (d *DbDao) GetRegisterHistory(startTimestamp uint64) (list []TableSnapshotRegisterInfo, err error) {
+	err = d.db.Where("registered_at>=? AND parent_account_id=''", startTimestamp).Find(&list).Error
+	return
+}
