@@ -120,6 +120,29 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 		return nil
 	}
 
+	// check expired or not
+	builder, err := h.dasCore.ConfigCellDataBuilderByTypeArgsList(
+		common.ConfigCellTypeArgsAccount,
+	)
+	if err != nil {
+		apiResp.ApiRespErr(api_code.ApiCodeError500, "Failed to get ExpirationGracePeriod")
+		return fmt.Errorf("ConfigCellDataBuilderByTypeArgsList err: %s", err.Error())
+	}
+	expirationGracePeriod, _ := builder.ExpirationGracePeriod()
+
+	expiredAt := info.ExpiredAt + uint64(expirationGracePeriod)
+	block, err := h.dasCore.Client().GetBlockByNumber(h.ctx, req.BlockNumber)
+	if err != nil {
+		apiResp.ApiRespErr(api_code.ApiCodeError500, "Failed to get block")
+		return fmt.Errorf("GetBlockByNumber err: %s", err.Error())
+	}
+	blockTimestamp := block.Header.Timestamp / 1000
+	log.Info("ExpirationGracePeriod:", expirationGracePeriod, info.ExpiredAt, expiredAt, blockTimestamp)
+	if expiredAt < blockTimestamp {
+		apiResp.ApiRespErr(api_code.ApiCodeAccountExpired, "Account expired")
+		return nil
+	}
+
 	// sub account
 	if count := strings.Count(info.Account, "."); count > 1 {
 		acc, err := h.dbDao.GetAccountInfoByAccountId(info.AccountId)

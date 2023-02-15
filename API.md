@@ -23,6 +23,7 @@ _You can provide either `coin_type` or `chain_id`. The `coin_type` will be used,
 ApiCodeAccountPermissionsDoNotExist ApiCode = 30020 // Account permission does not exist
 ApiCodeAccountHasBeenRecycled       ApiCode = 30021 // Account has been recycled
 ApiCodeAccountCrossChain            ApiCode = 30022 // Account cross-chain
+ApiCodeAccountExpired               ApiCode = 20023 // account expired
 
 ```
 

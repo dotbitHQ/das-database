@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-var ApiUrl = "http://127.0.0.1:8118/v1"
+var ApiUrl = "https://test-snapshot-api.did.id/v1"
 
 func TestSnapshotProgress(t *testing.T) {
 	url := ApiUrl + "/snapshot/progress"
@@ -28,8 +28,8 @@ func TestSnapshotPermissionsInfo(t *testing.T) {
 	url := ApiUrl + "/snapshot/permissions/info"
 
 	req := handle.ReqSnapshotPermissionsInfo{
-		Account:     "7aaaaaaa.bit",
-		BlockNumber: 3593828,
+		Account:     "tang0002.bit",
+		BlockNumber: 6039755,
 	}
 	var data handle.RespSnapshotPermissionsInfo
 
