@@ -59,13 +59,20 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 	if err != nil {
 		return fmt.Errorf("GetPreSnapshotPermissionsByAccountIds err:%s", err.Error())
 	}
+	var updatePermissions []TableSnapshotPermissionsInfo
 	for i, v := range oldPermissions {
+		needUpdate := false
 		newPermissions := mapNewPermissions[v.AccountId]
 		if !strings.EqualFold(newPermissions.Owner, v.Owner) {
 			oldPermissions[i].OwnerBlockNumber = newPermissions.BlockNumber
+			needUpdate = true
 		}
 		if !strings.EqualFold(newPermissions.Manager, v.Manager) {
 			oldPermissions[i].ManagerBlockNumber = newPermissions.BlockNumber
+			needUpdate = true
+		}
+		if needUpdate {
+			updatePermissions = append(updatePermissions, oldPermissions[i])
 		}
 	}
 
@@ -75,7 +82,7 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 		}).Create(&list).Error; err != nil {
 			return err
 		}
-		for _, v := range oldPermissions {
+		for _, v := range updatePermissions {
 			if err := tx.Model(TableSnapshotPermissionsInfo{}).
 				Where("id=?", v.Id).
 				Updates(map[string]interface{}{
@@ -90,9 +97,10 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 }
 
 func (d *DbDao) GetPreSnapshotPermissionsByAccountIds(accountIds []string, blockNumber uint64) (list []TableSnapshotPermissionsInfo, err error) {
-	err = d.db.Where("account_id IN(?) AND block_number<?",
-		accountIds, blockNumber).Select("MAX(id) AS id").
-		Group("account_id").Find(&list).Error
+	sql := fmt.Sprintf(" SELECT id,`owner`,manager FROM %s WHERE id IN( SELECT MAX(id) AS id FROM %s WHERE account_id IN(?) AND block_number<? GROUP BY `account_id` )",
+		TableNameSnapshotPermissionsInfo, TableNameSnapshotPermissionsInfo)
+
+	err = d.db.Raw(sql, accountIds, blockNumber).Find(&list).Error
 	return
 }
 
