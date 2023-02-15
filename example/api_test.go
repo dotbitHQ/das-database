@@ -69,7 +69,7 @@ func TestSnapshotRegisterHistory(t *testing.T) {
 	if err := doReq(url, req, &data); err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(toolib.JsonString(&data))
+	fmt.Println(fmt.Println(data.Result))
 }
 
 func doReq(url string, req, data interface{}) error {
