@@ -119,12 +119,15 @@ func (d *DbDao) GetRecycleInfo(accountId string, startBlockNumber, endBlockNumbe
 func (d *DbDao) GetSnapshotAddressAccounts(addressHex string, roleType RoleType, blockNumber uint64) (list []TableSnapshotPermissionsInfo, err error) {
 	switch roleType {
 	case RoleTypeOwner:
-		err = d.db.Select("account").
+		err = d.db.Select("account_id,account").
 			Where("owner=? AND block_number<=? AND (owner_block_number=0 OR owner_block_number>?)",
-				addressHex, blockNumber, blockNumber).Find(&list).Error
+				addressHex, blockNumber, blockNumber).
+			Group("account_id,account").Find(&list).Error
 	case RoleTypeManager:
-		err = d.db.Select("account").Where("manager=? AND block_number<=? AND (manager_block_number=0 OR manager_block_number>?)",
-			addressHex, blockNumber, blockNumber).Find(&list).Error
+		err = d.db.Select("account_id,account").
+			Where("manager=? AND block_number<=? AND (manager_block_number=0 OR manager_block_number>?)",
+				addressHex, blockNumber, blockNumber).
+			Group("account_id,account").Find(&list).Error
 	}
 
 	return
