@@ -12,11 +12,9 @@ const (
 	ApiCodeBlockError     ApiCode = 10005
 
 	ApiCodeSystemUpgrade                ApiCode = 30019
-	ApiCodeAccountPermissionsDoNotExist ApiCode = 30020
-	ApiCodeAccountHasBeenRevoked        ApiCode = 30021
-	ApiCodeAccountIsCrossChained        ApiCode = 30022
-	ApiCodeParentAccountIsRecycled      ApiCode = 30023
-	ApiCodeSnapshotBehindSchedule       ApiCode = 30024
+	ApiCodeAccountPermissionsDoNotExist ApiCode = 30020 // Account permission does not exist
+	ApiCodeAccountHasBeenRecycled       ApiCode = 30021 // Account has been recycled
+	ApiCodeAccountCrossChain            ApiCode = 30022 // Account cross-chain
 )
 
 type ApiResp struct {

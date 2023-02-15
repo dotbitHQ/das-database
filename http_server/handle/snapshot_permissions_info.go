@@ -112,11 +112,11 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 		return nil
 	}
 	if info.Status == dao.AccountStatusRecycle {
-		apiResp.ApiRespErr(api_code.ApiCodeAccountHasBeenRevoked, "Account has been revoked")
+		apiResp.ApiRespErr(api_code.ApiCodeAccountHasBeenRecycled, "Account has been recycled")
 		return nil
 	}
 	if info.Status == dao.AccountStatusOnLock {
-		apiResp.ApiRespErr(api_code.ApiCodeAccountIsCrossChained, "Account is cross-chained")
+		apiResp.ApiRespErr(api_code.ApiCodeAccountCrossChain, "Account cross-chain")
 		return nil
 	}
 
@@ -134,7 +134,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 				return fmt.Errorf("GetRecycleInfo err: %s", err.Error())
 			}
 			if recycleInfo.Id > 0 {
-				apiResp.ApiRespErr(api_code.ApiCodeParentAccountIsRecycled, "Parent account is recycled")
+				apiResp.ApiRespErr(api_code.ApiCodeAccountHasBeenRecycled, "Parent account has been recycled")
 				return nil
 			}
 		}
