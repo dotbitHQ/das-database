@@ -1,6 +1,6 @@
-* [API List](#API List)
-    * [Get Account History Permission](#Get Account History Permission)
-    * [Get Address History Hold Accounts](#Get Address History Hold Accounts)
+* [API List](#API-List)
+    * [Get Account History Permission](#Get-Account-History-Permission)
+    * [Get Address History Hold Accounts](#Get-Address-History-Hold-Accounts)
 
 ## API List
 
@@ -18,25 +18,23 @@ _You can provide either `coin_type` or `chain_id`. The `coin_type` will be used,
 
 ### Error Code
 
-```go
+```txt
 
-const(
 ApiCodeAccountPermissionsDoNotExist ApiCode = 30020 // Account permission does not exist
 ApiCodeAccountHasBeenRecycled       ApiCode = 30021 // Account has been recycled
 ApiCodeAccountCrossChain            ApiCode = 30022 // Account cross-chain
-)
 
 ```
 
 ### Algorithm ID
 
-```go
-const (
+```txt
+
 DasAlgorithmIdEth       DasAlgorithmId = 3 // ETH Personal Sign
 DasAlgorithmIdTron      DasAlgorithmId = 4 // TRON Personal Sign
 DasAlgorithmIdEth712    DasAlgorithmId = 5 // ETH 712 Sign
 DasAlgorithmIdEd25519   DasAlgorithmId = 6 // Ed25519
-)
+
 ```
 
 ### Get Account History Permission
