@@ -97,7 +97,7 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 }
 
 func (d *DbDao) GetPreSnapshotPermissionsByAccountIds(accountIds []string, blockNumber uint64) (list []TableSnapshotPermissionsInfo, err error) {
-	sql := fmt.Sprintf(" SELECT id,`owner`,manager FROM %s WHERE id IN( SELECT MAX(id) AS id FROM %s WHERE account_id IN(?) AND block_number<? GROUP BY `account_id` )",
+	sql := fmt.Sprintf(" SELECT id,account_id,`owner`,manager FROM %s WHERE id IN( SELECT MAX(id) AS id FROM %s WHERE account_id IN(?) AND block_number<? GROUP BY `account_id` )",
 		TableNameSnapshotPermissionsInfo, TableNameSnapshotPermissionsInfo)
 
 	err = d.db.Raw(sql, accountIds, blockNumber).Find(&list).Error
