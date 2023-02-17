@@ -19,7 +19,10 @@ _You can provide either `coin_type` or `chain_id`. The `coin_type` will be used,
 ### Error Code
 
 ```txt
-
+ApiCodeError500       ApiCode = 500 // server err
+ApiCodeParamsInvalid  ApiCode = 10000 // invalid params
+ApiCodeMethodNotExist ApiCode = 10001 // method not exist
+ApiCodeDbError        ApiCode = 10002 // db err
 ApiCodeAccountPermissionsDoNotExist ApiCode = 30020 // Account permission does not exist
 ApiCodeAccountHasBeenRecycled       ApiCode = 30021 // Account has been recycled
 ApiCodeAccountCrossChain            ApiCode = 30022 // Account cross-chain
@@ -89,7 +92,7 @@ curl -X POST http://127.0.0.1:8118 -d'{"jsonrpc": "2.0","id": 1,"method": "snaps
 
 * param:
     * role_type: (permission role type) manager or owner
-
+    * size: [1,100]
 ```json
 {
   "type": "blockchain",
@@ -99,7 +102,9 @@ curl -X POST http://127.0.0.1:8118 -d'{"jsonrpc": "2.0","id": 1,"method": "snaps
     "key": "41a2ac25bf43680c05abe82c7b1bcc1a779cff8d5d"
   },
   "block_number": 1941502,
-  "role_type": "manager"
+  "role_type": "manager",
+  "page": 1,
+  "size": 100
 }
 ```
 
