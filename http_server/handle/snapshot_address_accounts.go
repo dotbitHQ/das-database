@@ -15,9 +15,11 @@ type ReqSnapshotAddressAccounts struct {
 	core.ChainTypeAddress
 	BlockNumber uint64       `json:"block_number"`
 	RoleType    dao.RoleType `json:"role_type"`
+	Pagination
 }
 
 type RespSnapshotAddressAccounts struct {
+	Total    int64                    `json:"total"`
 	Accounts []SnapshotAddressAccount `json:"accounts"`
 }
 
@@ -87,7 +89,7 @@ func (h *HttpHandle) doSnapshotAddressAccounts(req *ReqSnapshotAddressAccounts, 
 	//}
 
 	// snapshot
-	list, err := h.dbDao.GetSnapshotAddressAccounts(addrHex.AddressHex, req.RoleType, req.BlockNumber)
+	list, err := h.dbDao.GetSnapshotAddressAccounts(addrHex.AddressHex, req.RoleType, req.BlockNumber, req.GetLimit(), req.GetOffset())
 	if err != nil {
 		apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to query historical account holding")
 		return fmt.Errorf("GetSnapshotAddressAccounts err: %s", err.Error())
@@ -95,6 +97,13 @@ func (h *HttpHandle) doSnapshotAddressAccounts(req *ReqSnapshotAddressAccounts, 
 	for _, v := range list {
 		resp.Accounts = append(resp.Accounts, SnapshotAddressAccount{Account: v.Account})
 	}
+
+	total, err := h.dbDao.GetSnapshotAddressAccountsTotal(addrHex.AddressHex, req.RoleType, req.BlockNumber)
+	if err != nil {
+		apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to query historical account holding")
+		return fmt.Errorf("GetSnapshotAddressAccountsTotal err: %s", err.Error())
+	}
+	resp.Total = total
 
 	apiResp.ApiRespOK(resp)
 	return nil

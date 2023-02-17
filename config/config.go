@@ -55,6 +55,7 @@ type CfgServer struct {
 		ConfirmNum         uint64 `json:"confirm_num" yaml:"confirm_num"`
 		ConcurrencyNum     uint64 `json:"concurrency_num" yaml:"concurrency_num"`
 	} `json:"chain" yaml:"chain"`
+	Origins  []string `json:"origins"`
 	Snapshot struct {
 		Open           bool   `json:"open" yaml:"open"`
 		ConcurrencyNum uint64 `json:"concurrency_num" yaml:"concurrency_num"`

@@ -28,8 +28,8 @@ func TestSnapshotPermissionsInfo(t *testing.T) {
 	url := ApiUrl + "/snapshot/permissions/info"
 
 	req := handle.ReqSnapshotPermissionsInfo{
-		Account:     "tang0002.bit",
-		BlockNumber: 6039755,
+		Account:     "test.20230216.bit",
+		BlockNumber: 8357751,
 	}
 	var data handle.RespSnapshotPermissionsInfo
 
@@ -45,12 +45,12 @@ func TestSnapshotAddressAccounts(t *testing.T) {
 		ChainTypeAddress: core.ChainTypeAddress{
 			Type: "blockchain",
 			KeyInfo: core.KeyInfo{
-				CoinType: "195",
+				CoinType: "60",
 				ChainId:  "",
-				Key:      "41a2ac25bf43680c05abe82c7b1bcc1a779cff8d5d",
+				Key:      "0xc9f53b1d85356b60453f867610888d89a0b667ad",
 			},
 		},
-		BlockNumber: 1941502,
+		BlockNumber: 8357751,
 		RoleType:    "manager",
 	}
 	var data handle.RespSnapshotAddressAccounts

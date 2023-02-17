@@ -3,6 +3,7 @@ package http_server
 import (
 	"context"
 	"das_database/block_parser"
+	"das_database/config"
 	"das_database/dao"
 	"das_database/http_server/api_code"
 	"das_database/http_server/handle"
@@ -58,6 +59,10 @@ func Initialize(p HttpServerParams) (*HttpServer, error) {
 func (h *HttpServer) Run() {
 	shortDataTime, lockTime, shortExpireTime := time.Minute, time.Second*30, time.Second*5
 	cacheHandle := toolib.MiddlewareCacheByRedis(h.red, false, shortDataTime, lockTime, shortExpireTime, respHandle)
+
+	if len(config.Cfg.Origins) > 0 {
+		toolib.AllowOriginList = append(toolib.AllowOriginList, config.Cfg.Origins...)
+	}
 
 	h.engine.Use(toolib.MiddlewareCors())
 	h.engine.POST("", cacheHandle, h.h.JasonRpcHandle)

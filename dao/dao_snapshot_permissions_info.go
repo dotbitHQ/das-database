@@ -116,18 +116,37 @@ func (d *DbDao) GetRecycleInfo(accountId string, startBlockNumber, endBlockNumbe
 	return
 }
 
-func (d *DbDao) GetSnapshotAddressAccounts(addressHex string, roleType RoleType, blockNumber uint64) (list []TableSnapshotPermissionsInfo, err error) {
+func (d *DbDao) GetSnapshotAddressAccounts(addressHex string, roleType RoleType, blockNumber uint64, limit, offset int) (list []TableSnapshotPermissionsInfo, err error) {
 	switch roleType {
 	case RoleTypeOwner:
 		err = d.db.Select("account_id,account").
 			Where("owner=? AND block_number<=? AND (owner_block_number=0 OR owner_block_number>?)",
 				addressHex, blockNumber, blockNumber).
-			Group("account_id,account").Find(&list).Error
+			Group("account_id,account").
+			Order("account").
+			Limit(limit).Offset(offset).Find(&list).Error
 	case RoleTypeManager:
 		err = d.db.Select("account_id,account").
 			Where("manager=? AND block_number<=? AND (manager_block_number=0 OR manager_block_number>?)",
 				addressHex, blockNumber, blockNumber).
-			Group("account_id,account").Find(&list).Error
+			Group("account_id,account").
+			Order("account").
+			Limit(limit).Offset(offset).Find(&list).Error
+	}
+
+	return
+}
+
+func (d *DbDao) GetSnapshotAddressAccountsTotal(addressHex string, roleType RoleType, blockNumber uint64) (count int64, err error) {
+	switch roleType {
+	case RoleTypeOwner:
+		err = d.db.Where("owner=? AND block_number<=? AND (owner_block_number=0 OR owner_block_number>?)",
+			addressHex, blockNumber, blockNumber).
+			Group("account_id,account").Count(&count).Error
+	case RoleTypeManager:
+		err = d.db.Where("manager=? AND block_number<=? AND (manager_block_number=0 OR manager_block_number>?)",
+			addressHex, blockNumber, blockNumber).
+			Group("account_id,account").Count(&count).Error
 	}
 
 	return

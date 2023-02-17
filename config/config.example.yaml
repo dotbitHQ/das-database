@@ -10,6 +10,8 @@ chain:
   current_block_number: 4872287 # 4872287: mainnet 1927285: testnet
   confirm_num: 4 # confirm nums before written into DB
   concurrency_num: 100
+origins:
+  - ""
 snapshot:
   open: false
   concurrency_num: 100
