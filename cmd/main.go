@@ -128,13 +128,16 @@ func runServer(ctx *cli.Context) error {
 	// snapshot
 	toolSnapshot := snapshot.ToolSnapshot{
 		Ctx:            ctxServer,
+		Cancel:         cancel,
 		Wg:             &wgServer,
 		DbDao:          dbDao,
 		DasCore:        dc,
 		ConcurrencyNum: config.Cfg.Snapshot.ConcurrencyNum,
 		ConfirmNum:     config.Cfg.Snapshot.ConfirmNum,
 	}
-	toolSnapshot.Run(config.Cfg.Snapshot.Open)
+	if err := toolSnapshot.Run(config.Cfg.Snapshot.Open); err != nil {
+		return fmt.Errorf("toolSnapshot.Run err: %s", err.Error())
+	}
 
 	// cache
 	red, err := toolib.NewRedisClient(config.Cfg.Cache.Redis.Addr, config.Cfg.Cache.Redis.Password, config.Cfg.Cache.Redis.DbNum)

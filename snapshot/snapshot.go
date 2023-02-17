@@ -18,6 +18,7 @@ var log = mylog.NewLogger("snapshot", mylog.LevelDebug)
 
 type ToolSnapshot struct {
 	Ctx            context.Context
+	Cancel         context.CancelFunc
 	Wg             *sync.WaitGroup
 	DbDao          *dao.DbDao
 	DasCore        *core.DasCore

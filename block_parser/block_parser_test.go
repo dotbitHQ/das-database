@@ -90,7 +90,7 @@ func TestCheckContractVersion(t *testing.T) {
 			select {
 			case <-ticker.C:
 				fmt.Println("checkContractVersion1")
-				if err := bp.checkContractVersion(); err != nil {
+				if err := config.CheckContractVersion(bp.dasCore, bp.cancel); err != nil {
 					t.Log(err)
 				}
 			case <-ctx.Done():

@@ -197,11 +197,6 @@ func (t *ToolSnapshot) checkFork(parentHash string) (bool, error) {
 	return false, nil
 }
 
-func (t *ToolSnapshot) checkContractVersion() error {
-	// todo
-	return nil
-}
-
 func (t *ToolSnapshot) checkContractCodeHash(tx *types.Transaction) (bool, error) {
 	isSelf := false
 	for _, v := range tx.Outputs {
@@ -229,8 +224,8 @@ func (t *ToolSnapshot) checkContractCodeHash(tx *types.Transaction) (bool, error
 }
 
 func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
-	if err := t.checkContractVersion(); err != nil {
-		return fmt.Errorf("checkContractVersion err: %s", err.Error())
+	if err := config.CheckContractVersion(t.DasCore, t.Cancel); err != nil {
+		return err
 	}
 	for _, tx := range block.Transactions {
 		txHash := tx.Hash.Hex()
