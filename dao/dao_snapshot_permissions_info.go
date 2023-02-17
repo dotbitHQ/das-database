@@ -140,12 +140,14 @@ func (d *DbDao) GetSnapshotAddressAccounts(addressHex string, roleType RoleType,
 func (d *DbDao) GetSnapshotAddressAccountsTotal(addressHex string, roleType RoleType, blockNumber uint64) (count int64, err error) {
 	switch roleType {
 	case RoleTypeOwner:
-		err = d.db.Where("owner=? AND block_number<=? AND (owner_block_number=0 OR owner_block_number>?)",
-			addressHex, blockNumber, blockNumber).
+		err = d.db.Model(&TableSnapshotPermissionsInfo{}).
+			Where("owner=? AND block_number<=? AND (owner_block_number=0 OR owner_block_number>?)",
+				addressHex, blockNumber, blockNumber).
 			Group("account_id,account").Count(&count).Error
 	case RoleTypeManager:
-		err = d.db.Where("manager=? AND block_number<=? AND (manager_block_number=0 OR manager_block_number>?)",
-			addressHex, blockNumber, blockNumber).
+		err = d.db.Model(&TableSnapshotPermissionsInfo{}).
+			Where("manager=? AND block_number<=? AND (manager_block_number=0 OR manager_block_number>?)",
+				addressHex, blockNumber, blockNumber).
 			Group("account_id,account").Count(&count).Error
 	}
 

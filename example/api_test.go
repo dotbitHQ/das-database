@@ -52,6 +52,7 @@ func TestSnapshotAddressAccounts(t *testing.T) {
 		},
 		BlockNumber: 8357751,
 		RoleType:    "manager",
+		Pagination:  handle.Pagination{Page: 1, Size: 100},
 	}
 	var data handle.RespSnapshotAddressAccounts
 
