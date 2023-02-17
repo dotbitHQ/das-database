@@ -106,7 +106,7 @@ func (d *DbDao) GetPreSnapshotPermissionsByAccountIds(accountIds []string, block
 
 func (d *DbDao) GetSnapshotPermissionsInfo(accountId string, blockNumber uint64) (info TableSnapshotPermissionsInfo, err error) {
 	err = d.db.Where("account_id=? AND block_number<=?",
-		accountId, blockNumber).Order("block_number DESC").Limit(1).Find(&info).Error
+		accountId, blockNumber).Order("block_number DESC,id DESC").Limit(1).Find(&info).Error
 	return
 }
 
