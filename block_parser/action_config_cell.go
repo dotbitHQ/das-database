@@ -11,6 +11,8 @@ func (b *BlockParser) ActionConfigCell(req FuncTransactionHandleReq) (resp FuncT
 	if err != nil {
 		resp.Err = fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 		return
+	} else if req.Tx.Outputs[0].Type == nil {
+		return
 	} else if configContract.ContractTypeId != req.Tx.Outputs[0].Type.CodeHash {
 		log.Warn("not current version config cell")
 		return
