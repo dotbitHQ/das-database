@@ -109,10 +109,13 @@ func (h *HttpHandle) doSnapshotRegisterHistory(req *ReqSnapshotRegisterHistory, 
 	var strList []string
 
 	for k, v := range res {
-		strList = append(strList, fmt.Sprintf("%s,%d,%d,%d,%d,\n", k, v.count4, v.count5, v.countAll, v.countOwner))
+		str := `%s,%d,%d,%d,%d
+`
+		strList = append(strList, fmt.Sprintf(str, k, v.count4, v.count5, v.countAll, v.countOwner))
 	}
 	sort.Strings(strList)
-	resp.Result = "Date,4Digit,5Digit,DailyNewCount,DailyNewOwner,\n"
+	resp.Result = `Date,4Digit,5Digit,DailyNewCount,DailyNewOwner
+`
 
 	for _, v := range strList {
 		resp.Result += v
