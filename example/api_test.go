@@ -64,7 +64,7 @@ func TestSnapshotAddressAccounts(t *testing.T) {
 
 func TestSnapshotRegisterHistory(t *testing.T) {
 	url := ApiUrl + "/snapshot/register/history"
-	req := handle.ReqSnapshotRegisterHistory{StartTimestamp: 0}
+	req := handle.ReqSnapshotRegisterHistory{StartTime: "2023-02-10"}
 	var data handle.RespSnapshotRegisterHistory
 
 	if err := doReq(url, req, &data); err != nil {
@@ -85,4 +85,14 @@ func doReq(url string, req, data interface{}) error {
 		return fmt.Errorf("%d - %s", resp.ErrNo, resp.ErrMsg)
 	}
 	return nil
+}
+
+func TestPage(t *testing.T) {
+	page := handle.Pagination{
+		Page: 1,
+		Size: 20000,
+	}
+	fmt.Println(page.GetLimit(), page.GetOffset())
+	page.SetMaxSize(20000)
+	fmt.Println(page.GetLimit(), page.GetOffset())
 }

@@ -14,7 +14,7 @@ import (
 )
 
 type ReqSnapshotRegisterHistory struct {
-	StartTimestamp uint64 `json:"start_timestamp"`
+	StartTime string `json:"start_time"`
 }
 
 type RespSnapshotRegisterHistory struct {
@@ -73,50 +73,69 @@ type registerInfo struct {
 func (h *HttpHandle) doSnapshotRegisterHistory(req *ReqSnapshotRegisterHistory, apiResp *api_code.ApiResp) error {
 	var resp RespSnapshotRegisterHistory
 
-	list, err := h.dbDao.GetRegisterHistory(req.StartTimestamp)
+	loc, _ := time.LoadLocation("Local")
+	theTime, err := time.ParseInLocation("2006-01-02", req.StartTime, loc)
 	if err != nil {
-		apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to query history info")
-		return fmt.Errorf("GetRegisterHistory err: %s", err.Error())
+		fmt.Println(err.Error())
+	}
+	theTimestamp := uint64(theTime.Unix())
+
+	page := Pagination{
+		Page:    1,
+		Size:    20000,
+		maxSize: 20000,
 	}
 
 	var res = make(map[string]registerInfo)
 	var owner = make(map[string]struct{})
-	for _, v := range list {
-		_, length, _ := common.GetDotBitAccountLength(v.Account)
-		tm := time.Unix(int64(v.RegisteredAt), 0)
-		registeredAt := tm.Format("2006-01-02")
-		var tmp registerInfo
-		if item, ok := res[registeredAt]; ok {
-			tmp.count4 = item.count4
-			tmp.count5 = item.count5
-			tmp.countAll = item.countAll
-			tmp.countOwner = item.countOwner
-		}
-		if length == 4 {
-			tmp.count4++
-		} else if length >= 5 {
-			tmp.count5++
-		}
-		tmp.countAll++
 
-		if _, ok := owner[strings.ToLower(v.Owner)]; !ok {
-			tmp.countOwner++
-			owner[strings.ToLower(v.Owner)] = struct{}{}
+	for {
+		list, err := h.dbDao.GetRegisterHistory(page.GetLimit(), page.GetOffset())
+		if err != nil {
+			apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to query history info")
+			return fmt.Errorf("GetRegisterHistory err: %s", err.Error())
 		}
-		res[registeredAt] = tmp
+		page.Page++
+		if len(list) == 0 || len(list) < page.GetLimit() {
+			break
+		}
+		for _, v := range list {
+			_, length, _ := common.GetDotBitAccountLength(v.Account)
+			tm := time.Unix(int64(v.RegisteredAt), 0)
+			registeredAt := tm.Format("2006-01-02")
+			var tmp registerInfo
+			if item, ok := res[registeredAt]; ok {
+				tmp.count4 = item.count4
+				tmp.count5 = item.count5
+				tmp.countAll = item.countAll
+				tmp.countOwner = item.countOwner
+			}
+			if length == 4 {
+				tmp.count4++
+			} else if length >= 5 {
+				tmp.count5++
+			}
+			tmp.countAll++
+
+			if _, ok := owner[strings.ToLower(v.Owner)]; !ok {
+				tmp.countOwner++
+				owner[strings.ToLower(v.Owner)] = struct{}{}
+			}
+			if v.RegisteredAt < theTimestamp {
+				continue
+			}
+			res[registeredAt] = tmp
+		}
+
 	}
 
 	var strList []string
-
 	for k, v := range res {
-		str := `%s,%d,%d,%d,%d
-`
+		str := "%s,%d,%d,%d,%d,\n"
 		strList = append(strList, fmt.Sprintf(str, k, v.count4, v.count5, v.countAll, v.countOwner))
 	}
 	sort.Strings(strList)
-	resp.Result = `Date,4Digit,5Digit,DailyNewCount,DailyNewOwner
-`
-
+	resp.Result = "Date,4Digit,5Digit,DailyNewCount,DailyNewOwner,\n"
 	for _, v := range strList {
 		resp.Result += v
 	}

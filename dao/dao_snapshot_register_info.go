@@ -39,7 +39,9 @@ func (d *DbDao) CreateSnapshotRegister(list []TableSnapshotRegisterInfo) error {
 	}).Create(&list).Error
 }
 
-func (d *DbDao) GetRegisterHistory(startTimestamp uint64) (list []TableSnapshotRegisterInfo, err error) {
-	err = d.db.Where("registered_at>=? AND parent_account_id=''", startTimestamp).Find(&list).Error
+func (d *DbDao) GetRegisterHistory(limit, offset int) (list []TableSnapshotRegisterInfo, err error) {
+	err = d.db.Where("parent_account_id=''").
+		Order("block_number").
+		Limit(limit).Offset(offset).Find(&list).Error
 	return
 }
