@@ -55,7 +55,7 @@ func (h *HttpHandle) IsLatestBlockNumber(ctx *gin.Context) {
 
 	blockNumber, err := h.dasCore.Client().GetTipBlockNumber(h.ctx)
 	if err != nil {
-		log.Error("GetTipBlockNumber err: %s", err.Error())
+		log.Error("GetTipBlockNumber err: ", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "search block number err"))
 		return
 	}
@@ -73,7 +73,7 @@ type ParserTransactionData struct {
 func (h *HttpHandle) ParserTransaction(ctx *gin.Context) {
 	var transactionData ParserTransactionData
 	if err := ctx.ShouldBindJSON(&transactionData); err != nil {
-		log.Error("ShouldBindJSON err: %s", err.Error())
+		log.Error("ShouldBindJSON err: ", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid"))
 		return
 	}
@@ -82,20 +82,20 @@ func (h *HttpHandle) ParserTransaction(ctx *gin.Context) {
 
 	tx, err := h.dasCore.Client().GetTransaction(h.ctx, types.HexToHash(transactionData.TxHash))
 	if err != nil {
-		log.Error("GetTransaction err: %s", err.Error())
+		log.Error("GetTransaction err: ", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "search transaction err"))
 		return
 	}
 	header, err := h.dasCore.Client().GetHeader(h.ctx, types.HexToHash(tx.TxStatus.BlockHash.Hex()))
 	if err != nil {
-		log.Error("GetHeader err: %s", err.Error())
+		log.Error("GetHeader err: ", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "search header err"))
 		return
 	}
 
 	builder, err := witness.ActionDataBuilderFromTx(tx.Transaction)
 	if err != nil {
-		log.Error("ActionDataBuilderFromTx err: %s", err.Error())
+		log.Error("ActionDataBuilderFromTx err: ", err.Error())
 		ctx.JSON(http.StatusOK, api_code.ApiRespErr(api_code.ApiCodeBlockError, "builder from tx err"))
 		return
 	}

@@ -8,9 +8,10 @@ import (
 	"github.com/parnurzeal/gorequest"
 	"github.com/scorpiotzh/toolib"
 	"testing"
+	"time"
 )
 
-var ApiUrl = "https://test-snapshot-api.did.id/v1"
+var ApiUrl = "https://snapshot-api.did.id/v1"
 
 func TestSnapshotProgress(t *testing.T) {
 	url := ApiUrl + "/snapshot/progress"
@@ -95,4 +96,13 @@ func TestPage(t *testing.T) {
 	fmt.Println(page.GetLimit(), page.GetOffset())
 	page.SetMaxSize(20000)
 	fmt.Println(page.GetLimit(), page.GetOffset())
+
+	startTime := "2023-02-10"
+	loc, _ := time.LoadLocation("Local")
+	theTime, err := time.ParseInLocation("2006-01-02", startTime, loc)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	theTimestamp := uint64(theTime.Unix())
+	fmt.Println(theTimestamp)
 }

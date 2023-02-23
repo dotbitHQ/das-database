@@ -15,6 +15,10 @@ type DbDao struct {
 	db *gorm.DB
 }
 
+func NewDbDao(db *gorm.DB) *DbDao {
+	return &DbDao{db: db}
+}
+
 func NewGormDataBase(addr, user, password, dbName string, maxOpenConn, maxIdleConn int) (*gorm.DB, error) {
 	conn := "%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local"
 	dsn := fmt.Sprintf(conn, user, password, addr, dbName)

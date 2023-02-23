@@ -40,7 +40,7 @@ func (d *DbDao) CreateSnapshotRegister(list []TableSnapshotRegisterInfo) error {
 }
 
 func (d *DbDao) GetRegisterHistory(limit, offset int) (list []TableSnapshotRegisterInfo, err error) {
-	err = d.db.Where("parent_account_id=''").
+	err = d.db.Select("account,owner,registered_at").Where("parent_account_id=''").
 		Order("block_number").
 		Limit(limit).Offset(offset).Find(&list).Error
 	return

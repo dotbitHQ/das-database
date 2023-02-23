@@ -73,17 +73,17 @@ type registerInfo struct {
 func (h *HttpHandle) doSnapshotRegisterHistory(req *ReqSnapshotRegisterHistory, apiResp *api_code.ApiResp) error {
 	var resp RespSnapshotRegisterHistory
 
-	loc, _ := time.LoadLocation("Local")
-	theTime, err := time.ParseInLocation("2006-01-02", req.StartTime, loc)
+	theTime, err := time.ParseInLocation("2006-01-02", req.StartTime, time.Local)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	theTimestamp := uint64(theTime.Unix())
+	log.Info("theTimestamp:", theTimestamp)
 
 	page := Pagination{
 		Page:    1,
-		Size:    20000,
-		maxSize: 20000,
+		Size:    10000,
+		maxSize: 10000,
 	}
 
 	var res = make(map[string]registerInfo)
@@ -96,9 +96,6 @@ func (h *HttpHandle) doSnapshotRegisterHistory(req *ReqSnapshotRegisterHistory, 
 			return fmt.Errorf("GetRegisterHistory err: %s", err.Error())
 		}
 		page.Page++
-		if len(list) == 0 || len(list) < page.GetLimit() {
-			break
-		}
 		for _, v := range list {
 			_, length, _ := common.GetDotBitAccountLength(v.Account)
 			tm := time.Unix(int64(v.RegisteredAt), 0)
@@ -126,8 +123,11 @@ func (h *HttpHandle) doSnapshotRegisterHistory(req *ReqSnapshotRegisterHistory, 
 			}
 			res[registeredAt] = tmp
 		}
-
+		if len(list) == 0 || len(list) < page.GetLimit() {
+			break
+		}
 	}
+	log.Info("res:", len(res))
 
 	var strList []string
 	for k, v := range res {
