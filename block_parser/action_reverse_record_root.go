@@ -40,7 +40,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 		}
 		outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 		smtRecord := &dao.ReverseSmtInfo{
-			RootHash:     v.NextRoot,
+			RootHash:     string(v.NextRoot),
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     outpoint,
 			Address:      v.Address,
