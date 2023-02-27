@@ -43,7 +43,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			RootHash:     string(v.NextRoot),
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     outpoint,
-			Address:      v.Address,
+			Address:      common.Bytes2Hex(v.Address),
 			LeafDataHash: string(smtValBlake256),
 		}
 		smtRecords = append(smtRecords, smtRecord)
@@ -63,7 +63,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 				Outpoint:       outpoint,
 				AlgorithmId:    algorithmId,
 				ChainType:      algorithmId.ToChainType(),
-				Address:        v.Address,
+				Address:        common.Bytes2Hex(v.Address),
 				Account:        v.NextAccount,
 				AccountId:      accountId,
 				ReverseType:    dao.ReverseTypeSmt,
