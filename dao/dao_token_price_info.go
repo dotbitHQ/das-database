@@ -3,7 +3,7 @@ package dao
 import (
 	"fmt"
 	"github.com/shopspring/decimal"
-	"gorm.io/gorm/clause"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -46,14 +46,29 @@ func (d *DbDao) SearchTokenPriceInfoList() (tokenPriceInfos []TableTokenPriceInf
 }
 
 func (d *DbDao) UpdateTokenPriceInfoList(tokenList []TableTokenPriceInfo) error {
-	return d.db.Clauses(clause.OnConflict{
-		DoUpdates: clause.AssignmentColumns([]string{"price", "change_24_h", "vol_24_h", "market_cap", "last_updated_at"}),
-	}).Create(&tokenList).Error
+	if len(tokenList) == 0 {
+		return nil
+	}
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		for i, _ := range tokenList {
+			if err := d.db.Model(TableTokenPriceInfo{}).
+				Where("token_id=?", tokenList[i].TokenId).
+				Updates(map[string]interface{}{
+					"price":           tokenList[i].Price,
+					"last_updated_at": tokenList[i].LastUpdatedAt,
+				}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (d *DbDao) UpdateCNYToUSDRate(tokenIds []string, price decimal.Decimal) error {
-	return d.db.Select("price", "last_updated_at").Where("token_id IN ?", tokenIds).Updates(TableTokenPriceInfo{
-		Price:         price,
-		LastUpdatedAt: time.Now().Unix(),
-	}).Error
+	return d.db.Select("price", "last_updated_at").
+		Where("token_id IN ?", tokenIds).
+		Updates(TableTokenPriceInfo{
+			Price:         price,
+			LastUpdatedAt: time.Now().Unix(),
+		}).Error
 }

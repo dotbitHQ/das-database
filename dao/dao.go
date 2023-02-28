@@ -1,12 +1,12 @@
 package dao
 
 import (
-	"das_database/config"
 	"fmt"
 	"github.com/scorpiotzh/mylog"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"time"
 )
 
 var log = mylog.NewLogger("dao", mylog.LevelDebug)
@@ -71,16 +71,28 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		return nil, err
 	}
 
-	var tokenList []TableTokenPriceInfo
-	for _, v := range config.Cfg.GeckoIds {
-		if tokenInfo, ok := geckoIds[v]; ok {
-			tokenList = append(tokenList, tokenInfo)
-		}
-	}
 	if len(tokenList) > 0 {
-		if err := db.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{"chain_type", "name", "symbol", "decimals", "logo"}),
-		}).Create(&tokenList).Error; err != nil {
+		if err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&tokenList).Error; err != nil {
+				return err
+			}
+			for i, _ := range tokenList {
+				if err := tx.Model(TableTokenPriceInfo{}).
+					Where("token_id=?", tokenList[i].TokenId).
+					Updates(map[string]interface{}{
+						"name":            tokenList[i].Name,
+						"symbol":          tokenList[i].Symbol,
+						"decimals":        tokenList[i].Decimals,
+						"logo":            tokenList[i].Logo,
+						"last_updated_at": tokenList[i].LastUpdatedAt,
+					}).Error; err != nil {
+					return err
+				}
+			}
+			return nil
+		}); err != nil {
 			return nil, err
 		}
 	}
@@ -88,68 +100,61 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 	return &DbDao{db: db}, nil
 }
 
-var geckoIds = map[string]TableTokenPriceInfo{
-	"nervos-network": {
-		TokenId:   "ckb_ckb",
-		GeckoId:   "nervos-network",
-		ChainType: 0,
-		Name:      "Nervos Network",
-		Symbol:    "CKB",
-		Decimals:  8,
-		Logo:      "https://app.did.id/images/components/portal-wallet.svg",
+var tokenList = []TableTokenPriceInfo{
+	{
+		TokenId:       "ckb_ckb",
+		Name:          "Nervos Network",
+		Symbol:        "CKB",
+		Decimals:      8,
+		Logo:          "https://app.did.id/images/components/portal-wallet.svg",
+		LastUpdatedAt: time.Now().Unix(),
 	},
-	"ethereum": {
-		TokenId:   "eth_eth",
-		GeckoId:   "ethereum",
-		ChainType: 1,
-		Name:      "Ethereum",
-		Symbol:    "ETH",
-		Decimals:  18,
-		Logo:      "https://app.did.id/images/components/ethereum.svg",
+	{
+		TokenId:       "eth_eth",
+		Name:          "Ethereum",
+		Symbol:        "ETH",
+		Decimals:      18,
+		Logo:          "https://app.did.id/images/components/ethereum.svg",
+		LastUpdatedAt: time.Now().Unix(),
 	},
-	"bitcoin": {
-		TokenId:   "btc_btc",
-		GeckoId:   "bitcoin",
-		ChainType: 2,
-		Name:      "Bitcoin",
-		Symbol:    "BTC",
-		Decimals:  8,
-		Logo:      "https://app.did.id/images/components/bitcoin.svg",
+	{
+		TokenId:       "btc_btc",
+		Name:          "Bitcoin",
+		Symbol:        "BTC",
+		Decimals:      8,
+		Logo:          "https://app.did.id/images/components/bitcoin.svg",
+		LastUpdatedAt: time.Now().Unix(),
 	},
-	"tron": {
-		TokenId:   "tron_trx",
-		GeckoId:   "tron",
-		ChainType: 3,
-		Name:      "TRON",
-		Symbol:    "TRX",
-		Decimals:  6,
-		Logo:      "https://app.did.id/images/components/tron.svg",
+	{
+		TokenId:       "tron_trx",
+		Name:          "TRON",
+		Symbol:        "TRX",
+		Decimals:      6,
+		Logo:          "https://app.did.id/images/components/tron.svg",
+		LastUpdatedAt: time.Now().Unix(),
 	},
-	"_wx_cny_": {
-		TokenId:   "wx_cny",
-		GeckoId:   "_wx_cny_",
-		ChainType: 4,
-		Name:      "WeChat Pay",
-		Symbol:    "¥",
-		Decimals:  2,
-		Logo:      "https://app.did.id/images/components/wechat_pay.png",
+	{
+		TokenId:       "bsc_bnb",
+		Name:          "Binance",
+		Symbol:        "BNB",
+		Decimals:      18,
+		Logo:          "https://app.did.id/images/components/binance-smart-chain.svg",
+		LastUpdatedAt: time.Now().Unix(),
 	},
-	"binancecoin": {
-		TokenId:   "bsc_bnb",
-		GeckoId:   "binancecoin",
-		ChainType: 5,
-		Name:      "Binance",
-		Symbol:    "BNB",
-		Decimals:  18,
-		Logo:      "https://app.did.id/images/components/binance-smart-chain.svg",
+	{
+		TokenId:       "polygon_matic",
+		Name:          "Polygon",
+		Symbol:        "MATIC",
+		Decimals:      18,
+		Logo:          "https://app.did.id/images/components/polygon.svg",
+		LastUpdatedAt: time.Now().Unix(),
 	},
-	"matic-network": {
-		TokenId:   "polygon_matic",
-		GeckoId:   "matic-network",
-		ChainType: 1,
-		Name:      "Polygon",
-		Symbol:    "MATIC",
-		Decimals:  18,
-		Logo:      "https://app.did.id/images/components/polygon.svg",
+	{
+		TokenId:       "doge_doge",
+		Name:          "Dogecoin",
+		Symbol:        "doge",
+		Decimals:      8,
+		Logo:          "https://app.did.id/images/components/doge.svg",
+		LastUpdatedAt: time.Now().Unix(),
 	},
 }

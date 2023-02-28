@@ -1,10 +1,11 @@
 package timer
 
 import (
+	"das_database/config"
 	"das_database/dao"
+	"das_database/notify"
 	"github.com/scorpiotzh/toolib"
 	"github.com/shopspring/decimal"
-	"strings"
 	"sync"
 )
 
@@ -58,15 +59,15 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 
 	if list, err := GetTokenPriceNew(geckoIds); err != nil {
 		log.Error("GetTokenPriceNew err:", err.Error())
+		if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "GetTokenPriceNew", err.Error()); err != nil {
+			log.Error("SendLarkTextNotify err: %s", err.Error())
+		}
 	} else {
 		var tokenList []dao.TableTokenPriceInfo
 		for _, v := range list {
 			tokenList = append(tokenList, dao.TableTokenPriceInfo{
-				GeckoId:       strings.ToLower(v.Id),
+				TokenId:       v.Id,
 				Price:         v.Price,
-				Change24h:     v.Change24h,
-				Vol24h:        v.Vol24h,
-				MarketCap:     v.MarketCap,
 				LastUpdatedAt: v.LastUpdatedAt,
 			})
 		}
@@ -81,6 +82,9 @@ func (p *ParserTimer) updateUSDRate() {
 	rate, err := GetCnyRate()
 	if err != nil {
 		log.Error("GetCnyRate err: ", err.Error())
+		if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "GetCnyRate", err.Error()); err != nil {
+			log.Error("SendLarkTextNotify err: %s", err.Error())
+		}
 	}
 	log.Info("updateUSDRate:", toolib.JsonString(&rate))
 	if rate != nil && rate.Value > 0 {

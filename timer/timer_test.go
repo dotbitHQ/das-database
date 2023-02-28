@@ -4,10 +4,8 @@ import (
 	"context"
 	"das_database/config"
 	"das_database/dao"
-	"encoding/json"
 	"fmt"
 	"github.com/scorpiotzh/toolib"
-	"github.com/shopspring/decimal"
 	"sync"
 	"testing"
 	"time"
@@ -42,19 +40,6 @@ func TestGetTokenInfo(t *testing.T) {
 	parserTimer.RunUpdateTokenPrice()
 	tokenInfo := GetTokenPriceInfo(TokenIdCkb)
 	fmt.Println(toolib.JsonString(tokenInfo))
-}
-
-func TestGetTokenPrice(t *testing.T) {
-	ids := []string{
-		"ethereum",
-	}
-	list, err := GetTokenPrice(ids)
-	b, _ := json.Marshal(list)
-	fmt.Println(string(b), err)
-	if len(list) > 0 && list[0].Cny.Cmp(decimal.Zero) == 1 && list[0].Price.Cmp(decimal.Zero) == 1 {
-		dec := list[0].Price.DivRound(list[0].Cny, 4)
-		fmt.Println(dec.String())
-	}
 }
 
 func TestGetTokenPriceBinance(t *testing.T) {

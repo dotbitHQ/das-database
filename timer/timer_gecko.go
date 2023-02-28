@@ -30,55 +30,10 @@ type GeckoTokenInfo struct {
 	LastUpdatedAt int64           `json:"last_updated_at"`
 }
 
-//
-func GetTokenPrice(ids []string) ([]GeckoTokenInfo, error) {
-	idsStr := strings.Join(ids, ",")
-	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=usd,cny", idsStr)
-	url = fmt.Sprintf("%s&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true", url)
-	fmt.Println(url)
-	resp, body, errs := gorequest.New().Timeout(time.Second*30).Get(url).Retry(3, time.Second*2).End()
-	if len(errs) > 0 {
-		return nil, fmt.Errorf("GetTokenPrice api err:%v", errs)
-	} else if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("GetTokenPrice api status code:%d", resp.StatusCode)
-	}
-	//fmt.Println(body)
-	var res map[string]map[string]interface{}
-	if err := json.Unmarshal([]byte(body), &res); err != nil {
-		return nil, err
-	}
-	list := mapToList(res)
-	return list, nil
-}
-
-//
-func mapToList(res map[string]map[string]interface{}) []GeckoTokenInfo {
-	list := make([]GeckoTokenInfo, 0)
-	doParse := func(id, key string) decimal.Decimal {
-		if v, ok := res[id][key].(float64); ok {
-			return decimal.NewFromFloat(v)
-		}
-		return decimal.NewFromFloat(0)
-	}
-	for k, _ := range res {
-		gti := GeckoTokenInfo{}
-		gti.Id = k
-		gti.Cny = doParse(k, "cny")
-		gti.Price = doParse(k, "usd")
-		gti.MarketCap = doParse(k, "usd_market_cap")
-		gti.Vol24h = doParse(k, "usd_24h_vol")
-		gti.Change24h = doParse(k, "usd_24h_change")
-		if v, ok := res[k]["last_updated_at"].(float64); ok {
-			gti.LastUpdatedAt = int64(v)
-		}
-		list = append(list, gti)
-	}
-	return list
-}
-
+// https://binance-docs.github.io/apidocs/spot/cn/#8ff46b58de
 func GetTokenPriceNew(ids []string) ([]GeckoTokenInfo, error) {
 	var symbols []string
-	symbols = append(symbols, "BTCUSDT", "CKBUSDT", "ETHUSDT", "TRXUSDT", "BNBUSDT", "MATICUSDT")
+	symbols = append(symbols, "BTCUSDT", "CKBUSDT", "ETHUSDT", "TRXUSDT", "BNBUSDT", "MATICUSDT", "DOGEUSDT")
 
 	symbolStr := ""
 	for _, v := range symbols {
@@ -86,7 +41,7 @@ func GetTokenPriceNew(ids []string) ([]GeckoTokenInfo, error) {
 	}
 	symbolStr = strings.Trim(symbolStr, ",")
 	url := fmt.Sprintf("https://api1.binance.com/api/v3/ticker/price?symbols=[%s]", symbolStr)
-	fmt.Println(url)
+	log.Info("GetTokenPriceNew:", url)
 
 	var res []TokenPriceNew
 	resp, body, errs := gorequest.New().Timeout(time.Second*30).Get(url).Retry(3, time.Second*2).End()
@@ -95,8 +50,7 @@ func GetTokenPriceNew(ids []string) ([]GeckoTokenInfo, error) {
 	} else if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("GetTokenPrice api status code:%d", resp.StatusCode)
 	}
-	fmt.Println(body)
-	//fmt.Println(res)
+	log.Info("GetTokenPriceNew:", body)
 	if err := json.Unmarshal([]byte(body), &res); err != nil {
 		return nil, err
 	}
@@ -111,12 +65,13 @@ type TokenPriceNew struct {
 }
 
 var TokenIdMap = map[string]string{
-	"CKBUSDT":   "nervos-network",
-	"BTCUSDT":   "bitcoin",
-	"ETHUSDT":   "ethereum",
-	"BNBUSDT":   "binancecoin",
-	"TRXUSDT":   "tron",
-	"MATICUSDT": "matic-network",
+	"CKBUSDT":   "ckb_ckb",
+	"BTCUSDT":   "btc_btc",
+	"ETHUSDT":   "eth_eth",
+	"BNBUSDT":   "bsc_bnb",
+	"TRXUSDT":   "tron_trx",
+	"MATICUSDT": "polygon_matic",
+	"DOGEUSDT":  "doge_doge",
 }
 
 func TokenPriceNewToList(res []TokenPriceNew) []GeckoTokenInfo {
