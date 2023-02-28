@@ -57,13 +57,14 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 			accountId := common.Bytes2Hex(common.GetAccountIdByAccount(v.NextAccount))
 			algorithmId := common.DasAlgorithmId(v.SignType)
+			address := common.Bytes2Hex(v.Address)
 			reverseInfo := &dao.TableReverseInfo{
 				BlockNumber:    req.BlockNumber,
 				BlockTimestamp: req.BlockTimestamp,
 				Outpoint:       outpoint,
 				AlgorithmId:    algorithmId,
 				ChainType:      algorithmId.ToChainType(),
-				Address:        common.Bytes2Hex(v.Address),
+				Address:        address,
 				Account:        v.NextAccount,
 				AccountId:      accountId,
 				ReverseType:    dao.ReverseTypeSmt,
@@ -72,7 +73,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			switch v.Action {
 			case witness.ReverseSmtRecordActionUpdate:
 				if v.PrevAccount != "" {
-					if err := tx.Where("address=? and reverse_type=?", v.Address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
+					if err := tx.Where("address=? and reverse_type=?", address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
 						return err
 					}
 				}
@@ -80,7 +81,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 					return err
 				}
 			case witness.ReverseSmtRecordActionRemove:
-				if err := tx.Where("address=? and reverse_type=?", v.Address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
+				if err := tx.Where("address=? and reverse_type=?", address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
 					return err
 				}
 			}
