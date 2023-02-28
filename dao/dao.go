@@ -78,7 +78,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 			}).Create(&tokenList).Error; err != nil {
 				return err
 			}
-			for i, _ := range tokenList {
+			for i := range tokenList {
 				if err := tx.Model(TableTokenPriceInfo{}).
 					Where("token_id=?", tokenList[i].TokenId).
 					Updates(map[string]interface{}{
@@ -103,6 +103,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "ckb_ckb",
+		GeckoId:       "nervos-network",
 		Name:          "Nervos Network",
 		Symbol:        "CKB",
 		Decimals:      8,
@@ -111,6 +112,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "eth_eth",
+		GeckoId:       "ethereum",
 		Name:          "Ethereum",
 		Symbol:        "ETH",
 		Decimals:      18,
@@ -119,6 +121,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "btc_btc",
+		GeckoId:       "bitcoin",
 		Name:          "Bitcoin",
 		Symbol:        "BTC",
 		Decimals:      8,
@@ -127,6 +130,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "tron_trx",
+		GeckoId:       "tron",
 		Name:          "TRON",
 		Symbol:        "TRX",
 		Decimals:      6,
@@ -135,6 +139,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "bsc_bnb",
+		GeckoId:       "binancecoin",
 		Name:          "Binance",
 		Symbol:        "BNB",
 		Decimals:      18,
@@ -143,6 +148,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "polygon_matic",
+		GeckoId:       "matic-network",
 		Name:          "Polygon",
 		Symbol:        "MATIC",
 		Decimals:      18,
@@ -151,6 +157,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "doge_doge",
+		GeckoId:       "doge_doge",
 		Name:          "Dogecoin",
 		Symbol:        "doge",
 		Decimals:      8,
