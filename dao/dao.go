@@ -82,6 +82,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 				if err := tx.Model(TableTokenPriceInfo{}).
 					Where("token_id=?", tokenList[i].TokenId).
 					Updates(map[string]interface{}{
+						"chain_type":      tokenList[i].ChainType,
 						"name":            tokenList[i].Name,
 						"symbol":          tokenList[i].Symbol,
 						"decimals":        tokenList[i].Decimals,
@@ -103,6 +104,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "ckb_ckb",
+		ChainType:     0,
 		GeckoId:       "nervos-network",
 		Name:          "Nervos Network",
 		Symbol:        "CKB",
@@ -112,6 +114,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "eth_eth",
+		ChainType:     1,
 		GeckoId:       "ethereum",
 		Name:          "Ethereum",
 		Symbol:        "ETH",
@@ -121,6 +124,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "btc_btc",
+		ChainType:     2,
 		GeckoId:       "bitcoin",
 		Name:          "Bitcoin",
 		Symbol:        "BTC",
@@ -130,6 +134,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "tron_trx",
+		ChainType:     3,
 		GeckoId:       "tron",
 		Name:          "TRON",
 		Symbol:        "TRX",
@@ -139,6 +144,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "bsc_bnb",
+		ChainType:     1,
 		GeckoId:       "binancecoin",
 		Name:          "Binance",
 		Symbol:        "BNB",
@@ -148,6 +154,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "polygon_matic",
+		ChainType:     1,
 		GeckoId:       "matic-network",
 		Name:          "Polygon",
 		Symbol:        "MATIC",
@@ -157,6 +164,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "doge_doge",
+		ChainType:     7,
 		GeckoId:       "doge_doge",
 		Name:          "Dogecoin",
 		Symbol:        "doge",
