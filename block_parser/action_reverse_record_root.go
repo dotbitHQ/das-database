@@ -19,9 +19,8 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 	}
 	log.Info("ActionReverseRecordRoot:", req.BlockNumber, req.TxHash)
 
-	smtBuilder := witness.NewReverseSmtBuilder()
-	txReverseSmtRecord, err := smtBuilder.FromTx(req.Tx)
-	if err != nil {
+	txReverseSmtRecord := make([]*witness.ReverseSmtRecord, 0)
+	if err := witness.ParseFromTx(req.Tx, common.ActionDataTypeReverseSmt, &txReverseSmtRecord); err != nil {
 		resp.Err = err
 		return
 	}
