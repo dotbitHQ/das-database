@@ -51,6 +51,14 @@ func (b *BlockParser) ActionEnableSubAccount(req FuncTransactionHandleReq) (resp
 		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
 	}
+	feeOwner, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
+	if err != nil {
+		resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
+		return
+	}
+	if feeOwner.AddressHex != ownerHex.AddressHex {
+		transactionInfo.Capacity = 0
+	}
 
 	if err = b.dbDao.EnableSubAccount(accountInfo, transactionInfo); err != nil {
 		resp.Err = fmt.Errorf("EnableSubAccount err: %s", err.Error())
