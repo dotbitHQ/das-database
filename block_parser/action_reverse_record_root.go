@@ -2,6 +2,7 @@ package block_parser
 
 import (
 	"das_database/dao"
+	"encoding/hex"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/molecule"
@@ -56,7 +57,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 			accountId := common.Bytes2Hex(common.GetAccountIdByAccount(v.NextAccount))
 			algorithmId := common.DasAlgorithmId(v.SignType)
-			address := common.Bytes2Hex(v.Address)
+			address := hex.EncodeToString(v.Address)
 			reverseInfo := &dao.TableReverseInfo{
 				BlockNumber:    req.BlockNumber,
 				BlockTimestamp: req.BlockTimestamp,
