@@ -43,7 +43,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			RootHash:     common.Bytes2Hex(v.NextRoot),
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     outpoint,
-			Address:      common.Bytes2Hex(v.Address),
+			Address:      hex.EncodeToString(v.Address),
 			LeafDataHash: common.Bytes2Hex(smtValBlake256),
 		}
 		smtRecords = append(smtRecords, smtRecord)
@@ -69,11 +69,12 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 				AccountId:      accountId,
 				ReverseType:    dao.ReverseTypeSmt,
 			}
+			addresses := []string{address, common.HexPreFix + address}
 
 			switch v.Action {
 			case witness.ReverseSmtRecordActionUpdate:
 				if v.PrevAccount != "" {
-					if err := tx.Where("address=? and reverse_type=?", address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
+					if err := tx.Where("address in (?) and reverse_type=?", addresses, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
 						return err
 					}
 				}
@@ -81,7 +82,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 					return err
 				}
 			case witness.ReverseSmtRecordActionRemove:
-				if err := tx.Where("address=? and reverse_type=?", address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
+				if err := tx.Where("address in (?) and reverse_type=?", addresses, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
 					return err
 				}
 			}
