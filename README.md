@@ -45,7 +45,7 @@ docker-compose up -d
 
 _if you already have a mysql installed, just run_
 ```bash
-docker run -dp 8118:8118 -v $PWD/config/config.yaml:/app/config/config.yaml --name das-database-server slagga/das-database
+docker run -dp 8118:8118 -v $PWD/config/config.yaml:/app/config/config.yaml --name das-database-server dotbitteam/das-database:latest
 ```
 
 ## Usage
