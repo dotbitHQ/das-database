@@ -58,6 +58,9 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			accountId := common.Bytes2Hex(common.GetAccountIdByAccount(v.NextAccount))
 			algorithmId := common.DasAlgorithmId(v.SignType)
 			address := hex.EncodeToString(v.Address)
+			if algorithmId == common.DasAlgorithmIdTron {
+				address = common.TronPreFix + address
+			}
 			reverseInfo := &dao.TableReverseInfo{
 				BlockNumber:    req.BlockNumber,
 				BlockTimestamp: req.BlockTimestamp,
