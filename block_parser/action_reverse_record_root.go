@@ -47,6 +47,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 		smtRecord := &dao.ReverseSmtInfo{
 			RootHash:     common.Bytes2Hex(v.NextRoot),
 			BlockNumber:  req.BlockNumber,
+			AlgorithmID:  uint8(algorithmId),
 			Outpoint:     outpoint,
 			Address:      address,
 			LeafDataHash: common.Bytes2Hex(smtValBlake256),
@@ -56,6 +57,10 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
 		for _, v := range smtRecords {
+			err := tx.Where("algorithm_id=? and address=?", v.AlgorithmID, v.Address).Delete(&dao.ReverseSmtInfo{}).Error
+			if err != nil && err != gorm.ErrRecordNotFound {
+				return err
+			}
 			if err := tx.Create(v).Error; err != nil {
 				return err
 			}
