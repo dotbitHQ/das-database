@@ -55,8 +55,10 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 	}
 
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(smtRecords).Error; err != nil {
-			return err
+		for _, v := range smtRecords {
+			if err := tx.Create(v).Error; err != nil {
+				return err
+			}
 		}
 		for idx, v := range txReverseSmtRecord {
 			outpoint := common.OutPoint2String(req.TxHash, uint(idx))
