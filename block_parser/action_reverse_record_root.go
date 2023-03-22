@@ -38,12 +38,17 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			resp.Err = err
 			return
 		}
+		algorithmId := common.DasAlgorithmId(v.SignType)
+		address := hex.EncodeToString(v.Address)
+		if algorithmId == common.DasAlgorithmIdTron {
+			address = common.TronPreFix + address
+		}
 		outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 		smtRecord := &dao.ReverseSmtInfo{
 			RootHash:     common.Bytes2Hex(v.NextRoot),
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     outpoint,
-			Address:      hex.EncodeToString(v.Address),
+			Address:      address,
 			LeafDataHash: common.Bytes2Hex(smtValBlake256),
 		}
 		smtRecords = append(smtRecords, smtRecord)
