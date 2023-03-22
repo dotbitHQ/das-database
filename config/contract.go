@@ -26,8 +26,13 @@ func CheckContractVersion(dasCore *core.DasCore, cancel context.CancelFunc) erro
 	if dasCore == nil {
 		return fmt.Errorf("dasCore is nil")
 	}
+	sysStatus, err := dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsSystemStatus)
+	if err != nil {
+		return fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+	}
 	for _, v := range contractNames {
-		defaultVersion, chainVersion, err := dasCore.CheckContractVersion(v)
+		defaultVersion, chainVersion, err := dasCore.CheckContractVersionV2(sysStatus, v)
+		log.Info("CheckContractVersion:", defaultVersion, chainVersion, v)
 		if err != nil {
 			if err == core.ErrContractMajorVersionDiff {
 				log.Errorf("contract[%s] version diff, chain[%s], service[%s].", v, chainVersion, defaultVersion)
