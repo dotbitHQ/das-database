@@ -42,7 +42,10 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 		address := hex.EncodeToString(v.Address)
 		if algorithmId == common.DasAlgorithmIdTron {
 			address = common.TronPreFix + address
+		} else {
+			address = common.HexPreFix + address
 		}
+
 		outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 		smtRecord := &dao.ReverseSmtInfo{
 			RootHash:     common.Bytes2Hex(v.NextRoot),
@@ -72,6 +75,8 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			address := hex.EncodeToString(v.Address)
 			if algorithmId == common.DasAlgorithmIdTron {
 				address = common.TronPreFix + address
+			} else {
+				address = common.HexPreFix + address
 			}
 			reverseInfo := &dao.TableReverseInfo{
 				BlockNumber:    req.BlockNumber,
@@ -84,12 +89,10 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 				AccountId:      accountId,
 				ReverseType:    dao.ReverseTypeSmt,
 			}
-			addresses := []string{address, common.HexPreFix + address}
-
 			switch v.Action {
 			case witness.ReverseSmtRecordActionUpdate:
 				if v.PrevAccount != "" {
-					if err := tx.Where("address in (?) and reverse_type=?", addresses, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
+					if err := tx.Where("address=? and reverse_type=?", address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
 						return err
 					}
 				}
@@ -97,7 +100,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 					return err
 				}
 			case witness.ReverseSmtRecordActionRemove:
-				if err := tx.Where("address in (?) and reverse_type=?", addresses, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
+				if err := tx.Where("address=? and reverse_type=?", address, dao.ReverseTypeSmt).Delete(&dao.TableReverseInfo{}).Error; err != nil {
 					return err
 				}
 			}
