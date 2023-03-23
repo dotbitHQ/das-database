@@ -2,7 +2,6 @@ package block_parser
 
 import (
 	"das_database/dao"
-	"encoding/hex"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/molecule"
@@ -39,12 +38,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			return
 		}
 		algorithmId := common.DasAlgorithmId(v.SignType)
-		address := hex.EncodeToString(v.Address)
-		if algorithmId == common.DasAlgorithmIdTron {
-			address = common.TronPreFix + address
-		} else {
-			address = common.HexPreFix + address
-		}
+		address := common.FormatAddressPayload(v.Address, algorithmId)
 
 		outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 		smtRecord := &dao.ReverseSmtInfo{
@@ -72,12 +66,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			outpoint := common.OutPoint2String(req.TxHash, uint(idx))
 			accountId := common.Bytes2Hex(common.GetAccountIdByAccount(v.NextAccount))
 			algorithmId := common.DasAlgorithmId(v.SignType)
-			address := hex.EncodeToString(v.Address)
-			if algorithmId == common.DasAlgorithmIdTron {
-				address = common.TronPreFix + address
-			} else {
-				address = common.HexPreFix + address
-			}
+			address := common.FormatAddressPayload(v.Address, algorithmId)
 			reverseInfo := &dao.TableReverseInfo{
 				BlockNumber:    req.BlockNumber,
 				BlockTimestamp: req.BlockTimestamp,
