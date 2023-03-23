@@ -3,7 +3,7 @@ module das_database
 go 1.16
 
 require (
-	github.com/dotbitHQ/das-lib v1.0.1-0.20230323080246-7b9a2e18b5a9
+	github.com/dotbitHQ/das-lib v1.0.1-0.20230323082113-72a93ea16fe7
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gin-gonic/gin v1.8.1
 	github.com/nervosnetwork/ckb-sdk-go v0.101.3
