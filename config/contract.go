@@ -8,16 +8,16 @@ import (
 )
 
 var contractNames = []common.DasContractName{
-	common.DasContractNameApplyRegisterCellType,
-	common.DasContractNamePreAccountCellType,
-	common.DasContractNameProposalCellType,
+	//common.DasContractNameApplyRegisterCellType,
+	//common.DasContractNamePreAccountCellType,
+	//common.DasContractNameProposalCellType,
 	common.DasContractNameConfigCellType,
 	common.DasContractNameAccountCellType,
 	common.DasContractNameAccountSaleCellType,
 	common.DASContractNameSubAccountCellType,
 	common.DASContractNameOfferCellType,
-	common.DasContractNameBalanceCellType,
-	common.DasContractNameIncomeCellType,
+	//common.DasContractNameBalanceCellType,
+	//common.DasContractNameIncomeCellType,
 	common.DasContractNameReverseRecordCellType,
 	common.DASContractNameEip712LibCellType,
 }
