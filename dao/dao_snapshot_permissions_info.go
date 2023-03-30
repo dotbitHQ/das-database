@@ -63,17 +63,19 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 	for i, v := range oldPermissions {
 		needUpdate := false
 		newPermissions := mapNewPermissions[v.AccountId]
-		if !strings.EqualFold(newPermissions.Owner, v.Owner) {
+		if newPermissions.Status != AccountStatusRecycle && !strings.EqualFold(newPermissions.Owner, v.Owner) {
 			oldPermissions[i].OwnerBlockNumber = newPermissions.BlockNumber
 			needUpdate = true
 		}
-		if !strings.EqualFold(newPermissions.Manager, v.Manager) {
+		if newPermissions.Status != AccountStatusRecycle && !strings.EqualFold(newPermissions.Manager, v.Manager) {
 			oldPermissions[i].ManagerBlockNumber = newPermissions.BlockNumber
 			needUpdate = true
 		}
 		if newPermissions.Status == AccountStatusRecycle {
 			oldPermissions[i].OwnerBlockNumber = newPermissions.BlockNumber
 			oldPermissions[i].ManagerBlockNumber = newPermissions.BlockNumber
+			newPermissions.OwnerBlockNumber = newPermissions.BlockNumber
+			newPermissions.ManagerBlockNumber = newPermissions.BlockNumber
 			needUpdate = true
 		}
 		if needUpdate {
