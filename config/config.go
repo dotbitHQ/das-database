@@ -72,7 +72,6 @@ type CfgServer struct {
 			DbNum    int    `json:"db_num" yaml:"db_num"`
 		} `json:"redis" yaml:"redis"`
 	} `json:"cache" yaml:"cache"`
-	GeckoIds []string `json:"gecko_ids" yaml:"gecko_ids"`
 }
 
 type DbMysql struct {

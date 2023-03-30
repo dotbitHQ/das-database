@@ -48,7 +48,7 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 							if t.errTxCount < 100 {
 								t.errTxCount++
 								if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "RunTxSnapshot parserConcurrencyMode", err.Error()); err != nil {
-									log.Error("SendLarkTextNotify err: %s", err.Error())
+									log.Error("SendLarkTextNotify err: ", err.Error())
 								}
 							}
 						} else {
@@ -62,7 +62,7 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 							if t.errTxCount < 100 {
 								t.errTxCount++
 								if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "RunTxSnapshot parserMode", err.Error()); err != nil {
-									log.Error("SendLarkTextNotify err: %s", err.Error())
+									log.Error("SendLarkTextNotify err: ", err.Error())
 								}
 							}
 						} else {
@@ -89,7 +89,7 @@ func (b blockList) Len() int {
 	return len(b)
 }
 func (b blockList) Less(i, j int) bool {
-	return b[i].Header.Number > b[j].Header.Number
+	return b[i].Header.Number < b[j].Header.Number
 }
 
 func (b blockList) Swap(i, j int) {

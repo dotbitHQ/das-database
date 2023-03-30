@@ -89,7 +89,7 @@ func (t *ToolSnapshot) RunDataSnapshot() {
 					if t.errSnapshotCount < 100 {
 						t.errSnapshotCount++
 						if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "runDataSnapshot", err.Error()); err != nil {
-							log.Error("SendLarkTextNotify err: %s", err.Error())
+							log.Error("SendLarkTextNotify err: ", err.Error())
 						}
 					}
 				} else {

@@ -31,11 +31,3 @@ cache:
     addr: "127.0.0.1:6379"
     password: ""
     db_num: 0
-gecko_ids:
-  - "nervos-network"
-  - "ethereum"
-  - "bitcoin"
-  - "tron"
-  - "_wx_cny_"
-  - "binancecoin"
-  - "matic-network"

@@ -54,7 +54,7 @@ func (d *DbDao) GetTxSnapshotByBlockNumber(blockNumber uint64, limit int) (list 
 	if limit <= 0 || limit > 5000 {
 		limit = 500
 	}
-	err = d.db.Where("block_number>=?", blockNumber).
+	err = d.db.Where("block_number>=? AND action!=?", blockNumber, TxSnapshotSchedule).
 		Order("block_number,id").Limit(limit).Find(&list).Error
 	return
 }

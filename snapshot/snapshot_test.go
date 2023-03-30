@@ -7,6 +7,7 @@ import (
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/nervosnetwork/ckb-sdk-go/rpc"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
+	"sort"
 	"sync"
 	"testing"
 )
@@ -38,4 +39,15 @@ func TestCheckContractCodeHash(t *testing.T) {
 	}
 	var s ToolSnapshot
 	fmt.Println(s.checkContractCodeHash(res.Transaction))
+}
+
+func TestBlockList(t *testing.T) {
+	blockListTmp := make([]*types.Block, 0)
+	blockListTmp = append(blockListTmp, &types.Block{Header: &types.Header{Number: 5007343}})
+	blockListTmp = append(blockListTmp, &types.Block{Header: &types.Header{Number: 5007335}})
+	blockListTmp = append(blockListTmp, &types.Block{Header: &types.Header{Number: 5007498}})
+	sort.Sort(blockList(blockListTmp))
+	for i := range blockListTmp {
+		fmt.Println(blockListTmp[i].Header.Number)
+	}
 }
