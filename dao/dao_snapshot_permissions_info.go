@@ -49,10 +49,10 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 	}
 
 	var accountIds []string
-	var mapNewPermissions = make(map[string]TableSnapshotPermissionsInfo)
+	var mapNewPermissions = make(map[string]*TableSnapshotPermissionsInfo)
 	for i, v := range list {
 		accountIds = append(accountIds, v.AccountId)
-		mapNewPermissions[v.AccountId] = list[i]
+		mapNewPermissions[v.AccountId] = &list[i]
 	}
 
 	oldPermissions, err := d.GetPreSnapshotPermissionsByAccountIds(accountIds, list[0].BlockNumber)

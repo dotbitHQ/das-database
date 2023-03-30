@@ -1,12 +1,14 @@
 package example
 
 import (
+	"das_database/dao"
 	"das_database/http_server/api_code"
 	"das_database/http_server/handle"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/parnurzeal/gorequest"
 	"github.com/scorpiotzh/toolib"
+	"golang.org/x/sync/errgroup"
 	"testing"
 	"time"
 )
@@ -105,4 +107,55 @@ func TestPage(t *testing.T) {
 	}
 	theTimestamp := uint64(theTime.Unix())
 	fmt.Println(theTimestamp)
+}
+
+func TestFixSnapshot(t *testing.T) {
+	db, err := dao.NewGormDataBase("", "", "", "", 100, 200)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var list []dao.TableSnapshotPermissionsInfo
+	if err := db.Where(" `status`=99 ").Find(&list).Error; err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(len(list))
+	errG := &errgroup.Group{}
+
+	var ch = make(chan dao.TableSnapshotPermissionsInfo, 20)
+
+	for i := 0; i < 20; i++ {
+		errG.Go(func() error {
+			for v := range ch {
+				t.Log(v.AccountId, v.BlockNumber)
+				var old dao.TableSnapshotPermissionsInfo
+				if err := db.Where("account_id=? AND block_number<?", v.AccountId, v.BlockNumber).
+					Order("block_number DESC").Limit(1).Find(&old).Error; err != nil {
+					t.Log(err.Error(), v.AccountId, v.BlockNumber)
+					continue
+				}
+				if err := db.Model(dao.TableSnapshotPermissionsInfo{}).
+					Where("id IN(?)", []uint64{v.Id, old.Id}).
+					Updates(map[string]interface{}{
+						"owner_block_number":   v.BlockNumber,
+						"manager_block_number": v.BlockNumber,
+					}).Error; err != nil {
+					t.Log(err.Error(), v.AccountId, v.BlockNumber)
+				}
+			}
+			return nil
+		})
+	}
+	errG.Go(func() error {
+		for i := range list {
+			ch <- list[i]
+		}
+		close(ch)
+		return nil
+	})
+
+	if err := errG.Wait(); err != nil {
+		t.Error(err.Error())
+	}
+	t.Log("OK")
 }

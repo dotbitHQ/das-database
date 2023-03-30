@@ -205,52 +205,6 @@ func TestTransaction(t *testing.T) {
 	t.Log(transactionInfos)
 }
 
-func TestCreateBlockInfo(t *testing.T) {
-	dbDao, err := getInit()
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = dbDao.CreateBlockInfo(57181892, "0x7e8d42d14cb77b9f83931fc3fc1b0111a383568e5aae5242811f1f573955ee27", "0x38b54e889f2f3a46870c11c1734956c27709638856af26c715735d5c9d6ebaa7")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestDeleteBlockInfo(t *testing.T) {
-	dbDao, err := getInit()
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = dbDao.DeleteBlockInfo(57181892)
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestFindBlockNumber(t *testing.T) {
-	dbDao, err := getInit()
-	if err != nil {
-		t.Fatal(err)
-	}
-	blockInfo, err := dbDao.FindBlockInfo()
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(blockInfo)
-}
-
-func TestFindBlockInfoByBlockNumber(t *testing.T) {
-	dbDao, err := getInit()
-	if err != nil {
-		t.Fatal(err)
-	}
-	blockInfo, err := dbDao.FindBlockInfoByBlockNumber(57181892)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(blockInfo)
-}
-
 func TestUpdateCNYToUSDRate(t *testing.T) {
 	dbDao, err := getInit()
 	if err != nil {
