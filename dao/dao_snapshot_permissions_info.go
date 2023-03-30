@@ -71,6 +71,11 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 			oldPermissions[i].ManagerBlockNumber = newPermissions.BlockNumber
 			needUpdate = true
 		}
+		if newPermissions.Status == AccountStatusRecycle {
+			oldPermissions[i].OwnerBlockNumber = newPermissions.BlockNumber
+			oldPermissions[i].ManagerBlockNumber = newPermissions.BlockNumber
+			needUpdate = true
+		}
 		if needUpdate {
 			updatePermissions = append(updatePermissions, oldPermissions[i])
 		}
