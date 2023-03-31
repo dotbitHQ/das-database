@@ -33,7 +33,7 @@ func (p *ParserTimer) RunFixCharset() {
 func (p *ParserTimer) doFixCharset() bool {
 	list, err := p.DbDao.GetNeedFixCharsetAccountList()
 	if err != nil {
-		log.Error("GetNeedFixCharsetAccountList err: %s", err.Error())
+		log.Error("GetNeedFixCharsetAccountList err: ", err.Error())
 		return false
 	}
 	if len(list) == 0 {
@@ -50,12 +50,12 @@ func (p *ParserTimer) doFixCharset() bool {
 	for k, _ := range hashList {
 		tx, err := p.DasCore.Client().GetTransaction(p.Ctx, types.HexToHash(k))
 		if err != nil {
-			log.Error("GetTransaction err: %s", err.Error())
+			log.Error("GetTransaction err: ", err.Error())
 			continue
 		}
 		accMap, err := witness.AccountIdCellDataBuilderFromTx(tx.Transaction, common.DataTypeNew)
 		if err != nil {
-			log.Error("AccountIdCellDataBuilderFromTx err: %s", err.Error())
+			log.Error("AccountIdCellDataBuilderFromTx err: ", err.Error())
 			continue
 		}
 		for _, v := range accMap {
@@ -65,7 +65,7 @@ func (p *ParserTimer) doFixCharset() bool {
 	}
 	//
 	if err := p.DbDao.UpdateAccountCharsetNum(accCharset); err != nil {
-		log.Error("UpdateAccountCharsetNum err: %s", err.Error())
+		log.Error("UpdateAccountCharsetNum err: ", err.Error())
 	}
 
 	return false

@@ -60,7 +60,7 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 	if list, err := GetTokenPriceNew(geckoIds); err != nil {
 		log.Error("GetTokenPriceNew err:", err.Error())
 		if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "GetTokenPriceNew", err.Error()); err != nil {
-			log.Error("SendLarkTextNotify err: %s", err.Error())
+			log.Error("SendLarkTextNotify err: ", err.Error())
 		}
 	} else {
 		var tokenList []dao.TableTokenPriceInfo
@@ -83,7 +83,7 @@ func (p *ParserTimer) updateUSDRate() {
 	if err != nil {
 		log.Error("GetCnyRate err: ", err.Error())
 		if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "GetCnyRate", err.Error()); err != nil {
-			log.Error("SendLarkTextNotify err: %s", err.Error())
+			log.Error("SendLarkTextNotify err: ", err.Error())
 		}
 	}
 	log.Info("updateUSDRate:", toolib.JsonString(&rate))
