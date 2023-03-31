@@ -93,13 +93,23 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 			return err
 		}
 		for _, v := range updatePermissions {
-			if err := tx.Model(TableSnapshotPermissionsInfo{}).
-				Where("id=?", v.Id).
-				Updates(map[string]interface{}{
-					"owner_block_number":   v.OwnerBlockNumber,
-					"manager_block_number": v.ManagerBlockNumber,
-				}).Error; err != nil {
-				return err
+			if v.OwnerBlockNumber > 0 {
+				if err := tx.Model(TableSnapshotPermissionsInfo{}).
+					Where("account_id=? AND block_number<? AND owner_block_number=0",
+						v.AccountId, v.OwnerBlockNumber).
+					Updates(map[string]interface{}{
+						"owner_block_number": v.OwnerBlockNumber,
+					}).Error; err != nil {
+				}
+			}
+			if v.ManagerBlockNumber > 0 {
+				if err := tx.Model(TableSnapshotPermissionsInfo{}).
+					Where("account_id=? AND block_number<? AND manager_block_number=0",
+						v.AccountId, v.ManagerBlockNumber).
+					Updates(map[string]interface{}{
+						"manager_block_number": v.ManagerBlockNumber,
+					}).Error; err != nil {
+				}
 			}
 		}
 		return nil
