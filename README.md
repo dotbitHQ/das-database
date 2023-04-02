@@ -26,7 +26,7 @@ mysql -uroot -p
 
 # compile and run
 cd das-database
-make parser
+make default
 ./das_database_server --config=config/config.yaml
 # it will take about 3 hours to synchronize to the latest data(Dec 6, 2021)
 ```
