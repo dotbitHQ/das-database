@@ -20,6 +20,7 @@ var contractNames = []common.DasContractName{
 	//common.DasContractNameIncomeCellType,
 	common.DasContractNameReverseRecordCellType,
 	common.DASContractNameEip712LibCellType,
+	common.DasContractNameReverseRecordRootCellType,
 }
 
 func CheckContractVersion(dasCore *core.DasCore, cancel context.CancelFunc) error {
