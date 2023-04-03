@@ -52,6 +52,7 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionDeclareReverseRecord] = b.ActionDeclareReverseRecord
 	b.mapTransactionHandle[common.DasActionRedeclareReverseRecord] = b.ActionRedeclareReverseRecord
 	b.mapTransactionHandle[common.DasActionRetractReverseRecord] = b.ActionRetractReverseRecord
+	b.mapTransactionHandle[common.DasActionUpdateReverseRecordRoot] = b.ActionReverseRecordRoot
 
 	b.mapTransactionHandle[common.DasActionEnableSubAccount] = b.ActionEnableSubAccount
 	b.mapTransactionHandle[common.DasActionCreateSubAccount] = b.ActionCreateSubAccount

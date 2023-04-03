@@ -67,6 +67,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		&TableSnapshotTxInfo{},
 		&TableSnapshotPermissionsInfo{},
 		&TableSnapshotRegisterInfo{},
+		&ReverseSmtInfo{},
 	); err != nil {
 		return nil, err
 	}
@@ -172,4 +173,8 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "https://app.did.id/images/components/doge.svg",
 		LastUpdatedAt: time.Now().Unix(),
 	},
+}
+
+func (d *DbDao) Transaction(fn func(tx *gorm.DB) error) error {
+	return d.db.Transaction(fn)
 }
