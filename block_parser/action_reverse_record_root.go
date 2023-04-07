@@ -27,7 +27,7 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 
 	smtRecords := make([]*dao.ReverseSmtInfo, 0)
 	for idx, v := range txReverseSmtRecord {
-		nonce := molecule.GoU32ToMoleculeU32(v.PrevNonce)
+		nonce := molecule.GoU32ToMoleculeU32(v.PrevNonce + 1)
 		valBs := make([]byte, 0)
 		valBs = append(valBs, nonce.RawData()...)
 		valBs = append(valBs, v.NextAccount...)
