@@ -82,6 +82,27 @@ func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (boo
 	return isCV, nil
 }
 
+func CurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, int, error) {
+	contract, err := core.GetDasContractInfo(name)
+	if err != nil {
+		return false, -1, fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+
+	idx := -1
+	isCV := false
+	for i, v := range tx.Outputs {
+		if v.Type == nil {
+			continue
+		}
+		if contract.IsSameTypeId(v.Type.CodeHash) {
+			isCV = true
+			idx = i
+			break
+		}
+	}
+	return isCV, idx, nil
+}
+
 type FuncTransactionHandleReq struct {
 	DbDao          *dao.DbDao
 	Tx             *types.Transaction
