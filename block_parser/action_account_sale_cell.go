@@ -432,13 +432,16 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		inviterScript = &tmp
 	}
 	inviterArgs := common.Bytes2Hex(inviterScript.Args().RawData())
+	log.Info("getRebateInfoList:", req.TxHash, inviterArgs, decInviter.String())
 	if inviterArgs == "0x0" {
 		decInviter = decimal.NewFromInt(int64(saleBuyerInviter)).Div(decimal.NewFromInt(common.PercentRateBase))
+		log.Info("getRebateInfoList:", req.TxHash, decInviter.String())
 	}
 	if channelScript == nil {
 		tmp := molecule.ScriptDefault()
 		channelScript = &tmp
 	}
+
 	inviterHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(inviterScript))
 	if err != nil {
 		return list, fmt.Errorf("ScriptToHex err: %s", err.Error())
