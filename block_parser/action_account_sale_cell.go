@@ -421,6 +421,7 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		return list, fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
 	}
 	saleBuyerChannel, _ := builder.ProfitRateSaleBuyerChannel()
+	saleBuyerInviter, _ := builder.ProfitRateSaleBuyerInviter()
 	decInviter := decimal.NewFromInt(int64(profitRate)).Div(decimal.NewFromInt(common.PercentRateBase))
 	decChannel := decimal.NewFromInt(int64(saleBuyerChannel)).Div(decimal.NewFromInt(common.PercentRateBase))
 
@@ -429,6 +430,10 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 	if inviterScript == nil {
 		tmp := molecule.ScriptDefault()
 		inviterScript = &tmp
+	}
+	inviterArgs := common.Bytes2Hex(inviterScript.Args().RawData())
+	if inviterArgs == "0x0" {
+		decInviter = decimal.NewFromInt(int64(saleBuyerInviter)).Div(decimal.NewFromInt(common.PercentRateBase))
 	}
 	if channelScript == nil {
 		tmp := molecule.ScriptDefault()
@@ -454,7 +459,7 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		Reward:           salePrice.Mul(decInviter).BigInt().Uint64(),
 		Action:           common.DasActionBuyAccount,
 		ServiceType:      dao.ServiceTypeTransaction,
-		InviterArgs:      common.Bytes2Hex(inviterScript.Args().RawData()),
+		InviterArgs:      inviterArgs,
 		InviterAccount:   "",
 		InviterChainType: inviterHex.ChainType,
 		InviterAddress:   inviterHex.AddressHex,
