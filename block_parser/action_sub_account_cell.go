@@ -589,7 +589,7 @@ func (b *BlockParser) ActionConfigSubAccount(req FuncTransactionHandleReq) (resp
 			return err
 		}
 
-		if err := tx.Create(dao.RuleConfig{
+		if err := tx.Create(&dao.RuleConfig{
 			Account:        accountInfo.Account,
 			AccountId:      accountInfo.AccountId,
 			TxHash:         req.TxHash,
