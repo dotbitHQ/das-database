@@ -599,7 +599,7 @@ func (b *BlockParser) ActionConfigSubAccount(req FuncTransactionHandleReq) (resp
 			return err
 		}
 		return tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", parentAccountId).Updates(map[string]interface{}{
-			"outpoint": common.OutPoint2String(req.TxHash, uint(index)),
+			"outpoint": common.OutPoint2String(req.TxHash, 0),
 		}).Error
 	}); err != nil {
 		resp.Err = fmt.Errorf("ActionConfigSubAccount err: %s", err.Error())
