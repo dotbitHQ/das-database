@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"github.com/scorpiotzh/mylog"
+	"github.com/shopspring/decimal"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -182,6 +183,7 @@ var tokenList = []TableTokenPriceInfo{
 		Symbol:        "USDT",
 		Decimals:      6,
 		Logo:          "",
+		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
 	},
 	{
@@ -192,6 +194,7 @@ var tokenList = []TableTokenPriceInfo{
 		Symbol:        "USDT",
 		Decimals:      6,
 		Logo:          "",
+		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
 	},
 }
