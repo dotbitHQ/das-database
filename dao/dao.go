@@ -174,6 +174,26 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "https://app.did.id/images/components/doge.svg",
 		LastUpdatedAt: time.Now().Unix(),
 	},
+	{
+		TokenId:       "eth_erc20_usdt",
+		ChainType:     1,
+		GeckoId:       "eth_erc20_usdt",
+		Name:          "ERC20-USDT",
+		Symbol:        "USDT",
+		Decimals:      6,
+		Logo:          "",
+		LastUpdatedAt: time.Now().Unix(),
+	},
+	{
+		TokenId:       "bsc_bep20_usdt",
+		ChainType:     1,
+		GeckoId:       "bsc_bep20_usdt",
+		Name:          "BEP20-USDT",
+		Symbol:        "USDT",
+		Decimals:      6,
+		Logo:          "",
+		LastUpdatedAt: time.Now().Unix(),
+	},
 }
 
 func (d *DbDao) Transaction(fn func(tx *gorm.DB) error) error {
