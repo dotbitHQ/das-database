@@ -70,6 +70,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		&TableSnapshotRegisterInfo{},
 		&ReverseSmtInfo{},
 		&RuleConfig{},
+		&TableSubAccountAutoMintStatement{},
 	); err != nil {
 		return nil, err
 	}

@@ -1,12 +1,16 @@
 package block_parser
 
 import (
+	"bytes"
 	"das_database/dao"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/molecule"
 	"github.com/dotbitHQ/das-lib/witness"
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"strconv"
 	"strings"
 )
@@ -200,10 +204,69 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
-	if err = b.dbDao.UpdateSubAccountForCreate(subAccountIds, accountInfos, smtInfos, transactionInfo); err != nil {
+	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		if len(subAccountIds) > 0 {
+			if err := tx.Where("account_id IN(?)", subAccountIds).
+				Delete(&dao.TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+		}
+		if len(accountInfos) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&accountInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(smtInfos) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&smtInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		for _, v := range createBuilderMap {
+			if v.EditKey != common.EditKeyCustomRule {
+				continue
+			}
+			if len(v.EditValue) != 28 {
+				return fmt.Errorf("edit_key: %s edit_value: %s is invalid", v.EditKey, common.Bytes2Hex(v.EditValue))
+			}
+			if !bytes.Equal(v.EditValue[:20], make([]byte, 20)) {
+				price, err := molecule.Bytes2GoU64(v.EditValue[20:])
+				if err != nil {
+					return err
+				}
+
+				// TODO add Judging whether the previous withdrawal transaction amount is consistent with the previous entry amount,
+				// TODO if it is less than that, it means that there is a new entry transaction before the withdrawal transaction analysis,
+				// TODO and adjust the entry amount transaction to the appropriate position
+
+				if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
+					BlockNumber:       req.BlockNumber,
+					TxHash:            req.TxHash,
+					WitnessIndex:      v.Index,
+					ParentAccountId:   parentAccountId,
+					ServiceProviderId: common.Bytes2Hex(v.EditValue[:20]),
+					Price:             decimal.NewFromInt(int64(price)),
+					BlockTimestamp:    req.BlockTimestamp,
+				}).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}); err != nil {
 		return fmt.Errorf("UpdateSubAccountForCreate err: %s", err.Error())
 	}
-
 	return nil
 }
 
@@ -563,6 +626,38 @@ func (b *BlockParser) ActionCollectSubAccountProfit(req FuncTransactionHandleReq
 		return
 	}
 
+	return
+}
+
+func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		return
+	}
+	log.Info("ActionCollectSubAccountChannelProfit:", req.BlockNumber, req.TxHash)
+
+	parentAccountId := common.Bytes2Hex(req.Tx.Outputs[0].Type.Args)
+
+	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		for i := 0; i < len(req.Tx.Outputs)-1; i++ {
+			providerId := common.Bytes2Hex(req.Tx.Outputs[i].Lock.Args)
+			price := req.Tx.Outputs[i].Capacity
+			tx.Create(&dao.TableSubAccountAutoMintStatement{
+				BlockNumber:       req.BlockNumber,
+				TxHash:            req.TxHash,
+				ParentAccountId:   parentAccountId,
+				ServiceProviderId: providerId,
+				Price:             decimal.NewFromInt(int64(price)),
+				BlockTimestamp:    req.BlockTimestamp,
+				TxType:            dao.SubAccountAutoMintTxTypeExpenditure,
+			})
+		}
+		return nil
+	}); err != nil {
+		resp.Err = fmt.Errorf("transaction err: %s", err.Error())
+	}
 	return
 }
 
