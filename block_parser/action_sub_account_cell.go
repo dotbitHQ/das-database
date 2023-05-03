@@ -641,10 +641,10 @@ func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHa
 	parentAccountId := common.Bytes2Hex(req.Tx.Outputs[0].Type.Args)
 
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
-		for i := 0; i < len(req.Tx.Outputs)-1; i++ {
+		for i := 1; i < len(req.Tx.Outputs)-1; i++ {
 			providerId := common.Bytes2Hex(req.Tx.Outputs[i].Lock.Args)
 			price := req.Tx.Outputs[i].Capacity
-			tx.Create(&dao.TableSubAccountAutoMintStatement{
+			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
 				BlockNumber:       req.BlockNumber,
 				TxHash:            req.TxHash,
 				ParentAccountId:   parentAccountId,
@@ -652,7 +652,9 @@ func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHa
 				Price:             decimal.NewFromInt(int64(price)),
 				BlockTimestamp:    req.BlockTimestamp,
 				TxType:            dao.SubAccountAutoMintTxTypeExpenditure,
-			})
+			}).Error; err != nil {
+				return err
+			}
 		}
 		return nil
 	}); err != nil {
