@@ -3,6 +3,7 @@ package block_parser
 import (
 	"bytes"
 	"das_database/dao"
+	"errors"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
@@ -245,19 +246,73 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 				if err != nil {
 					return err
 				}
+				providerId := common.Bytes2Hex(v.EditValue[:20])
 
-				// TODO add Judging whether the previous withdrawal transaction amount is consistent with the previous entry amount,
-				// TODO if it is less than that, it means that there is a new entry transaction before the withdrawal transaction analysis,
-				// TODO and adjust the entry amount transaction to the appropriate position
+				latestInfo := &dao.TableSubAccountAutoMintStatement{}
+				err = tx.Where("service_provider_id = ?", providerId).Order("id desc").First(latestInfo).Error
+				if err != nil && err != gorm.ErrRecordNotFound {
+					return err
+				}
+				if err == nil && latestInfo.TxType == dao.SubAccountAutoMintTxTypeExpenditure {
+					secondLatest := &dao.TableSubAccountAutoMintStatement{}
+					err = tx.Where("service_provider_id = ? and id<?", providerId, latestInfo.Id).Order("id desc").First(secondLatest).Error
+					if err != nil && err != gorm.ErrRecordNotFound {
+						return err
+					}
+					var totalPrice int64
+					err = tx.Model(&dao.TableSubAccountAutoMintStatement{}).Select("sum(price)").Where("service_provider_id = ? and tx_type = ? and id > ? and id < ?", providerId, dao.SubAccountAutoMintTxTypeIncome, secondLatest.Id, latestInfo.Id).Scan(&totalPrice).Error
+					if err != nil {
+						return err
+					}
+					if totalPrice < latestInfo.Price.IntPart() {
+						return errors.New("data exception")
+					}
+					if totalPrice > latestInfo.Price.IntPart() {
+						totalInfo := make([]*dao.TableSubAccountAutoMintStatement, 0)
+						err = tx.Where("service_provider_id = ? and tx_type = ? and id > ? and id < ?", providerId, dao.SubAccountAutoMintTxTypeIncome, secondLatest.Id, latestInfo.Id).Order("id desc").Find(&totalInfo).Error
+						if err != nil {
+							return err
+						}
+
+						needDeleteId := make([]uint64, 0)
+						needDelete := make([]*dao.TableSubAccountAutoMintStatement, 0)
+						for _, v := range totalInfo {
+							if totalPrice-v.Price.IntPart() < latestInfo.Price.IntPart() {
+								return errors.New("data exception")
+							}
+							needDeleteId = append(needDeleteId, v.Id)
+							needDelete = append(needDelete, &dao.TableSubAccountAutoMintStatement{
+								BlockNumber:       v.BlockNumber,
+								TxHash:            v.TxHash,
+								WitnessIndex:      v.WitnessIndex,
+								ParentAccountId:   v.ParentAccountId,
+								ServiceProviderId: v.ServiceProviderId,
+								Price:             v.Price,
+								BlockTimestamp:    v.BlockTimestamp,
+								TxType:            v.TxType,
+							})
+							if totalPrice-v.Price.IntPart() == latestInfo.Price.IntPart() {
+								break
+							}
+						}
+						if err := tx.Where("id in (?)", needDeleteId).Delete(&dao.TableSubAccountAutoMintStatement{}).Error; err != nil {
+							return err
+						}
+						if err := tx.Create(needDelete).Error; err != nil {
+							return err
+						}
+					}
+				}
 
 				if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
 					BlockNumber:       req.BlockNumber,
 					TxHash:            req.TxHash,
 					WitnessIndex:      v.Index,
 					ParentAccountId:   parentAccountId,
-					ServiceProviderId: common.Bytes2Hex(v.EditValue[:20]),
+					ServiceProviderId: providerId,
 					Price:             decimal.NewFromInt(int64(price)),
 					BlockTimestamp:    req.BlockTimestamp,
+					TxType:            dao.SubAccountAutoMintTxTypeIncome,
 				}).Error; err != nil {
 					return err
 				}
