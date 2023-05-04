@@ -21,7 +21,7 @@ type TableSubAccountAutoMintStatement struct {
 	ServiceProviderId string                   `json:"service_provider_id" gorm:"column:service_provider_id; index:idx_service_provider_id; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
 	Price             decimal.Decimal          `json:"price" gorm:"column:price; type:decimal(60,2) NOT NULL DEFAULT '0' COMMENT '';"`
 	BlockTimestamp    uint64                   `json:"block_timestamp" gorm:"column:block_timestamp; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
-	TxType            SubAccountAutoMintTxType `json:"status" gorm:"column:status; type:int(11) NOT NULL DEFAULT '0' COMMENT '1: income, 2: expenditure';"`
+	TxType            SubAccountAutoMintTxType `json:"tx_type" gorm:"column:tx_type; type:int(11) NOT NULL DEFAULT '0' COMMENT '1: income, 2: expenditure';"`
 	CreatedAt         time.Time                `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt         time.Time                `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }
