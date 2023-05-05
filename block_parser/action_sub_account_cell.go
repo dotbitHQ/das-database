@@ -2,7 +2,6 @@ package block_parser
 
 import (
 	"das_database/dao"
-	"errors"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
@@ -257,64 +256,6 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 				TxType:            dao.SubAccountAutoMintTxTypeIncome,
 			}).Error; err != nil {
 				return err
-			}
-
-			latestInfo := &dao.TableSubAccountAutoMintStatement{}
-			err = tx.Where("service_provider_id = ?", providerId).Order("id desc").First(latestInfo).Error
-			if err != nil && err != gorm.ErrRecordNotFound {
-				return err
-			}
-			if latestInfo.TxType != dao.SubAccountAutoMintTxTypeExpenditure {
-				continue
-			}
-
-			secondLatest := &dao.TableSubAccountAutoMintStatement{}
-			err = tx.Where("service_provider_id = ? and id<?", providerId, latestInfo.Id).Order("id desc").First(secondLatest).Error
-			if err != nil && err != gorm.ErrRecordNotFound {
-				return err
-			}
-			var totalPrice int64
-			err = tx.Model(&dao.TableSubAccountAutoMintStatement{}).Select("sum(price)").Where("service_provider_id = ? and tx_type = ? and id > ? and id < ?", providerId, dao.SubAccountAutoMintTxTypeIncome, secondLatest.Id, latestInfo.Id).Scan(&totalPrice).Error
-			if err != nil {
-				return err
-			}
-			if totalPrice < latestInfo.Price.IntPart() {
-				return errors.New("data exception")
-			}
-			if totalPrice > latestInfo.Price.IntPart() {
-				totalInfo := make([]*dao.TableSubAccountAutoMintStatement, 0)
-				err = tx.Where("service_provider_id = ? and tx_type = ? and id > ? and id < ?", providerId, dao.SubAccountAutoMintTxTypeIncome, secondLatest.Id, latestInfo.Id).Order("id desc").Find(&totalInfo).Error
-				if err != nil {
-					return err
-				}
-
-				needDeleteId := make([]uint64, 0)
-				needDelete := make([]*dao.TableSubAccountAutoMintStatement, 0)
-				for _, v := range totalInfo {
-					if totalPrice-v.Price.IntPart() < latestInfo.Price.IntPart() {
-						return errors.New("data exception")
-					}
-					needDeleteId = append(needDeleteId, v.Id)
-					needDelete = append(needDelete, &dao.TableSubAccountAutoMintStatement{
-						BlockNumber:       v.BlockNumber,
-						TxHash:            v.TxHash,
-						WitnessIndex:      v.WitnessIndex,
-						ParentAccountId:   v.ParentAccountId,
-						ServiceProviderId: v.ServiceProviderId,
-						Price:             v.Price,
-						BlockTimestamp:    v.BlockTimestamp,
-						TxType:            v.TxType,
-					})
-					if totalPrice-v.Price.IntPart() == latestInfo.Price.IntPart() {
-						break
-					}
-				}
-				if err := tx.Where("id in (?)", needDeleteId).Delete(&dao.TableSubAccountAutoMintStatement{}).Error; err != nil {
-					return err
-				}
-				if err := tx.Create(needDelete).Error; err != nil {
-					return err
-				}
 			}
 		}
 		return nil
@@ -698,8 +639,39 @@ func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHa
 		for i := 1; i < len(req.Tx.Outputs)-1; i++ {
 			providerId := common.Bytes2Hex(req.Tx.Outputs[i].Lock.Args)
 			price := req.Tx.Outputs[i].Capacity
+
+			latest := &dao.TableSubAccountAutoMintStatement{}
+			err := tx.Where("provider_id = ? AND parent_account_id = ? AND tx_type = ?", providerId, parentAccountId, dao.SubAccountAutoMintTxTypeExpenditure).Order("id desc").First(latest).Error
+			if err != nil && err != gorm.ErrRecordNotFound {
+				return err
+			}
+
+			rows, err := tx.Model(&dao.TableSubAccountAutoMintStatement{}).Where("provider_id = ? AND parent_account_id = ? AND block_number > ? AND tx_type = ?", providerId, parentAccountId, latest.BlockNumber, dao.SubAccountAutoMintTxTypeIncome).Rows()
+			if err != nil {
+				return err
+			}
+
+			var latestBlockNumber uint64
+			var priceIncome decimal.Decimal
+			for rows.Next() {
+				tsas := &dao.TableSubAccountAutoMintStatement{}
+				if err := tx.ScanRows(rows, tsas); err != nil {
+					_ = rows.Close()
+					return err
+				}
+				priceIncome = priceIncome.Add(tsas.Price)
+				if priceIncome.IntPart() > int64(price) {
+					_ = rows.Close()
+					return fmt.Errorf("data exception priceIncome.IntPart(): %d > int64(price): %d", priceIncome.IntPart(), int64(price))
+				}
+				if priceIncome.Equal(decimal.NewFromInt(int64(price))) {
+					latestBlockNumber = tsas.BlockNumber
+				}
+			}
+			_ = rows.Close()
+
 			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
-				BlockNumber:       req.BlockNumber,
+				BlockNumber:       latestBlockNumber,
 				TxHash:            req.TxHash,
 				ParentAccountId:   parentAccountId,
 				ServiceProviderId: providerId,
