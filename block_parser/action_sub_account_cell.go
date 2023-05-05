@@ -1,7 +1,6 @@
 package block_parser
 
 import (
-	"bytes"
 	"das_database/dao"
 	"errors"
 	"fmt"
@@ -242,16 +241,11 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			if len(v.EditValue) != 28 {
 				return fmt.Errorf("edit_key: %s edit_value: %s is invalid", v.EditKey, common.Bytes2Hex(v.EditValue))
 			}
-			if bytes.Equal(v.EditValue[:20], make([]byte, 20)) {
-				continue
-			}
-
+			providerId := common.Bytes2Hex(v.EditValue[:20])
 			price, err := molecule.Bytes2GoU64(v.EditValue[20:])
 			if err != nil {
 				return err
 			}
-			providerId := common.Bytes2Hex(v.EditValue[:20])
-
 			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
 				BlockNumber:       req.BlockNumber,
 				TxHash:            req.TxHash,
