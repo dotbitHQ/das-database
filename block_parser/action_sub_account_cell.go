@@ -641,12 +641,12 @@ func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHa
 			price := req.Tx.Outputs[i].Capacity
 
 			latest := &dao.TableSubAccountAutoMintStatement{}
-			err := tx.Where("provider_id = ? AND parent_account_id = ? AND tx_type = ?", providerId, parentAccountId, dao.SubAccountAutoMintTxTypeExpenditure).Order("id desc").First(latest).Error
+			err := tx.Where("service_provider_id = ? AND parent_account_id = ? AND tx_type = ?", providerId, parentAccountId, dao.SubAccountAutoMintTxTypeExpenditure).Order("id desc").First(latest).Error
 			if err != nil && err != gorm.ErrRecordNotFound {
 				return err
 			}
 
-			rows, err := tx.Model(&dao.TableSubAccountAutoMintStatement{}).Where("provider_id = ? AND parent_account_id = ? AND block_number > ? AND tx_type = ?", providerId, parentAccountId, latest.BlockNumber, dao.SubAccountAutoMintTxTypeIncome).Rows()
+			rows, err := tx.Model(&dao.TableSubAccountAutoMintStatement{}).Where("service_provider_id = ? AND parent_account_id = ? AND block_number > ? AND tx_type = ?", providerId, parentAccountId, latest.BlockNumber, dao.SubAccountAutoMintTxTypeIncome).Rows()
 			if err != nil {
 				return err
 			}
