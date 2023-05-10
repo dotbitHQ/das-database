@@ -12,6 +12,7 @@ import (
 type TableSnapshotPermissionsInfo struct {
 	Id                 uint64                `json:"id" gorm:"column:id; primaryKey; type:bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '';"`
 	BlockNumber        uint64                `json:"block_number" gorm:"column:block_number; index:k_block_number; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
+	ParentAccountId    string                `json:"parent_account_id" gorm:"column:parent_account_id; index:k_parent_account_id; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
 	AccountId          string                `json:"account_id" gorm:"column:account_id; uniqueIndex:uk_account_id; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
 	Hash               string                `json:"hash" gorm:"column:hash; uniqueIndex:uk_account_id; index:k_hash; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
 	Account            string                `json:"account" gorm:"column:account; type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '';"`
@@ -100,6 +101,7 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 					Updates(map[string]interface{}{
 						"owner_block_number": v.OwnerBlockNumber,
 					}).Error; err != nil {
+					return err
 				}
 			}
 			if v.ManagerBlockNumber > 0 {
@@ -109,6 +111,19 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 					Updates(map[string]interface{}{
 						"manager_block_number": v.ManagerBlockNumber,
 					}).Error; err != nil {
+					return err
+				}
+			}
+			if v.ParentAccountId == "" && v.Status == AccountStatusRecycle {
+				log.Info("CreateSnapshotPermissions:", v.ParentAccountId)
+				if err := tx.Model(TableSnapshotPermissionsInfo{}).
+					Where("parent_account_id=? AND block_number<? AND manager_block_number=0 AND owner_block_number=0").
+					Updates(map[string]interface{}{
+						"manager_block_number": v.ManagerBlockNumber,
+						"owner_block_number":   v.OwnerBlockNumber,
+						"status":               AccountStatusRecycle,
+					}).Error; err != nil {
+					return err
 				}
 			}
 		}
