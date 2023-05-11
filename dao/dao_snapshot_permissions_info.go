@@ -114,10 +114,12 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 					return err
 				}
 			}
+		}
+		for _, v := range list {
 			if v.ParentAccountId == "" && v.Status == AccountStatusRecycle {
-				log.Info("CreateSnapshotPermissions:", v.ParentAccountId)
+				log.Info("CreateSnapshotPermissions:", v.AccountId)
 				if err := tx.Model(TableSnapshotPermissionsInfo{}).
-					Where("parent_account_id=? AND block_number<? AND manager_block_number=0 AND owner_block_number=0").
+					Where("parent_account_id=? AND block_number<? AND manager_block_number=0 AND owner_block_number=0", v.AccountId, v.BlockNumber).
 					Updates(map[string]interface{}{
 						"manager_block_number": v.ManagerBlockNumber,
 						"owner_block_number":   v.OwnerBlockNumber,
