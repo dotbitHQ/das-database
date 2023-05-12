@@ -122,8 +122,8 @@ func (d *DbDao) CreateSnapshotPermissions(list []TableSnapshotPermissionsInfo) e
 					Where("parent_account_id=? AND block_number<? AND manager_block_number=0 AND owner_block_number=0",
 						v.AccountId, v.BlockNumber).
 					Updates(map[string]interface{}{
-						"manager_block_number": v.ManagerBlockNumber,
-						"owner_block_number":   v.OwnerBlockNumber,
+						"manager_block_number": v.BlockNumber,
+						"owner_block_number":   v.BlockNumber,
 						"status":               AccountStatusRecycle,
 					}).Error; err != nil {
 					return err
