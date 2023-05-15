@@ -19,7 +19,7 @@ jobs:
           run_number: ${{ github.event.workflow_run.run_number }}
           name: filename
       - name: Expose Filename
-        run: echo "ARTIFACT_FILENAME=$(echo filename)" > $GITHUB_ENV
+        run: echo "ARTIFACT_FILENAME=$(cat filename)" > $GITHUB_ENV
       - name: Download Artifct
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -28,19 +28,14 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
           run_number: ${{ github.event.workflow_run.run_number }}
           name: ${{ env.ARTIFACT_FILENAME }}
-      - name: Copy to Host
-        uses: appleboy/scp-action@v0.0.1
+      - name: Copy and Start
+        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
         with:
           host: ${{ vars.SSH_HOST }}
-          source: das_database_server
-          target: ${{ vars.TARGET_FOLDER }}
-          overwrite: true
-      - name: Start server
-        uses: cross-the-world/ssh-pipeline@v1.2.0
-        with:
-          host: ${{ vars.SSH_HOST }}
-          user: root
-          script: |
+          scp:  |
+            das_database_server => ${{ vars.TARGET_FOLDER }}/das_database_server
+          last_ssh: |
+            cd ${{ vars.TARGET_FOLDER }}
             supervisorctl restart das_database_svr
 
   deploy-prod:
@@ -57,7 +52,7 @@ jobs:
           run_number: ${{ github.event.workflow_run.run_number }}
           name: filename
       - name: Expose Filename
-        run: echo "ARTIFACT_FILENAME=$(echo filename)" > $GITHUB_ENV
+        run: echo "ARTIFACT_FILENAME=$(cat filename)" > $GITHUB_ENV
       - name: Download Artifct
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -66,17 +61,12 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
           run_number: ${{ github.event.workflow_run.run_number }}
           name: ${{ env.ARTIFACT_FILENAME }}
-      - name: Copy to Host
-        uses: appleboy/scp-action@v0.0.1
+      - name: Copy and Start
+        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
         with:
           host: ${{ vars.SSH_HOST }}
-          source: ${{ env.ARTIFACT_NAME }}
-          target: ${{ vars.TARGET_FOLDER }}
-          overwrite: true
-      - name: Start server
-        uses: cross-the-world/ssh-pipeline@v1.2.0
-        with:
-          host: ${{ vars.SSH_HOST }}
-          user: root
-          script: |
-            supervisorctl restart das_database_svr    
+          scp:  |
+            das_database_server => ${{ vars.TARGET_FOLDER }}/das_database_server
+          last_ssh: |
+            cd ${{ vars.TARGET_FOLDER }}
+            supervisorctl restart das_database_svr
