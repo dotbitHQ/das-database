@@ -17,7 +17,9 @@ jobs:
         run: |
           echo "FORMATTED_BRANCH_NAME=${name/\//_}" >> $GITHUB_ENV
       - name: Short SHA
-        run: echo "SHA_SHORT=`$(echo '${{ github.sha }}') | cut -c1-6`" >> $GITHUB_ENV
+        run: |
+          export SHORT_SHA=$(echo '${{ github.sha }}' | cut -c1-6)
+          echo "SHA_SHORT=$SHORT_SHA" >> $GITHUB_ENV
       - name: Get current time
         uses: josStorer/get-current-time@v2
         id: current-time
@@ -41,7 +43,7 @@ jobs:
       - name: Update
         run: make update
       - name: Build
-        run: make linux
+        run: make default
       - name: Output Metadata
         run: echo ${{ env.ARTIFACT_NAME }} > 'filename'
       - name: Upload Artifacts
