@@ -17,7 +17,7 @@ jobs:
         run: |
           echo "FORMATTED_BRANCH_NAME=${name/\//_}" >> $GITHUB_ENV
       - name: Short SHA
-        run: echo "SHA_SHORT=`$(echo ${{ github.sha }}) | cut -c1-6`" >> $GITHUB_ENV
+        run: echo "SHA_SHORT=`$(echo '${{ github.sha }}') | cut -c1-6`" >> $GITHUB_ENV
       - name: Get current time
         uses: josStorer/get-current-time@v2
         id: current-time
