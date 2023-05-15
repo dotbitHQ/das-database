@@ -11,7 +11,7 @@ jobs:
   format-artifact-name:
     runs-on: self-hosted
     outputs:
-      formated-artifact-name: ${{ steps.genrate-artifact-name.outputs.ARTIFACT_FILENAME }}
+      formatted-artifact-name: ${{ steps.generate-artifact-name.outputs.ARTIFACT_NAME }}
     steps:
       - name: Format BRANCH_NAME
         env:
@@ -29,9 +29,8 @@ jobs:
           format: MMDDHHmm
           utcOffset: "+08:00"
       - name: Set Artifact Name
-        id: genrate-artifact-name
-        run: |
-          echo "ARTIFACT_NAME=das_database_server_${{env.FORMATTED_BRANCH_NAME}}_${{steps.current-time.outputs.formattedTime}}_${{env.SHA_SHORT}}"  >> $GITHUB_OUTPUT
+        id: generate-artifact-name
+        run: echo "ARTIFACT_NAME=das_database_server_${{env.FORMATTED_BRANCH_NAME}}_${{steps.current-time.outputs.formattedTime}}_${{env.SHA_SHORT}}"  >> $GITHUB_OUTPUT
   build:
     runs-on: self-hosted
     needs: [format-artifact-name]
@@ -46,11 +45,11 @@ jobs:
       - name: Build
         run: make default
       - name: Output Metadata
-        run: echo ${{ needs.format-artifact-name.outputs.formated-artifact-name }} > 'filename'
+        run: echo ${{ needs.format-artifact-name.outputs.formatted-artifact-name }} > 'filename'
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: ${{ needs.format-artifact-name.outputs.formated-artifact-name }}
+          name: ${{ needs.format-artifact-name.outputs.formatted-artifact-name }}
           path: bin/linux/das_database_server
       - name: Upload Filename
         uses: actions/upload-artifact@v3.1.2
