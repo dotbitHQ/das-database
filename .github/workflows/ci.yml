@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: 
+      - main
+      - dev
+env:
+  BRANCH_NAME: ${{ github.ref_name }}
+
+jobs:
+  format-artifact-name:
+    runs-on: self-hosted
+    outputs:
+      formatted-artifact-name: ${{ steps.generate-artifact-name.outputs.ARTIFACT_NAME }}
+    steps:
+      - name: Format BRANCH_NAME
+        env:
+          name: "${{env.BRANCH_NAME}}"
+        run: |
+          echo "FORMATTED_BRANCH_NAME=${name/\//_}" >> $GITHUB_ENV
+      - name: Short SHA
+        run: |
+          export SHORT_SHA=$(echo '${{ github.sha }}' | cut -c1-7)
+          echo "SHA_SHORT=$SHORT_SHA" >> $GITHUB_ENV
+      - name: Get current time
+        uses: josStorer/get-current-time@v2
+        id: current-time
+        with:
+          format: MMDDHHmm
+          utcOffset: "+08:00"
+      - name: Set Artifact Name
+        id: generate-artifact-name
+        run: echo "ARTIFACT_NAME=das_database_server_${{env.FORMATTED_BRANCH_NAME}}_${{steps.current-time.outputs.formattedTime}}_${{env.SHA_SHORT}}"  >> $GITHUB_OUTPUT
+  build:
+    runs-on: self-hosted
+    needs: [format-artifact-name]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Build
+        run: make default
+      - name: Output Metadata
+        run: echo ${{ needs.format-artifact-name.outputs.formatted-artifact-name }} > 'filename'
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: ${{ needs.format-artifact-name.outputs.formatted-artifact-name }}
+          path: bin/linux/das_database_server
+      - name: Upload Filename
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: filename
+          path: filename
