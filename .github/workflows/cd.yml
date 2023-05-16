@@ -16,9 +16,9 @@ jobs:
         run: |
           echo "Running on branch ${{ github.ref }}"
           if [ "${{ github.ref }}" = "refs/heads/master" ]; then
-            echo "::set-output name=env_name::Prod"
+            echo "env_name=Prod" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=env_name::Dev"
+            echo "env_name=Dev" >> $GITHUB_OUTPUT
           fi
   deploy:
     needs: [env_check]
