@@ -1,6 +1,6 @@
 module das_database
 
-go 1.16
+go 1.17
 
 require (
 	github.com/dotbitHQ/das-lib v1.0.2-0.20230511082053-4cc28202ec62
