@@ -1,0 +1,53 @@
+name: CD
+on: 
+  workflow_run: 
+    workflows: [CI]
+    types: 
+      - completed
+jobs:
+  env_check:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
+    steps:
+      - name: Check Env Based on Branch
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/master" ]; then
+            echo "env_name=Prod" >> $GITHUB_OUTPUT
+          else
+            echo "env_name=Dev" >> $GITHUB_OUTPUT
+          fi
+  deploy:
+    needs: [env_check]
+    environment:
+      name: ${{ needs.env_check.outputs.env_name }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: self-hosted
+    steps:
+      - name: Download Filename
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: CI
+          workflow_conclusion: success
+          run_id: ${{ github.event.workflow_run.id }}
+          run_number: ${{ github.event.workflow_run.run_number }}
+          name: filename
+      - name: Expose Filename
+        run: echo "ARTIFACT_FILENAME=$(cat filename)" > $GITHUB_ENV
+      - name: Download Artifct
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: CI
+          workflow_conclusion: success
+          run_id: ${{ github.event.workflow_run.id }}
+          run_number: ${{ github.event.workflow_run.run_number }}
+          name: ${{ env.ARTIFACT_FILENAME }}
+      - name: Stop Service
+        run: ssh ${{ vars.SSH_HOST }} 'supervisorctl stop das_database_svr'
+      - name: Rsync
+        run: rsync -a das_database_server das_test:${{ vars.TARGET_FOLDER }}/das_database_server
+      - name: Restart Service
+        run: ssh ${{ vars.SSH_HOST }} 'chmod +x ${{ vars.TARGET_FOLDER }}/das_database_server && supervisorctl start das_database_svr'
