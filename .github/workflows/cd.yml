@@ -1,10 +1,12 @@
 name: CD
 on: 
+  # Only trigger CD when CI workflow completed.
   workflow_run: 
     workflows: [CI]
     types: 
       - completed
 jobs:
+  # Map current branch to github environment. main -> Prod, other -> Dev
   env_check:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
@@ -22,11 +24,14 @@ jobs:
           fi
   deploy:
     needs: [env_check]
+    # Dynamically set the deploy environment
     environment:
       name: ${{ needs.env_check.outputs.env_name }}
+    # Only run if CI succeeded
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
     steps:
+      # Get actual artifact filename
       - name: Download Filename
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -37,6 +42,7 @@ jobs:
           name: filename
       - name: Expose Filename
         run: echo "ARTIFACT_FILENAME=$(cat filename)" > $GITHUB_ENV
+      # Download the artifact from previous workflow
       - name: Download Artifct
         uses: dawidd6/action-download-artifact@v2
         with:
