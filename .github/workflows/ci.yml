@@ -20,7 +20,7 @@ jobs:
           echo "FORMATTED_BRANCH_NAME=${name/\//_}" >> $GITHUB_ENV
       - name: Short SHA
         run: |
-          export SHORT_SHA=$(echo '${{ github.sha }}' | cut -c1-6)
+          export SHORT_SHA=$(echo '${{ github.sha }}' | cut -c1-7)
           echo "SHA_SHORT=$SHORT_SHA" >> $GITHUB_ENV
       - name: Get current time
         uses: josStorer/get-current-time@v2
@@ -39,7 +39,9 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.17
+          go-version-file: go.mod
+          cache: false
+
       - name: Update
         run: make update
       - name: Build
