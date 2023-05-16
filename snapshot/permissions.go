@@ -4,6 +4,7 @@ import (
 	"das_database/dao"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
+	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 )
@@ -68,6 +69,18 @@ func (t *ToolSnapshot) addAccountPermissions(info dao.TableSnapshotTxInfo, tx *t
 func (t *ToolSnapshot) addSubAccountPermissionsByDasActionCreateSubAccount(info dao.TableSnapshotTxInfo, tx *types.Transaction) error {
 	log.Info("addSubAccountPermissions:", info.Action, info.Hash)
 
+	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
+	if err != nil {
+		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+	var parentAccountId string
+	for _, v := range tx.Outputs {
+		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
+			parentAccountId = common.Bytes2Hex(v.Type.Args)
+			break
+		}
+	}
+
 	var sanb witness.SubAccountNewBuilder
 	mapSubAcc, err := sanb.SubAccountNewMapFromTx(tx)
 	if err != nil {
@@ -82,6 +95,7 @@ func (t *ToolSnapshot) addSubAccountPermissionsByDasActionCreateSubAccount(info 
 		tmp := dao.TableSnapshotPermissionsInfo{
 			BlockNumber:        info.BlockNumber,
 			AccountId:          k,
+			ParentAccountId:    parentAccountId,
 			Hash:               info.Hash,
 			Account:            v.Account,
 			BlockTimestamp:     info.BlockTimestamp,
@@ -104,6 +118,18 @@ func (t *ToolSnapshot) addSubAccountPermissionsByDasActionCreateSubAccount(info 
 func (t *ToolSnapshot) addSubAccountPermissionsByDasActionEditSubAccount(info dao.TableSnapshotTxInfo, tx *types.Transaction) error {
 	log.Info("addSubAccountPermissions:", info.Action, info.Hash)
 
+	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
+	if err != nil {
+		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+	var parentAccountId string
+	for _, v := range tx.Outputs {
+		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
+			parentAccountId = common.Bytes2Hex(v.Type.Args)
+			break
+		}
+	}
+
 	var sanb witness.SubAccountNewBuilder
 	mapSubAcc, err := sanb.SubAccountNewMapFromTx(tx)
 	if err != nil {
@@ -122,6 +148,7 @@ func (t *ToolSnapshot) addSubAccountPermissionsByDasActionEditSubAccount(info da
 		tmp := dao.TableSnapshotPermissionsInfo{
 			BlockNumber:        info.BlockNumber,
 			AccountId:          k,
+			ParentAccountId:    parentAccountId,
 			Hash:               info.Hash,
 			Account:            v.Account,
 			BlockTimestamp:     info.BlockTimestamp,
@@ -144,6 +171,18 @@ func (t *ToolSnapshot) addSubAccountPermissionsByDasActionEditSubAccount(info da
 func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx *types.Transaction) error {
 	log.Info("addSubAccountPermissions:", info.Action, info.Hash)
 
+	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
+	if err != nil {
+		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+	var parentAccountId string
+	for _, v := range tx.Outputs {
+		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
+			parentAccountId = common.Bytes2Hex(v.Type.Args)
+			break
+		}
+	}
+
 	var sanb witness.SubAccountNewBuilder
 	mapSubAcc, err := sanb.SubAccountNewMapFromTx(tx)
 	if err != nil {
@@ -162,6 +201,7 @@ func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx
 		tmp := dao.TableSnapshotPermissionsInfo{
 			BlockNumber:        info.BlockNumber,
 			AccountId:          k,
+			ParentAccountId:    parentAccountId,
 			Hash:               info.Hash,
 			Account:            v.Account,
 			BlockTimestamp:     info.BlockTimestamp,
