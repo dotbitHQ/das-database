@@ -47,7 +47,7 @@ jobs:
           name: ${{ env.ARTIFACT_FILENAME }}
       - name: Stop Service
         run: ssh ${{ vars.SSH_HOST }} 'supervisorctl stop das_database_svr'
-      - name: SCP
-        run: scp das_database_server das_test:${{ vars.TARGET_FOLDER }}/das_database_server
+      - name: Rsync
+        run: rsync -a das_database_server das_test:${{ vars.TARGET_FOLDER }}/das_database_server
       - name: Restart Service
-        run: ssh ${{ vars.SSH_HOST }} 'supervisorctl restart das_database_svr'
+        run: ssh ${{ vars.SSH_HOST }} 'supervisorctl start das_database_svr'
