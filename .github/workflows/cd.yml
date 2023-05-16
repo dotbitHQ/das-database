@@ -52,8 +52,10 @@ jobs:
           run_number: ${{ github.event.workflow_run.run_number }}
           name: ${{ env.ARTIFACT_FILENAME }}
       - name: Stop Service
+        # SSH_HOST is fetched from Project Settings -> Environment
         run: ssh ${{ vars.SSH_HOST }} 'supervisorctl stop das_database_svr'
       - name: Rsync
+        # TARGET_FOLDER is fetched from Project Settings -> Environment 
         run: rsync -a das_database_server das_test:${{ vars.TARGET_FOLDER }}/das_database_server
       - name: Restart Service
         run: ssh ${{ vars.SSH_HOST }} 'chmod +x ${{ vars.TARGET_FOLDER }}/das_database_server && supervisorctl start das_database_svr'
