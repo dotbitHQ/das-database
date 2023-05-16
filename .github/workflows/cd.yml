@@ -50,4 +50,4 @@ jobs:
       - name: Rsync
         run: rsync -a das_database_server das_test:${{ vars.TARGET_FOLDER }}/das_database_server
       - name: Restart Service
-        run: ssh ${{ vars.SSH_HOST }} 'supervisorctl start das_database_svr'
+        run: ssh ${{ vars.SSH_HOST }} 'chmod +x ${{ vars.TARGET_FOLDER }}/das_database_server && supervisorctl start das_database_svr'
