@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/molecule"
 	"github.com/dotbitHQ/das-lib/witness"
+	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"strconv"
 	"strings"
 )
@@ -98,6 +102,7 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 			return
 		}
 	}
+
 	if err := b.actionUpdateSubAccountForCreate(req, createBuilderMap); err != nil {
 		resp.Err = fmt.Errorf("create err: %s", err.Error())
 		return
@@ -199,10 +204,64 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
-	if err = b.dbDao.UpdateSubAccountForCreate(subAccountIds, accountInfos, smtInfos, transactionInfo); err != nil {
+	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		if len(subAccountIds) > 0 {
+			if err := tx.Where("account_id IN(?)", subAccountIds).
+				Delete(&dao.TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+		}
+		if len(accountInfos) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&accountInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(smtInfos) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&smtInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		for _, v := range createBuilderMap {
+			if v.EditKey != common.EditKeyCustomRule {
+				continue
+			}
+			if len(v.EditValue) != 28 {
+				return fmt.Errorf("edit_key: %s edit_value: %s is invalid", v.EditKey, common.Bytes2Hex(v.EditValue))
+			}
+			providerId := common.Bytes2Hex(v.EditValue[:20])
+			price, err := molecule.Bytes2GoU64(v.EditValue[20:])
+			if err != nil {
+				return err
+			}
+			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
+				BlockNumber:       req.BlockNumber,
+				TxHash:            req.TxHash,
+				WitnessIndex:      v.Index,
+				ParentAccountId:   parentAccountId,
+				ServiceProviderId: providerId,
+				Price:             decimal.NewFromInt(int64(price)),
+				BlockTimestamp:    req.BlockTimestamp,
+				TxType:            dao.SubAccountAutoMintTxTypeIncome,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
 		return fmt.Errorf("UpdateSubAccountForCreate err: %s", err.Error())
 	}
-
 	return nil
 }
 
@@ -562,5 +621,112 @@ func (b *BlockParser) ActionCollectSubAccountProfit(req FuncTransactionHandleReq
 		return
 	}
 
+	return
+}
+
+func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		return
+	}
+	log.Info("ActionCollectSubAccountChannelProfit:", req.BlockNumber, req.TxHash)
+
+	parentAccountId := common.Bytes2Hex(req.Tx.Outputs[0].Type.Args)
+
+	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		for i := 1; i < len(req.Tx.Outputs)-1; i++ {
+			providerId := common.Bytes2Hex(req.Tx.Outputs[i].Lock.Args)
+			price := req.Tx.Outputs[i].Capacity
+
+			latest := &dao.TableSubAccountAutoMintStatement{}
+			err := tx.Where("service_provider_id = ? AND parent_account_id = ? AND tx_type = ?", providerId, parentAccountId, dao.SubAccountAutoMintTxTypeExpenditure).Order("id desc").First(latest).Error
+			if err != nil && err != gorm.ErrRecordNotFound {
+				return err
+			}
+
+			rows, err := tx.Model(&dao.TableSubAccountAutoMintStatement{}).Where("service_provider_id = ? AND parent_account_id = ? AND block_number > ? AND tx_type = ?", providerId, parentAccountId, latest.BlockNumber, dao.SubAccountAutoMintTxTypeIncome).Rows()
+			if err != nil {
+				return err
+			}
+
+			var latestBlockNumber uint64
+			var priceIncome decimal.Decimal
+			for rows.Next() {
+				tsas := &dao.TableSubAccountAutoMintStatement{}
+				if err := tx.ScanRows(rows, tsas); err != nil {
+					_ = rows.Close()
+					return err
+				}
+				priceIncome = priceIncome.Add(tsas.Price)
+				if priceIncome.IntPart() > int64(price) {
+					_ = rows.Close()
+					return fmt.Errorf("data exception priceIncome.IntPart(): %d > int64(price): %d", priceIncome.IntPart(), int64(price))
+				}
+				if priceIncome.Equal(decimal.NewFromInt(int64(price))) {
+					latestBlockNumber = tsas.BlockNumber
+				}
+			}
+			_ = rows.Close()
+
+			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
+				BlockNumber:       latestBlockNumber,
+				TxHash:            req.TxHash,
+				ParentAccountId:   parentAccountId,
+				ServiceProviderId: providerId,
+				Price:             decimal.NewFromInt(int64(price)),
+				BlockTimestamp:    req.BlockTimestamp,
+				TxType:            dao.SubAccountAutoMintTxTypeExpenditure,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		resp.Err = fmt.Errorf("transaction err: %s", err.Error())
+	}
+	return
+}
+
+func (b *BlockParser) ActionConfigSubAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	isCV, index, err := CurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType)
+	if err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warnf("not current version %s tx", common.DASContractNameSubAccountCellType)
+		return
+	}
+	log.Info("ActionConfigSubAccount:", req.BlockNumber, req.TxHash)
+
+	parentAccountId := common.Bytes2Hex(req.Tx.Outputs[index].Type.Args)
+
+	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("account_id=?", parentAccountId).Delete(&dao.RuleConfig{}).Error; err != nil {
+			return err
+		}
+
+		accountInfo := &dao.TableAccountInfo{}
+		if err := tx.Where("account_id=?", parentAccountId).First(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Create(&dao.RuleConfig{
+			Account:        accountInfo.Account,
+			AccountId:      accountInfo.AccountId,
+			TxHash:         req.TxHash,
+			BlockNumber:    req.BlockNumber,
+			BlockTimestamp: req.BlockTimestamp,
+		}).Error; err != nil {
+			return err
+		}
+		return tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", parentAccountId).Updates(map[string]interface{}{
+			"outpoint": common.OutPoint2String(req.TxHash, 0),
+		}).Error
+	}); err != nil {
+		resp.Err = fmt.Errorf("ActionConfigSubAccount err: %s", err.Error())
+		return
+	}
 	return
 }

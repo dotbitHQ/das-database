@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"github.com/scorpiotzh/mylog"
+	"github.com/shopspring/decimal"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -68,6 +69,8 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		&TableSnapshotPermissionsInfo{},
 		&TableSnapshotRegisterInfo{},
 		&ReverseSmtInfo{},
+		&RuleConfig{},
+		&TableSubAccountAutoMintStatement{},
 	); err != nil {
 		return nil, err
 	}
@@ -171,6 +174,28 @@ var tokenList = []TableTokenPriceInfo{
 		Symbol:        "doge",
 		Decimals:      8,
 		Logo:          "https://app.did.id/images/components/doge.svg",
+		LastUpdatedAt: time.Now().Unix(),
+	},
+	{
+		TokenId:       "eth_erc20_usdt",
+		ChainType:     1,
+		GeckoId:       "eth_erc20_usdt",
+		Name:          "ERC20-USDT",
+		Symbol:        "ERC20-USDT",
+		Decimals:      6,
+		Logo:          "",
+		Price:         decimal.NewFromInt(1),
+		LastUpdatedAt: time.Now().Unix(),
+	},
+	{
+		TokenId:       "bsc_bep20_usdt",
+		ChainType:     1,
+		GeckoId:       "bsc_bep20_usdt",
+		Name:          "BEP20-USDT",
+		Symbol:        "BEP20-USDT",
+		Decimals:      6,
+		Logo:          "",
+		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
 	},
 }

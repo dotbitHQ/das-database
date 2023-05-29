@@ -4,7 +4,7 @@ BINARY_NAME=das_database_server
 
 # update
 update:
-	go mod tidy
+	go mod tidy -compat=1.17
 
 # linux
 parser_linux:

@@ -62,6 +62,8 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionUnlockSubAccountForCrossChain] = b.ActionSubAccountCrossChain
 	b.mapTransactionHandle[common.DasActionConfigSubAccountCustomScript] = b.ActionConfigSubAccountCreatingScript
 	b.mapTransactionHandle[common.DasActionCollectSubAccountProfit] = b.ActionCollectSubAccountProfit
+	b.mapTransactionHandle[common.DasActionCollectSubAccountChannelProfit] = b.ActionCollectSubAccountChannelProfit
+	b.mapTransactionHandle[common.DasActionConfigSubAccount] = b.ActionConfigSubAccount
 }
 
 func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {
@@ -80,6 +82,27 @@ func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (boo
 		}
 	}
 	return isCV, nil
+}
+
+func CurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, int, error) {
+	contract, err := core.GetDasContractInfo(name)
+	if err != nil {
+		return false, -1, fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+
+	idx := -1
+	isCV := false
+	for i, v := range tx.Outputs {
+		if v.Type == nil {
+			continue
+		}
+		if contract.IsSameTypeId(v.Type.CodeHash) {
+			isCV = true
+			idx = i
+			break
+		}
+	}
+	return isCV, idx, nil
 }
 
 type FuncTransactionHandleReq struct {
