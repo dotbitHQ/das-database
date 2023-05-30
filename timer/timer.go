@@ -22,7 +22,7 @@ func (p *ParserTimer) RunUpdateTokenPrice() {
 	p.updateTokenMap()
 
 	tickerToken := time.NewTicker(time.Second * 180)
-	tickerUSD := time.NewTicker(time.Second * 300)
+	//tickerUSD := time.NewTicker(time.Second * 300)
 
 	p.Wg.Add(1)
 	go func() {
@@ -33,10 +33,10 @@ func (p *ParserTimer) RunUpdateTokenPrice() {
 				p.updateTokenPriceInfoList()
 				p.updateTokenMap()
 				log.Info("RunUpdateTokenPriceList end ...", time.Now().Format("2006-01-02 15:04:05"))
-			case <-tickerUSD.C:
-				log.Info("RunUpdateUSDRate start ...", time.Now().Format("2006-01-02 15:04:05"))
-				p.updateUSDRate()
-				log.Info("RunUpdateUSDRate end ...", time.Now().Format("2006-01-02 15:04:05"))
+			//case <-tickerUSD.C:
+			//	log.Info("RunUpdateUSDRate start ...", time.Now().Format("2006-01-02 15:04:05"))
+			//	p.updateUSDRate()
+			//	log.Info("RunUpdateUSDRate end ...", time.Now().Format("2006-01-02 15:04:05"))
 			case <-p.Ctx.Done():
 				p.Wg.Done()
 				return
