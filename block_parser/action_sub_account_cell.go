@@ -158,9 +158,11 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			OwnerChainType:       ownerHex.ChainType,
 			Owner:                ownerHex.AddressHex,
 			OwnerAlgorithmId:     ownerHex.DasAlgorithmId,
+			OwnerSubAid:          ownerHex.DasSubAlgorithmId,
 			ManagerChainType:     managerHex.ChainType,
 			Manager:              managerHex.AddressHex,
 			ManagerAlgorithmId:   managerHex.DasAlgorithmId,
+			ManagerSubAid:        managerHex.DasSubAlgorithmId,
 			Status:               v.SubAccountData.Status,
 			EnableSubAccount:     v.SubAccountData.EnableSubAccount,
 			RenewSubAccountPrice: v.SubAccountData.RenewSubAccountPrice,
@@ -252,9 +254,11 @@ func (b *BlockParser) actionUpdateSubAccountForEdit(req FuncTransactionHandleReq
 				return fmt.Errorf("ArgsToHex err: %s", err.Error())
 			}
 			accountInfo.OwnerAlgorithmId = oHex.DasAlgorithmId
+			accountInfo.ManagerSubAid = oHex.DasSubAlgorithmId
 			accountInfo.OwnerChainType = oHex.ChainType
 			accountInfo.Owner = oHex.AddressHex
 			accountInfo.ManagerAlgorithmId = mHex.DasAlgorithmId
+			accountInfo.ManagerSubAid = mHex.DasSubAlgorithmId
 			accountInfo.ManagerChainType = mHex.ChainType
 			accountInfo.Manager = mHex.AddressHex
 			if err = b.dbDao.EditOwnerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
@@ -266,6 +270,7 @@ func (b *BlockParser) actionUpdateSubAccountForEdit(req FuncTransactionHandleReq
 				return fmt.Errorf("ArgsToHex err: %s", err.Error())
 			}
 			accountInfo.ManagerAlgorithmId = mHex.DasAlgorithmId
+			accountInfo.ManagerSubAid = mHex.DasSubAlgorithmId
 			accountInfo.ManagerChainType = mHex.ChainType
 			accountInfo.Manager = mHex.AddressHex
 			if err = b.dbDao.EditManagerSubAccount(accountInfo, smtInfo, transactionInfo); err != nil {
@@ -373,9 +378,11 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 			OwnerChainType:       ownerHex.ChainType,
 			Owner:                ownerHex.AddressHex,
 			OwnerAlgorithmId:     ownerHex.DasAlgorithmId,
+			OwnerSubAid:          ownerHex.DasSubAlgorithmId,
 			ManagerChainType:     managerHex.ChainType,
 			Manager:              managerHex.AddressHex,
 			ManagerAlgorithmId:   managerHex.DasAlgorithmId,
+			ManagerSubAid:        managerHex.DasSubAlgorithmId,
 			Status:               v.SubAccountData.Status,
 			EnableSubAccount:     v.SubAccountData.EnableSubAccount,
 			RenewSubAccountPrice: v.SubAccountData.RenewSubAccountPrice,

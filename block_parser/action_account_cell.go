@@ -117,6 +117,7 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerSubAid:      managerHex.DasSubAlgorithmId,
 	}
 
 	log.Info("ActionEditManager:", account, managerHex.DasAlgorithmId, managerHex.ChainType, managerHex.AddressHex, transactionInfo.Address)
@@ -270,9 +271,11 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		OwnerChainType:     oHex.ChainType,
 		Owner:              oHex.AddressHex,
 		OwnerAlgorithmId:   oHex.DasAlgorithmId,
+		OwnerSubAid:        oHex.DasSubAlgorithmId,
 		ManagerChainType:   mHex.ChainType,
 		Manager:            mHex.AddressHex,
 		ManagerAlgorithmId: mHex.DasAlgorithmId,
+		ManagerSubAid:      mHex.DasSubAlgorithmId,
 	}
 	var recordsInfos []dao.TableRecordsInfo
 	recordList := builder.Records
@@ -474,9 +477,11 @@ func (b *BlockParser) ActionAccountCrossChain(req FuncTransactionHandleReq) (res
 		OwnerChainType:     ownerHex.ChainType,
 		Owner:              ownerHex.AddressHex,
 		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
+		OwnerSubAid:        ownerHex.DasSubAlgorithmId,
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerSubAid:      managerHex.DasSubAlgorithmId,
 		Status:             builder.Status,
 	}
 	transactionInfo := dao.TableTransactionInfo{
