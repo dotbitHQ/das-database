@@ -103,7 +103,7 @@ func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo Ta
 	})
 }
 
-func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo, records []TableRecordsInfo, recordAccountIds []string) error {
+func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo, records []TableRecordsInfo, recordAccountIds []string, cidPks []TableCidPk) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(incomeCellInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
@@ -158,6 +158,14 @@ func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountIn
 		}
 		if len(records) > 0 {
 			if err := tx.Create(&records).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(cidPks) > 0 {
+			if err := tx.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{}),
+			}).Create(&cidPks).Error; err != nil {
 				return err
 			}
 		}

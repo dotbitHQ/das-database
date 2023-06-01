@@ -30,6 +30,7 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 		Cid:             keyList[0].Cid,
 		Pk:              keyList[0].PubKey,
 		EnableAuthorize: dao.EnableAuthorizeOn,
+		Outpoint:        common.OutPoint2String(req.TxHash, uint(builder.Index)),
 	})
 	if err := b.dbDao.InsertCidPk(cidPk); err != nil {
 		resp.Err = fmt.Errorf("InsertCidPk err: %s", err.Error())
@@ -56,7 +57,7 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 	keyList := witness.ConvertToWebauthnKeyList(builder.WebAuthnKeyListData)
 	var master witness.WebauthnKey
 	var authorize []dao.TableAuthorize
-	var cidPk []dao.TableCidPk
+	var cidPks []dao.TableCidPk
 	for i := 0; i < len(keyList); i++ {
 		if i == 0 {
 			master.MinAlgId = keyList[0].MinAlgId
@@ -75,12 +76,13 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 			SlavePk:        keyList[i].PubKey,
 			Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		})
-		cidPk = append(cidPk, dao.TableCidPk{
-			Cid: keyList[i].Cid,
-			Pk:  keyList[i].PubKey,
+		cidPks = append(cidPks, dao.TableCidPk{
+			Cid:      keyList[i].Cid,
+			Pk:       keyList[i].PubKey,
+			Outpoint: common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		})
 	}
-	if err = b.dbDao.UpdateAuthorizeByMaster(authorize, cidPk); err != nil {
+	if err = b.dbDao.UpdateAuthorizeByMaster(authorize, cidPks); err != nil {
 		resp.Err = fmt.Errorf("UpdateAuthorizeByMaster err:%s", err.Error())
 		return
 	}

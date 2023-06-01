@@ -30,7 +30,7 @@ func (t *TableAuthorize) TableName() string {
 	return TableNameAuthorize
 }
 
-func (d *DbDao) UpdateAuthorizeByMaster(authorize []TableAuthorize, cidPk []TableCidPk) error {
+func (d *DbDao) UpdateAuthorizeByMaster(authorize []TableAuthorize, cidPks []TableCidPk) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("master_cid = ? and master_pk = ? ", authorize[0].MasterCid, authorize[0].MasterPk).Delete(&TableAuthorize{}).Error; err != nil {
 			return err
@@ -40,7 +40,7 @@ func (d *DbDao) UpdateAuthorizeByMaster(authorize []TableAuthorize, cidPk []Tabl
 		}
 		if err := tx.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{}),
-		}).Create(&cidPk).Error; err != nil {
+		}).Create(&cidPks).Error; err != nil {
 			return err
 		}
 		return nil
