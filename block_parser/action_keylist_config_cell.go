@@ -18,10 +18,9 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 	log.Info("ActionTransferAccount:", req.BlockNumber, req.TxHash)
 
 	builder, err := witness.WebAuthnKeyListDataBuilderFromTx(req.Tx, common.DataTypeNew)
-
 	//add cidpk
 	var cidPk []dao.TableCidPk
-	keyList := witness.ConvertToWebauthnKeyList(builder.WebAuthnKeyListData)
+	keyList := witness.ConvertToWebauthnKeyList(builder.DeviceKeyListCellData.Keys())
 	if len(keyList) == 0 {
 		resp.Err = fmt.Errorf("ConvertToWebauthnKeyList err: %s", err.Error())
 		return
@@ -38,7 +37,7 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 	return
 }
 
-//add and delete deviceKey
+// add and delete deviceKey
 func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
 	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
@@ -54,7 +53,7 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 		resp.Err = fmt.Errorf("WebAuthnKeyListDataBuilderFromTx err: %s", err.Error())
 		return
 	}
-	keyList := witness.ConvertToWebauthnKeyList(builder.WebAuthnKeyListData)
+	keyList := witness.ConvertToWebauthnKeyList(builder.DeviceKeyListCellData.Keys())
 	var master witness.WebauthnKey
 	var authorize []dao.TableAuthorize
 	var cidPks []dao.TableCidPk
