@@ -198,6 +198,28 @@ var tokenList = []TableTokenPriceInfo{
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
 	},
+	{
+		TokenId:       "tron_trc20_usdt",
+		ChainType:     3,
+		GeckoId:       "tron_trc20_usdt",
+		Name:          "TRC20-USDT",
+		Symbol:        "TRC20-USDT",
+		Decimals:      6,
+		Logo:          "",
+		Price:         decimal.NewFromInt(1),
+		LastUpdatedAt: time.Now().Unix(),
+	},
+	{
+		TokenId:       "stripe_usd",
+		ChainType:     3,
+		GeckoId:       "stripe_usd",
+		Name:          "USD",
+		Symbol:        "USD",
+		Decimals:      2,
+		Logo:          "",
+		Price:         decimal.NewFromInt(1),
+		LastUpdatedAt: time.Now().Unix(),
+	},
 }
 
 func (d *DbDao) Transaction(fn func(tx *gorm.DB) error) error {
