@@ -211,7 +211,7 @@ var tokenList = []TableTokenPriceInfo{
 	},
 	{
 		TokenId:       "stripe_usd",
-		ChainType:     3,
+		ChainType:     99,
 		GeckoId:       "stripe_usd",
 		Name:          "USD",
 		Symbol:        "USD",
