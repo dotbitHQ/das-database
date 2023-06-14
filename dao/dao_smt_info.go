@@ -236,31 +236,26 @@ func (d *DbDao) RenewSubAccount(accountInfos []TableAccountInfo, smtInfos []Tabl
 	})
 }
 
-func (d *DbDao) RecycleSubAccount(accountIds []string, transactionInfos []TableTransactionInfo) error {
+func (d *DbDao) RecycleSubAccount(subAccIds []string, smtInfos []TableSmtInfo) error {
+	if len(subAccIds) == 0 && len(smtInfos) == 0 {
+		return nil
+	}
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("account_id IN(?)", accountIds).Delete(&TableAccountInfo{}).Error; err != nil {
+		if err := tx.Where("account_id IN(?)", subAccIds).
+			Delete(&TableAccountInfo{}).Error; err != nil {
 			return err
 		}
-
-		if err := tx.Where("account_id IN(?)", accountIds).Delete(&TableSmtInfo{}).Error; err != nil {
+		if err := tx.Where("account_id IN(?)", subAccIds).
+			Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
-
-		if err := tx.Where("account_id IN(?)", accountIds).Delete(&TableRecordsInfo{}).Error; err != nil {
-			return err
-		}
-
-		if len(transactionInfos) > 0 {
-			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{
-					"account_id", "account", "service_type",
-					"chain_type", "address", "capacity", "status",
-				}),
-			}).Create(&transactionInfos).Error; err != nil {
+		for i, v := range smtInfos {
+			if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+				Where("account_id = ?", v.AccountId).
+				Updates(&smtInfos[i]).Error; err != nil {
 				return err
 			}
 		}
-
 		return nil
 	})
 }
