@@ -211,6 +211,9 @@ func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx
 			ManagerAlgorithmId: manager.DasAlgorithmId,
 			ExpiredAt:          v.CurrentSubAccountData.ExpiredAt,
 		}
+		if v.Action == common.SubActionRecycle {
+			tmp.Status = dao.AccountStatusRecycle
+		}
 		list = append(list, tmp)
 	}
 

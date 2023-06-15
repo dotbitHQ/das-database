@@ -91,29 +91,60 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 
 	var createBuilderMap = make(map[string]*witness.SubAccountNew)
 	var editBuilderMap = make(map[string]*witness.SubAccountNew)
+	var recycleBuilderMap = make(map[string]*witness.SubAccountNew)
 	for k, v := range builderMap {
 		switch v.Action {
 		case common.SubActionCreate:
 			createBuilderMap[k] = v
 		case common.SubActionEdit:
 			editBuilderMap[k] = v
+		case common.SubActionRecycle:
+			recycleBuilderMap[k] = v
 		default:
 			resp.Err = fmt.Errorf("unknow sub-action [%s]", v.Action)
 			return
 		}
 	}
 
+	if err := b.actionUpdateSubAccountForRecycle(req, recycleBuilderMap); err != nil {
+		resp.Err = fmt.Errorf("recycle sub-account err: %s", err.Error())
+		return
+	}
+
 	if err := b.actionUpdateSubAccountForCreate(req, createBuilderMap); err != nil {
-		resp.Err = fmt.Errorf("create err: %s", err.Error())
+		resp.Err = fmt.Errorf("create sub-account err: %s", err.Error())
 		return
 	}
 
 	if err := b.actionUpdateSubAccountForEdit(req, editBuilderMap); err != nil {
-		resp.Err = fmt.Errorf("edit err: %s", err.Error())
+		resp.Err = fmt.Errorf("edit sub-account err: %s", err.Error())
 		return
 	}
 
 	return
+}
+
+func (b *BlockParser) actionUpdateSubAccountForRecycle(req FuncTransactionHandleReq, recycleBuilderMap map[string]*witness.SubAccountNew) error {
+	var subAccIds []string
+	var smtInfos []dao.TableSmtInfo
+	outpoint := common.OutPoint2String(req.TxHash, 0)
+
+	for _, builder := range recycleBuilderMap {
+		subAccIds = append(subAccIds, builder.SubAccountData.AccountId)
+		smtInfo := dao.TableSmtInfo{
+			BlockNumber:  req.BlockNumber,
+			Outpoint:     outpoint,
+			AccountId:    builder.SubAccountData.AccountId,
+			LeafDataHash: common.Bytes2Hex(builder.CurrentSubAccountData.ToH256()),
+		}
+		smtInfos = append(smtInfos, smtInfo)
+	}
+
+	if err := b.dbDao.RecycleSubAccount(subAccIds, smtInfos); err != nil {
+		return fmt.Errorf("RecycleSubAccount err: %s", err.Error())
+	}
+
+	return nil
 }
 
 func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleReq, createBuilderMap map[string]*witness.SubAccountNew) error {
