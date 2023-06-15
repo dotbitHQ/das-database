@@ -193,10 +193,17 @@ func (t *ToolSnapshot) addSubAccountPermissions(info dao.TableSnapshotTxInfo, tx
 		if info.Action == common.DasActionUpdateSubAccount && v.Action == common.SubActionEdit && v.EditKey != common.EditKeyOwner && v.EditKey != common.EditKeyManager {
 			continue
 		}
-
-		owner, manager, err := t.DasCore.Daf().ArgsToHex(v.CurrentSubAccountData.Lock.Args)
-		if err != nil {
-			return fmt.Errorf("ArgsToHex err: %s", err.Error())
+		var owner, manager core.DasAddressHex
+		if v.Action == common.SubActionRecycle {
+			owner, manager, err = t.DasCore.Daf().ArgsToHex(v.SubAccountData.Lock.Args)
+			if err != nil {
+				return fmt.Errorf("ArgsToHex err: %s", err.Error())
+			}
+		} else {
+			owner, manager, err = t.DasCore.Daf().ArgsToHex(v.CurrentSubAccountData.Lock.Args)
+			if err != nil {
+				return fmt.Errorf("ArgsToHex err: %s", err.Error())
+			}
 		}
 		tmp := dao.TableSnapshotPermissionsInfo{
 			BlockNumber:        info.BlockNumber,
