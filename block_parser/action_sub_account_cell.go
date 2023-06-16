@@ -256,6 +256,13 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			}).Create(&smtInfos).Error; err != nil {
 				return err
 			}
+			for _, smtInfo := range smtInfos {
+				if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+					Where("account_id = ?", smtInfo.AccountId).
+					Updates(&smtInfo).Error; err != nil {
+					return err
+				}
+			}
 		}
 
 		if err := tx.Clauses(clause.Insert{
