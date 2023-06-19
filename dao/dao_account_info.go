@@ -54,7 +54,7 @@ func (t *TableAccountInfo) TableName() string {
 	return TableNameAccountInfo
 }
 
-func (d *DbDao) EditManager(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) EditManager(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, cidPk TableCidPk) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "manager_chain_type", "manager", "manager_algorithm_id").
 			Where("account_id = ?", accountInfo.AccountId).Updates(accountInfo).Error; err != nil {
@@ -70,11 +70,19 @@ func (d *DbDao) EditManager(accountInfo TableAccountInfo, transactionInfo TableT
 			return err
 		}
 
+		if cidPk.Cid != "" {
+			if err := d.db.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{}),
+			}).Create(&cidPk).Error; err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 }
 
-func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
+func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo, cidPk TableCidPk) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "manager_chain_type", "manager", "manager_algorithm_id").
 			Where("account_id = ?", accountInfo.AccountId).
@@ -100,7 +108,13 @@ func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo Ta
 				return err
 			}
 		}
-
+		if cidPk.Cid != "" {
+			if err := d.db.Clauses(clause.OnConflict{
+				DoUpdates: clause.AssignmentColumns([]string{}),
+			}).Create(&cidPk).Error; err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 }

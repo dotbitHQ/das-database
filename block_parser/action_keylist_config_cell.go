@@ -25,15 +25,18 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 		resp.Err = fmt.Errorf("ConvertToWebauthnKeyList err: %s", err.Error())
 		return
 	}
-	cidPk = append(cidPk, dao.TableCidPk{
+	//var cidPk []dao.TableCidPk
+	cidPk = append([]dao.TableCidPk{}, dao.TableCidPk{
 		Cid:             keyList[0].Cid,
 		Pk:              keyList[0].PubKey,
 		EnableAuthorize: dao.EnableAuthorizeOn,
-		Outpoint:        common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		KeylistOutpoint: common.OutPoint2String(req.TxHash, uint(builder.Index)),
 	})
 	if err := b.dbDao.InsertCidPk(cidPk); err != nil {
 		resp.Err = fmt.Errorf("InsertCidPk err: %s", err.Error())
+		return
 	}
+
 	return
 }
 
@@ -58,12 +61,16 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 	var authorize []dao.TableAuthorize
 	var cidPks []dao.TableCidPk
 	for i := 0; i < len(keyList); i++ {
+		var cidPk dao.TableCidPk
 		if i == 0 {
 			master.MinAlgId = keyList[0].MinAlgId
 			master.SubAlgId = keyList[0].SubAlgId
 			master.Cid = keyList[0].Cid
 			master.PubKey = keyList[0].PubKey
+			cidPk.KeylistOutpoint = common.OutPoint2String(req.TxHash, 0)
 		}
+		cidPk.Cid = keyList[i].Cid
+		cidPk.Pk = keyList[i].PubKey
 		authorize = append(authorize, dao.TableAuthorize{
 			MasterAlgId:    common.DasAlgorithmId(master.MinAlgId),
 			MasterSubAlgId: common.DasAlgorithmId(master.SubAlgId),
@@ -75,11 +82,7 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 			SlavePk:        keyList[i].PubKey,
 			Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		})
-		cidPks = append(cidPks, dao.TableCidPk{
-			Cid:      keyList[i].Cid,
-			Pk:       keyList[i].PubKey,
-			Outpoint: common.OutPoint2String(req.TxHash, uint(builder.Index)),
-		})
+		cidPks = append(cidPks, cidPk)
 	}
 	if err = b.dbDao.UpdateAuthorizeByMaster(authorize, cidPks); err != nil {
 		resp.Err = fmt.Errorf("UpdateAuthorizeByMaster err:%s", err.Error())

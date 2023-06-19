@@ -39,7 +39,9 @@ func (d *DbDao) UpdateAuthorizeByMaster(authorize []TableAuthorize, cidPks []Tab
 			return err
 		}
 		if err := tx.Clauses(clause.OnConflict{
-			DoUpdates: clause.AssignmentColumns([]string{}),
+			DoUpdates: clause.AssignmentColumns([]string{
+				"outpoint",
+			}),
 		}).Create(&cidPks).Error; err != nil {
 			return err
 		}
