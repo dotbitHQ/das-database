@@ -15,8 +15,8 @@ const (
 type TableSubAccountAutoMintStatement struct {
 	Id                uint64                   `json:"id" gorm:"column:id; primaryKey; type:bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '';"`
 	BlockNumber       uint64                   `json:"block_number" gorm:"column:block_number; index:k_block_number; type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '';"`
-	TxHash            string                   `json:"tx_hash" gorm:"column:tx_hash; index:idx_hash; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
-	WitnessIndex      int                      `json:"witness_index" gorm:"column:witness_index; type:int(11) NOT NULL DEFAULT '0' COMMENT '';"`
+	TxHash            string                   `json:"tx_hash" gorm:"column:tx_hash; uniqueIndex:uk_tx_wi; index:idx_hash; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
+	WitnessIndex      int                      `json:"witness_index" gorm:"column:witness_index; uniqueIndex:uk_tx_wi; type:int(11) NOT NULL DEFAULT '0' COMMENT '';"`
 	ParentAccountId   string                   `json:"parent_account_id" gorm:"column:parent_account_id; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
 	ServiceProviderId string                   `json:"service_provider_id" gorm:"column:service_provider_id; index:idx_service_provider_id; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
 	Price             decimal.Decimal          `json:"price" gorm:"column:price; type:decimal(60,2) NOT NULL DEFAULT '0' COMMENT '';"`
