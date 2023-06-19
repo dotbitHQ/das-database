@@ -283,7 +283,9 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			if err != nil {
 				return err
 			}
-			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&dao.TableSubAccountAutoMintStatement{
 				BlockNumber:       req.BlockNumber,
 				TxHash:            req.TxHash,
 				WitnessIndex:      v.Index,
@@ -708,7 +710,9 @@ func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHa
 			}
 			_ = rows.Close()
 
-			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&dao.TableSubAccountAutoMintStatement{
 				BlockNumber:       latestBlockNumber,
 				TxHash:            req.TxHash,
 				ParentAccountId:   parentAccountId,
