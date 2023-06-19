@@ -251,17 +251,14 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		}
 
 		if len(smtInfos) > 0 {
+			if err := tx.Where("account_id IN(?)", subAccountIds).
+				Delete(&dao.TableSmtInfo{}).Error; err != nil {
+				return err
+			}
 			if err := tx.Clauses(clause.Insert{
 				Modifier: "IGNORE",
 			}).Create(&smtInfos).Error; err != nil {
 				return err
-			}
-			for _, smtInfo := range smtInfos {
-				if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
-					Where("account_id = ?", smtInfo.AccountId).
-					Updates(&smtInfo).Error; err != nil {
-					return err
-				}
 			}
 		}
 
