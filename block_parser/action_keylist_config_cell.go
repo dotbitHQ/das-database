@@ -15,7 +15,7 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 		log.Warn("not current version transfer account tx")
 		return
 	}
-	log.Info("ActionTransferAccount:", req.BlockNumber, req.TxHash)
+	log.Info("ActionCreateDeviceKeyList:", req.BlockNumber, req.TxHash)
 
 	builder, err := witness.WebAuthnKeyListDataBuilderFromTx(req.Tx, common.DataTypeNew)
 	//add cidpk
@@ -30,7 +30,7 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 		Cid:             keyList[0].Cid,
 		Pk:              keyList[0].PubKey,
 		EnableAuthorize: dao.EnableAuthorizeOn,
-		KeylistOutpoint: common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		Outpoint:        common.OutPoint2String(req.TxHash, uint(builder.Index)),
 	})
 	if err := b.dbDao.InsertCidPk(cidPk); err != nil {
 		resp.Err = fmt.Errorf("InsertCidPk err: %s", err.Error())
@@ -49,7 +49,7 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 		log.Warn("not current version transfer account tx")
 		return
 	}
-	log.Info("ActionTransferAccount:", req.BlockNumber, req.TxHash)
+	log.Info("ActionUpdateDeviceKeyList:", req.BlockNumber, req.TxHash)
 
 	builder, err := witness.WebAuthnKeyListDataBuilderFromTx(req.Tx, common.DataTypeNew)
 	if err != nil {
@@ -67,15 +67,15 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 			master.SubAlgId = keyList[0].SubAlgId
 			master.Cid = keyList[0].Cid
 			master.PubKey = keyList[0].PubKey
-			cidPk.KeylistOutpoint = common.OutPoint2String(req.TxHash, 0)
+			cidPk.Outpoint = common.OutPoint2String(req.TxHash, 0)
 		}
 		cidPk.Cid = keyList[i].Cid
 		cidPk.Pk = keyList[i].PubKey
 		authorize = append(authorize, dao.TableAuthorize{
 			MasterAlgId:    common.DasAlgorithmId(master.MinAlgId),
 			MasterSubAlgId: common.DasAlgorithmId(master.SubAlgId),
-			MasterCid:      keyList[i].Cid,
-			MasterPk:       keyList[i].PubKey,
+			MasterCid:      master.Cid,
+			MasterPk:       master.PubKey,
 			SlaveAlgId:     common.DasAlgorithmId(keyList[i].MinAlgId),
 			SlaveSubAlgId:  common.DasAlgorithmId(keyList[i].SubAlgId),
 			SlaveCid:       keyList[i].Cid,
