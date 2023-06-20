@@ -175,6 +175,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 	}
 
 	var accountInfos []dao.TableAccountInfo
+	var records []dao.TableRecordsInfo
 	var subAccountIds []string
 	var smtInfos []dao.TableSmtInfo
 	var capacity uint64
@@ -215,6 +216,19 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			LeafDataHash:    common.Bytes2Hex(v.SubAccountData.ToH256()),
 		})
 		capacity += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * newPrice
+		for _, record := range v.SubAccountData.Records {
+			records = append(records, dao.TableRecordsInfo{
+				AccountId:       v.SubAccountData.AccountId,
+				ParentAccountId: parentAccountId,
+				Account:         v.Account,
+				Key:             record.Key,
+				Type:            record.Type,
+				Label:           record.Label,
+				Value:           record.Value,
+				Ttl:             strconv.FormatUint(uint64(record.TTL), 10),
+			})
+		}
+
 	}
 
 	ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
@@ -239,6 +253,11 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		if len(subAccountIds) > 0 {
 			if err := tx.Where("account_id IN(?)", subAccountIds).
 				Delete(&dao.TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+		}
+		if len(records) > 0 {
+			if err := tx.Create(&records).Error; err != nil {
 				return err
 			}
 		}
