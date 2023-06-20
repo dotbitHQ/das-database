@@ -8,7 +8,7 @@ import (
 )
 
 func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasKeyListCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
@@ -42,7 +42,7 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 
 // add and delete deviceKey
 func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasKeyListCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
