@@ -164,20 +164,22 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 	}
 
 	owner, err := h.dasCore.Daf().HexToNormal(core.DasAddressHex{
-		DasAlgorithmId: info.OwnerAlgorithmId,
-		AddressHex:     info.Owner,
-		IsMulti:        false,
-		ChainType:      info.OwnerAlgorithmId.ToChainType(),
+		DasAlgorithmId:    info.OwnerAlgorithmId,
+		DasSubAlgorithmId: info.OwnerSubAid,
+		AddressHex:        info.Owner,
+		IsMulti:           false,
+		ChainType:         info.OwnerAlgorithmId.ToChainType(),
 	})
 	if err != nil {
 		apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")
 		return fmt.Errorf("HexToNormal err: %s", err.Error())
 	}
 	manager, err := h.dasCore.Daf().HexToNormal(core.DasAddressHex{
-		DasAlgorithmId: info.ManagerAlgorithmId,
-		AddressHex:     info.Manager,
-		IsMulti:        false,
-		ChainType:      info.ManagerAlgorithmId.ToChainType(),
+		DasAlgorithmId:    info.ManagerAlgorithmId,
+		DasSubAlgorithmId: info.ManagerSubAid,
+		AddressHex:        info.Manager,
+		IsMulti:           false,
+		ChainType:         info.ManagerAlgorithmId.ToChainType(),
 	})
 	if err != nil {
 		apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")

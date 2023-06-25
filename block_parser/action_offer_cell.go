@@ -282,9 +282,11 @@ func (b *BlockParser) ActionAcceptOffer(req FuncTransactionHandleReq) (resp Func
 		OwnerChainType:     ownerHex.ChainType,
 		Owner:              ownerHex.AddressHex,
 		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
+		OwnerSubAid:        ownerHex.DasSubAlgorithmId,
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerSubAid:      managerHex.DasSubAlgorithmId,
 		Status:             buyerBuilder.Status,
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{

@@ -117,11 +117,17 @@ func (b *BlockParser) ActionEditManager(req FuncTransactionHandleReq) (resp Func
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerSubAid:      managerHex.DasSubAlgorithmId,
+	}
+	var cidPk dao.TableCidPk
+	if managerHex.DasAlgorithmId == common.DasAlgorithmIdWebauthn {
+		cidPk.Cid = common.Bytes2Hex(managerHex.AddressPayload[:10])
+		cidPk.Pk = common.Bytes2Hex(managerHex.AddressPayload[10:])
 	}
 
 	log.Info("ActionEditManager:", account, managerHex.DasAlgorithmId, managerHex.ChainType, managerHex.AddressHex, transactionInfo.Address)
 
-	if err := b.dbDao.EditManager(accountInfo, transactionInfo); err != nil {
+	if err := b.dbDao.EditManager(accountInfo, transactionInfo, cidPk); err != nil {
 		log.Error("EditManager err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("EditManager err: %s", err.Error())
 	}
@@ -270,10 +276,19 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		OwnerChainType:     oHex.ChainType,
 		Owner:              oHex.AddressHex,
 		OwnerAlgorithmId:   oHex.DasAlgorithmId,
+		OwnerSubAid:        oHex.DasSubAlgorithmId,
 		ManagerChainType:   mHex.ChainType,
 		Manager:            mHex.AddressHex,
 		ManagerAlgorithmId: mHex.DasAlgorithmId,
+		ManagerSubAid:      mHex.DasSubAlgorithmId,
 	}
+
+	var cidPk dao.TableCidPk
+	if oHex.DasAlgorithmId == common.DasAlgorithmIdWebauthn {
+		cidPk.Cid = common.Bytes2Hex(oHex.AddressPayload[:10])
+		cidPk.Pk = common.Bytes2Hex(oHex.AddressPayload[10:])
+	}
+
 	var recordsInfos []dao.TableRecordsInfo
 	recordList := builder.Records
 	for _, v := range recordList {
@@ -290,7 +305,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 
 	log.Info("ActionTransferAccount:", account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex, mHex.DasAlgorithmId, mHex.ChainType, mHex.AddressHex, transactionInfo.Address)
 
-	if err := b.dbDao.TransferAccount(accountInfo, transactionInfo, recordsInfos); err != nil {
+	if err := b.dbDao.TransferAccount(accountInfo, transactionInfo, recordsInfos, cidPk); err != nil {
 		log.Error("TransferAccount err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("TransferAccount err: %s", err.Error())
 	}
@@ -474,9 +489,11 @@ func (b *BlockParser) ActionAccountCrossChain(req FuncTransactionHandleReq) (res
 		OwnerChainType:     ownerHex.ChainType,
 		Owner:              ownerHex.AddressHex,
 		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
+		OwnerSubAid:        ownerHex.DasSubAlgorithmId,
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerSubAid:      managerHex.DasSubAlgorithmId,
 		Status:             builder.Status,
 	}
 	transactionInfo := dao.TableTransactionInfo{
