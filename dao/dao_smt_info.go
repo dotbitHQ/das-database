@@ -236,7 +236,7 @@ func (d *DbDao) RenewSubAccount(accountInfos []TableAccountInfo, smtInfos []Tabl
 	})
 }
 
-func (d *DbDao) RecycleSubAccount(subAccIds []string, smtInfos []TableSmtInfo) error {
+func (d *DbDao) RecycleSubAccount(subAccIds []string, smtInfos []TableSmtInfo, txs []TableTransactionInfo) error {
 	if len(subAccIds) == 0 && len(smtInfos) == 0 {
 		return nil
 	}
@@ -255,6 +255,11 @@ func (d *DbDao) RecycleSubAccount(subAccIds []string, smtInfos []TableSmtInfo) e
 				Updates(&smtInfos[i]).Error; err != nil {
 				return err
 			}
+		}
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&txs).Error; err != nil {
+			return err
 		}
 		return nil
 	})

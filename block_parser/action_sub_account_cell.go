@@ -127,8 +127,10 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 func (b *BlockParser) actionUpdateSubAccountForRecycle(req FuncTransactionHandleReq, recycleBuilderMap map[string]*witness.SubAccountNew) error {
 	var subAccIds []string
 	var smtInfos []dao.TableSmtInfo
+	var txs []dao.TableTransactionInfo
 	outpoint := common.OutPoint2String(req.TxHash, 0)
 
+	indexTx := uint(0)
 	for _, builder := range recycleBuilderMap {
 		subAccIds = append(subAccIds, builder.SubAccountData.AccountId)
 		smtInfo := dao.TableSmtInfo{
@@ -138,9 +140,28 @@ func (b *BlockParser) actionUpdateSubAccountForRecycle(req FuncTransactionHandle
 			LeafDataHash: common.Bytes2Hex(builder.CurrentSubAccountData.ToH256()),
 		}
 		smtInfos = append(smtInfos, smtInfo)
+		oHex, _, err := b.dasCore.Daf().ScriptToHex(builder.SubAccountData.Lock)
+		if err != nil {
+			return fmt.Errorf("ScriptToHex err: %s", err.Error())
+		}
+		outpointTx := common.OutPoint2String(req.TxHash, indexTx)
+		txInfo := dao.TableTransactionInfo{
+			BlockNumber:    req.BlockNumber,
+			AccountId:      builder.SubAccountData.AccountId,
+			Account:        builder.SubAccountData.Account(),
+			Action:         common.DasActionRecycleExpiredAccount,
+			ServiceType:    dao.ServiceTypeRegister,
+			ChainType:      oHex.ChainType,
+			Address:        oHex.AddressHex,
+			Capacity:       0,
+			Outpoint:       outpointTx,
+			BlockTimestamp: req.BlockTimestamp,
+		}
+		txs = append(txs, txInfo)
+		indexTx++
 	}
 
-	if err := b.dbDao.RecycleSubAccount(subAccIds, smtInfos); err != nil {
+	if err := b.dbDao.RecycleSubAccount(subAccIds, smtInfos, txs); err != nil {
 		return fmt.Errorf("RecycleSubAccount err: %s", err.Error())
 	}
 
