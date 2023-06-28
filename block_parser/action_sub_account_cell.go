@@ -301,11 +301,15 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		return fmt.Errorf("RenewSubAccountPrice err: %s", err.Error())
 	}
 
-	var accountInfos []dao.TableAccountInfo
 	var capacity uint64
 	var parentAccount string
+	var accountInfos []*dao.TableAccountInfo
 
 	for _, v := range renewBuilderMap {
+		if parentAccount == "" {
+			parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
+		}
+
 		subAcc, err := b.dbDao.GetAccountInfoByAccountId(v.SubAccountData.AccountId)
 		if err != nil {
 			return err
@@ -317,7 +321,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		renewPrice := uint64(0)
 		switch v.EditKey {
 		case common.EditKeyManual:
-			renewPrice = (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * renewPriceConfig
+			renewPrice = (v.SubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec) * renewPriceConfig
 		case common.EditKeyCustomRule:
 			renewPrice, err = molecule.Bytes2GoU64(v.EditValue[28:])
 			if err != nil {
@@ -326,7 +330,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		}
 		capacity += renewPrice
 
-		accountInfos = append(accountInfos, dao.TableAccountInfo{
+		accountInfos = append(accountInfos, &dao.TableAccountInfo{
 			Id:                   subAcc.Id,
 			BlockNumber:          req.BlockNumber,
 			Outpoint:             common.OutPoint2String(req.TxHash, 0),
@@ -335,7 +339,6 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			ExpiredAt:            v.SubAccountData.ExpiredAt,
 			ConfirmProposalHash:  req.TxHash,
 		})
-		parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
 	}
 
 	ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
@@ -358,7 +361,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
 		if len(accountInfos) > 0 {
-			if err := tx.Save(accountInfos).Error; err != nil {
+			if err := tx.Save(&accountInfos).Error; err != nil {
 				return err
 			}
 		}
