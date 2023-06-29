@@ -303,7 +303,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 
 	var capacity uint64
 	var parentAccount string
-	var accountInfos []*dao.TableAccountInfo
+	var accountInfos []dao.TableAccountInfo
 
 	for _, v := range renewBuilderMap {
 		if parentAccount == "" {
@@ -330,7 +330,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		}
 		capacity += renewPrice
 
-		accountInfos = append(accountInfos, &dao.TableAccountInfo{
+		accountInfos = append(accountInfos, dao.TableAccountInfo{
 			Id:                   subAcc.Id,
 			BlockNumber:          req.BlockNumber,
 			Outpoint:             common.OutPoint2String(req.TxHash, 0),
@@ -360,8 +360,8 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 	}
 
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
-		if len(accountInfos) > 0 {
-			if err := tx.Save(&accountInfos).Error; err != nil {
+		for _, v := range accountInfos {
+			if err := tx.Model(&v).Where("id=?", v.Id).Updates(v).Error; err != nil {
 				return err
 			}
 		}
