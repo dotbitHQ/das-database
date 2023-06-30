@@ -303,6 +303,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 
 	var capacity uint64
 	var parentAccount string
+	var smtInfos []dao.TableSmtInfo
 	var accountInfos []dao.TableAccountInfo
 
 	for _, v := range renewBuilderMap {
@@ -339,6 +340,13 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			ExpiredAt:            v.SubAccountData.ExpiredAt,
 			ConfirmProposalHash:  req.TxHash,
 		})
+
+		smtInfos = append(smtInfos, dao.TableSmtInfo{
+			BlockNumber:  req.BlockNumber,
+			Outpoint:     subAccountCellOutpoint,
+			AccountId:    v.SubAccountData.AccountId,
+			LeafDataHash: common.Bytes2Hex(v.SubAccountData.ToH256()),
+		})
 	}
 
 	ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
@@ -360,8 +368,16 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 	}
 
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
-		for _, v := range accountInfos {
-			if err := tx.Model(&v).Where("id=?", v.Id).Updates(v).Error; err != nil {
+		for i := range accountInfos {
+			accountInfo := accountInfos[i]
+			if err := tx.Where("id=?", accountInfo.Id).Updates(&accountInfo).Error; err != nil {
+				return err
+			}
+		}
+
+		for i := range smtInfos {
+			smtInfo := smtInfos[i]
+			if err := tx.Where("account_id = ?", smtInfo.AccountId).Updates(&smtInfo).Error; err != nil {
 				return err
 			}
 		}
