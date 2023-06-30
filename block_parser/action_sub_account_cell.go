@@ -311,7 +311,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
 		}
 
-		subAcc, err := b.dbDao.GetAccountInfoByAccountId(v.SubAccountData.AccountId)
+		subAcc, err := b.dbDao.GetAccountInfoByAccountId(v.CurrentSubAccountData.AccountId)
 		if err != nil {
 			return err
 		}
@@ -322,7 +322,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		renewPrice := uint64(0)
 		switch v.EditKey {
 		case common.EditKeyManual:
-			renewPrice = (v.SubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec) * renewPriceConfig
+			renewPrice = (v.CurrentSubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec) * renewPriceConfig
 		case common.EditKeyCustomRule:
 			renewPrice, err = molecule.Bytes2GoU64(v.EditValue[28:])
 			if err != nil {
@@ -336,16 +336,16 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			BlockNumber:          req.BlockNumber,
 			Outpoint:             common.OutPoint2String(req.TxHash, 0),
 			RenewSubAccountPrice: renewPrice,
-			Nonce:                v.SubAccountData.Nonce,
-			ExpiredAt:            v.SubAccountData.ExpiredAt,
+			Nonce:                v.CurrentSubAccountData.Nonce,
+			ExpiredAt:            v.CurrentSubAccountData.ExpiredAt,
 			ConfirmProposalHash:  req.TxHash,
 		})
 
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     subAccountCellOutpoint,
-			AccountId:    v.SubAccountData.AccountId,
-			LeafDataHash: common.Bytes2Hex(v.SubAccountData.ToH256()),
+			AccountId:    v.CurrentSubAccountData.AccountId,
+			LeafDataHash: common.Bytes2Hex(v.CurrentSubAccountData.ToH256()),
 		})
 	}
 
