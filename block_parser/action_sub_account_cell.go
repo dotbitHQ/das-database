@@ -332,13 +332,11 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		capacity += renewPrice
 
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
-			Id:                   subAcc.Id,
-			BlockNumber:          req.BlockNumber,
-			Outpoint:             common.OutPoint2String(req.TxHash, 0),
-			RenewSubAccountPrice: renewPrice,
-			Nonce:                v.CurrentSubAccountData.Nonce,
-			ExpiredAt:            v.CurrentSubAccountData.ExpiredAt,
-			ConfirmProposalHash:  req.TxHash,
+			Id:          subAcc.Id,
+			BlockNumber: req.BlockNumber,
+			Outpoint:    common.OutPoint2String(req.TxHash, 0),
+			Nonce:       v.CurrentSubAccountData.Nonce,
+			ExpiredAt:   v.CurrentSubAccountData.ExpiredAt,
 		})
 
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
