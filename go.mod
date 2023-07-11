@@ -3,7 +3,7 @@ module das_database
 go 1.17
 
 require (
-	github.com/dotbitHQ/das-lib v1.0.2-0.20230710062959-9bec3e741d27
+	github.com/dotbitHQ/das-lib v1.0.2-0.20230711043213-e29687586f68
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-redis/redis v6.15.9+incompatible
@@ -40,6 +40,7 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
 	github.com/gogf/gf/v2 v2.3.3 // indirect
+	github.com/golang/mock v1.5.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
@@ -68,6 +69,7 @@ require (
 	go.uber.org/zap v1.18.1 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
+	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect
