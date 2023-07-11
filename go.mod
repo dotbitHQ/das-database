@@ -3,7 +3,7 @@ module das_database
 go 1.17
 
 require (
-	github.com/dotbitHQ/das-lib v1.0.2-0.20230614085701-c6f7f03e6e24
+	github.com/dotbitHQ/das-lib v1.0.2-0.20230707020130-9c90e953acb1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-redis/redis v6.15.9+incompatible
@@ -23,7 +23,7 @@ require (
 	github.com/Andrew-M-C/go.emoji v1.0.1 // indirect
 	github.com/StackExchange/wmi v0.0.0-20180116203802-5d049714c4a6 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.3 // indirect
-	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d // indirect
+	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/clipperhouse/uax29 v1.12.4 // indirect

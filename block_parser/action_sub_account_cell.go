@@ -90,12 +90,15 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 	}
 
 	var createBuilderMap = make(map[string]*witness.SubAccountNew)
+	var renewBuilderMap = make(map[string]*witness.SubAccountNew)
 	var editBuilderMap = make(map[string]*witness.SubAccountNew)
 	var recycleBuilderMap = make(map[string]*witness.SubAccountNew)
 	for k, v := range builderMap {
 		switch v.Action {
 		case common.SubActionCreate:
 			createBuilderMap[k] = v
+		case common.SubActionRenew:
+			renewBuilderMap[k] = v
 		case common.SubActionEdit:
 			editBuilderMap[k] = v
 		case common.SubActionRecycle:
@@ -113,6 +116,11 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 
 	if err := b.actionUpdateSubAccountForCreate(req, createBuilderMap); err != nil {
 		resp.Err = fmt.Errorf("create sub-account err: %s", err.Error())
+		return
+	}
+
+	if err := b.actionUpdateSubAccountForRenew(req, renewBuilderMap); err != nil {
+		resp.Err = fmt.Errorf("create err: %s", err.Error())
 		return
 	}
 
@@ -172,7 +180,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 	if len(createBuilderMap) == 0 {
 		return nil
 	}
-	// check sub-account config custom-script-args or not
+	// check sub_account config custom-script-args or not
 	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
 	if err != nil {
 		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
@@ -331,6 +339,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 				Price:             decimal.NewFromInt(int64(price)),
 				BlockTimestamp:    req.BlockTimestamp,
 				TxType:            dao.SubAccountAutoMintTxTypeIncome,
+				SubAction:         v.Action,
 			}).Error; err != nil {
 				return err
 			}
@@ -338,6 +347,149 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		return nil
 	}); err != nil {
 		return fmt.Errorf("UpdateSubAccountForCreate err: %s", err.Error())
+	}
+	return nil
+}
+
+func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleReq, renewBuilderMap map[string]*witness.SubAccountNew) error {
+	if len(renewBuilderMap) == 0 {
+		return nil
+	}
+	// check sub_account config custom-script-args or not
+	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
+	if err != nil {
+		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+
+	var subAccountCellOutpoint, parentAccountId string
+	for i, v := range req.Tx.Outputs {
+		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
+			parentAccountId = common.Bytes2Hex(v.Type.Args)
+			subAccountCellOutpoint = common.OutPoint2String(req.TxHash, uint(i))
+		}
+	}
+
+	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsSubAccount)
+	if err != nil {
+		return fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+	}
+	renewPriceConfig, err := builderConfig.RenewSubAccountPrice()
+	if err != nil {
+		return fmt.Errorf("RenewSubAccountPrice err: %s", err.Error())
+	}
+
+	var capacity uint64
+	var parentAccount string
+	var smtInfos []dao.TableSmtInfo
+	var accountInfos []dao.TableAccountInfo
+
+	for _, v := range renewBuilderMap {
+		if parentAccount == "" {
+			parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
+		}
+
+		subAcc, err := b.dbDao.GetAccountInfoByAccountId(v.CurrentSubAccountData.AccountId)
+		if err != nil {
+			return err
+		}
+		if subAcc.Id == 0 {
+			return fmt.Errorf("account: [%s] no exist", v.Account)
+		}
+
+		renewPrice := uint64(0)
+		switch v.EditKey {
+		case common.EditKeyManual:
+			renewPrice = (v.CurrentSubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec) * renewPriceConfig
+		case common.EditKeyCustomRule:
+			renewPrice, err = molecule.Bytes2GoU64(v.EditValue[28:])
+			if err != nil {
+				return err
+			}
+		}
+		capacity += renewPrice
+
+		accountInfos = append(accountInfos, dao.TableAccountInfo{
+			Id:          subAcc.Id,
+			BlockNumber: req.BlockNumber,
+			Outpoint:    common.OutPoint2String(req.TxHash, 0),
+			Nonce:       v.CurrentSubAccountData.Nonce,
+			ExpiredAt:   v.CurrentSubAccountData.ExpiredAt,
+		})
+
+		smtInfos = append(smtInfos, dao.TableSmtInfo{
+			BlockNumber:  req.BlockNumber,
+			Outpoint:     subAccountCellOutpoint,
+			AccountId:    v.CurrentSubAccountData.AccountId,
+			LeafDataHash: common.Bytes2Hex(v.CurrentSubAccountData.ToH256()),
+		})
+	}
+
+	ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
+	if err != nil {
+		return fmt.Errorf("ArgsToHex err: %s", err.Error())
+	}
+
+	transactionInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      parentAccountId,
+		Account:        parentAccount,
+		Action:         common.DasActionRenewSubAccount,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
+		Capacity:       capacity,
+		Outpoint:       subAccountCellOutpoint,
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		for i := range accountInfos {
+			accountInfo := accountInfos[i]
+			if err := tx.Where("id=?", accountInfo.Id).Updates(&accountInfo).Error; err != nil {
+				return err
+			}
+		}
+
+		for i := range smtInfos {
+			smtInfo := smtInfos[i]
+			if err := tx.Where("account_id = ?", smtInfo.AccountId).Updates(&smtInfo).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		for _, v := range renewBuilderMap {
+			if v.EditKey != common.EditKeyCustomRule {
+				continue
+			}
+			//expiredAt, _ := molecule.Bytes2GoU64(v.EditValue[:8])
+			providerId := common.Bytes2Hex(v.EditValue[8:28])
+			price, err := molecule.Bytes2GoU64(v.EditValue[28:])
+			if err != nil {
+				return err
+			}
+			if err := tx.Create(&dao.TableSubAccountAutoMintStatement{
+				BlockNumber:       req.BlockNumber,
+				TxHash:            req.TxHash,
+				WitnessIndex:      v.Index,
+				ParentAccountId:   parentAccountId,
+				ServiceProviderId: providerId,
+				Price:             decimal.NewFromInt(int64(price)),
+				BlockTimestamp:    req.BlockTimestamp,
+				TxType:            dao.SubAccountAutoMintTxTypeIncome,
+				SubAction:         common.SubActionRenew,
+			}).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("UpdateSubAccountForRenew err: %s", err.Error())
 	}
 	return nil
 }
