@@ -36,7 +36,6 @@ func (b *BlockParser) ActionCreateDeviceKeyList(req FuncTransactionHandleReq) (r
 		resp.Err = fmt.Errorf("InsertCidPk err: %s", err.Error())
 		return
 	}
-
 	return
 }
 
@@ -68,6 +67,8 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 			master.Cid = keyList[0].Cid
 			master.PubKey = keyList[0].PubKey
 			cidPk.Outpoint = common.OutPoint2String(req.TxHash, 0)
+			oringinPubkey, _ := witness.GetWebAuthnPubkeyByWitness0(req.Tx.Witnesses[0])
+			cidPk.OriginPk = common.Bytes2Hex(oringinPubkey)
 		}
 		cidPk.Cid = keyList[i].Cid
 		cidPk.Pk = keyList[i].PubKey
