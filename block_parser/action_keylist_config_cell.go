@@ -69,6 +69,15 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 			cidPk.Outpoint = common.OutPoint2String(req.TxHash, 0)
 			oringinPubkey, _ := witness.GetWebAuthnPubkeyByWitness0(req.Tx.Witnesses[0])
 			cidPk.OriginPk = common.Bytes2Hex(oringinPubkey)
+		} else {
+			res, err := b.dbDao.GetCidPk(keyList[i].Cid)
+			if err != nil {
+				resp.Err = fmt.Errorf("GetCidPk err:%s", err.Error())
+				return
+			}
+			if res.Id > 0 {
+				continue
+			}
 		}
 		cidPk.Cid = keyList[i].Cid
 		cidPk.Pk = keyList[i].PubKey
