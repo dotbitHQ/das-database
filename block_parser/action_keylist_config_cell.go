@@ -66,12 +66,12 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 			master.SubAlgId = keyList[0].SubAlgId
 			master.Cid = keyList[0].Cid
 			master.PubKey = keyList[0].PubKey
-			cidPk.Outpoint = common.OutPoint2String(req.TxHash, 0)
 			oringinPubkey, _ := witness.GetWebAuthnPubkeyByWitness0(req.Tx.Witnesses[0])
 			cidPk.OriginPk = common.Bytes2Hex(oringinPubkey)
 		}
 		cidPk.Cid = keyList[i].Cid
 		cidPk.Pk = keyList[i].PubKey
+		cidPk.Outpoint = common.OutPoint2String(req.TxHash, 0)
 		authorize = append(authorize, dao.TableAuthorize{
 			MasterAlgId:    common.DasAlgorithmId(master.MinAlgId),
 			MasterSubAlgId: common.DasAlgorithmId(master.SubAlgId),
