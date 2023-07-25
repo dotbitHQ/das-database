@@ -61,6 +61,8 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 	var cidPks []dao.TableCidPk
 	for i := 0; i < len(keyList); i++ {
 		var cidPk dao.TableCidPk
+		cidPk.Cid = keyList[i].Cid
+		cidPk.Pk = keyList[i].PubKey
 		if i == 0 {
 			master.MinAlgId = keyList[0].MinAlgId
 			master.SubAlgId = keyList[0].SubAlgId
@@ -75,12 +77,11 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 				resp.Err = fmt.Errorf("GetCidPk err:%s", err.Error())
 				return
 			}
-			if res.Id > 0 {
-				continue
+			if res.Id == 0 {
+				cidPks = append(cidPks, cidPk)
 			}
 		}
-		cidPk.Cid = keyList[i].Cid
-		cidPk.Pk = keyList[i].PubKey
+
 		authorize = append(authorize, dao.TableAuthorize{
 			MasterAlgId:    common.DasAlgorithmId(master.MinAlgId),
 			MasterSubAlgId: common.DasAlgorithmId(master.SubAlgId),
@@ -92,7 +93,7 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 			SlavePk:        keyList[i].PubKey,
 			Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		})
-		cidPks = append(cidPks, cidPk)
+
 	}
 	if err = b.dbDao.UpdateAuthorizeByMaster(authorize, cidPks); err != nil {
 		resp.Err = fmt.Errorf("UpdateAuthorizeByMaster err:%s", err.Error())
