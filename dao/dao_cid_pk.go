@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"das-multi-device/tables"
 	"fmt"
 	"gorm.io/gorm/clause"
 	"time"
@@ -48,7 +47,7 @@ func (d *DbDao) InsertCidPk(data []TableCidPk) (err error) {
 	return
 }
 
-func (d *DbDao) GetCidPk(cid1 string) (cidpk tables.TableCidPk, err error) {
+func (d *DbDao) GetCidPk(cid1 string) (cidpk TableCidPk, err error) {
 	err = d.db.Where("`cid`= ? ", cid1).Find(&cidpk).Error
 	return
 }
