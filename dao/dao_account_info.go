@@ -40,6 +40,7 @@ const (
 	AccountStatusOnSale    AccountStatus = 1
 	AccountStatusOnAuction AccountStatus = 2
 	AccountStatusOnLock    AccountStatus = 3
+	AccountStatusApproval  AccountStatus = 4
 	AccountStatusRecycle   AccountStatus = 99
 
 	AccountEnableStatusOff EnableSubAccount = 0
@@ -319,5 +320,10 @@ func (d *DbDao) GetAccountInfoByAccountId(accountId string) (info TableAccountIn
 	if err == gorm.ErrRecordNotFound {
 		err = nil
 	}
+	return
+}
+
+func (d *DbDao) UpdateAccountInfo(accountId string, accInfo map[string]interface{}) (err error) {
+	err = d.db.Model(&TableAccountInfo{}).Where("account_id=?", accountId).Updates(accInfo).Error
 	return
 }

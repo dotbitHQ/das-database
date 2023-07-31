@@ -93,6 +93,7 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 	var renewBuilderMap = make(map[string]*witness.SubAccountNew)
 	var editBuilderMap = make(map[string]*witness.SubAccountNew)
 	var recycleBuilderMap = make(map[string]*witness.SubAccountNew)
+	var approvalBuilderMap = make(map[string]*witness.SubAccountNew)
 	for k, v := range builderMap {
 		switch v.Action {
 		case common.SubActionCreate:
@@ -103,6 +104,9 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 			editBuilderMap[k] = v
 		case common.SubActionRecycle:
 			recycleBuilderMap[k] = v
+		case common.SubActionCreateApproval, common.SubActionDelayApproval,
+			common.SubActionRevokeApproval, common.SubActionFullfillApproval:
+			approvalBuilderMap[k] = v
 		default:
 			resp.Err = fmt.Errorf("unknow sub-action [%s]", v.Action)
 			return
@@ -129,6 +133,10 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 
+	if err := b.actionUpdateSubAccountForApproval(req, approvalBuilderMap); err != nil {
+		resp.Err = fmt.Errorf("approval err: %s", err.Error())
+		return
+	}
 	return
 }
 
@@ -580,6 +588,53 @@ func (b *BlockParser) actionUpdateSubAccountForEdit(req FuncTransactionHandleReq
 	}
 
 	return nil
+}
+
+func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandleReq, approvalBuilderMap map[string]*witness.SubAccountNew) error {
+	if len(approvalBuilderMap) == 0 {
+		return nil
+	}
+	return b.dbDao.Transaction(func(tx *gorm.DB) error {
+		for k, v := range approvalBuilderMap {
+			log.Info("actionUpdateSubAccountForApproval sub_action:", k)
+			switch k {
+			case common.SubActionCreateApproval:
+				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", v.SubAccountData.AccountId).Updates(map[string]interface{}{
+					"status": dao.AccountStatusApproval,
+				}).Error; err != nil {
+					return err
+				}
+			case common.SubActionRevokeApproval:
+				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", v.SubAccountData.AccountId).Updates(map[string]interface{}{
+					"status": dao.AccountStatusNormal,
+				}).Error; err != nil {
+					return err
+				}
+			case common.SubActionFullfillApproval:
+				approval := v.CurrentSubAccountData.AccountApproval
+				switch approval.Action {
+				case witness.AccountApprovalActionTransfer:
+					owner, manager, err := b.dasCore.Daf().ScriptToHex(approval.Params.Transfer.ToLock)
+					if err != nil {
+						return err
+					}
+					if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", v.SubAccountData.AccountId).Updates(map[string]interface{}{
+						"status":               dao.AccountStatusNormal,
+						"owner":                owner.AddressHex,
+						"owner_chain_type":     owner.ChainType,
+						"owner_algorithm_id":   owner.DasAlgorithmId,
+						"manager":              manager.AddressHex,
+						"manager_chain_type":   manager.ChainType,
+						"manager_algorithm_id": manager.DasAlgorithmId,
+						"nonce":                v.CurrentSubAccountData.Nonce,
+					}).Error; err != nil {
+						return err
+					}
+				}
+			}
+		}
+		return nil
+	})
 }
 
 func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
