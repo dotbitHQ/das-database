@@ -15,7 +15,7 @@ func (b *BlockParser) DasActionCreateApproval(req FuncTransactionHandleReq) (res
 		log.Warn("not current version edit records tx")
 		return
 	}
-	log.Info("ActionEditRecords:", req.BlockNumber, req.TxHash)
+	log.Info("DasActionCreateApproval:", req.BlockNumber, req.TxHash)
 
 	accBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
 	if err != nil {
@@ -36,7 +36,7 @@ func (b *BlockParser) DasActionRevokeApproval(req FuncTransactionHandleReq) (res
 		log.Warn("not current version edit records tx")
 		return
 	}
-	log.Info("ActionEditRecords:", req.BlockNumber, req.TxHash)
+	log.Info("DasActionRevokeApproval:", req.BlockNumber, req.TxHash)
 
 	accBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
 	if err != nil {
@@ -57,7 +57,7 @@ func (b *BlockParser) DasActionFulfillApproval(req FuncTransactionHandleReq) (re
 		log.Warn("not current version edit records tx")
 		return
 	}
-	log.Info("ActionEditRecords:", req.BlockNumber, req.TxHash)
+	log.Info("DasActionFulfillApproval:", req.BlockNumber, req.TxHash)
 
 	accBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
 	if err != nil {
