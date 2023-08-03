@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/nervosnetwork/ckb-sdk-go/rpc"
+	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"github.com/scorpiotzh/mylog"
 	"github.com/scorpiotzh/toolib"
 	"github.com/urfave/cli/v2"
@@ -112,6 +113,22 @@ func runServer(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("NewBlockParser err: %s", err.Error())
 	}
+
+	//test
+	hash := "0x175b2ef3fd663fc3cfcc64da60814acafe02f2de47b538574a9391ce895b050d"
+	res, err := dc.Client().GetTransaction(context.Background(), types.HexToHash(hash))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	var req block_parser.FuncTransactionHandleReq
+	req.TxHash = hash
+	req.Tx = res.Transaction
+	//bp.ActionCreateDeviceKeyList(req) //create
+	bp.ActionUpdateDeviceKeyList(req) //update 0x175b2ef3fd663fc3cfcc64da60814acafe02f2de47b538574a9391ce895b050d
+
+	return nil
 	bp.RunParser()
 
 	// timer
