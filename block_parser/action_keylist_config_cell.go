@@ -69,8 +69,8 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 	masterCidPk1.Cid = common.Bytes2Hex(ownerHex.AddressPayload[:10])
 	masterCidPk1.Pk = common.Bytes2Hex(ownerHex.AddressPayload[10:])
 	masterCidPk1.Outpoint = common.OutPoint2String(req.TxHash, 0)
-	//todo GetWebAuthnSignByWitnessArgs
-	webauthnSignLv, err := witness.GetWebAuthnSignLvByWitness0(req.Tx.Witnesses[0])
+
+	webauthnSignLv, err := witness.GetWebAuthnSignByWitnessArgs(req.Tx.Witnesses[0])
 	if err != nil {
 		resp.Err = fmt.Errorf("GetWebAuthnSignLvByWitness0 err:%s", err.Error())
 		return
@@ -84,7 +84,7 @@ func (b *BlockParser) ActionUpdateDeviceKeyList(req FuncTransactionHandleReq) (r
 	pubKey.Curve = elliptic.P256()
 	pubKey.X = new(big.Int).SetBytes(common.Hex2Bytes(webauthnSignLv.PubKey)[:32])
 	pubKey.Y = new(big.Int).SetBytes(common.Hex2Bytes(webauthnSignLv.PubKey)[32:])
-	signAddrPk1 := common.CaculatePk1(&pubKey)
+	signAddrPk1 := common.CalculatePk1(&pubKey)
 	keyList := witness.ConvertToWebauthnKeyList(builder.DeviceKeyListCellData.Keys())
 
 	//var authorize []dao.TableAuthorize
