@@ -67,6 +67,9 @@ func (b *BlockParser) registerTransactionHandle() {
 	//webauthn
 	b.mapTransactionHandle[common.DasActionCreateKeyList] = b.ActionCreateDeviceKeyList
 	b.mapTransactionHandle[common.DasActionUpdateKeyList] = b.ActionUpdateDeviceKeyList
+	b.mapTransactionHandle[common.DasActionCreateApproval] = b.DasActionCreateApproval
+	b.mapTransactionHandle[common.DasActionRevokeApproval] = b.DasActionRevokeApproval
+	b.mapTransactionHandle[common.DasActionFulfillApproval] = b.DasActionFulfillApproval
 }
 
 func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {
