@@ -615,19 +615,17 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 			currentSubAccount := v.CurrentSubAccountData
 			log.Infof("actionUpdateSubAccountForApproval action: %s account: %s accountId: %s", v.Action, currentSubAccount.Account(), currentSubAccount.AccountId)
 
+			accountUpdateMap := map[string]interface{}{
+				"nonce":        v.SubAccountData.Nonce,
+				"block_number": req.BlockNumber,
+				"outpoint":     common.OutPoint2String(req.TxHash, 0),
+			}
+
 			switch v.Action {
 			case common.SubActionCreateApproval:
-				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(map[string]interface{}{
-					"status": dao.AccountStatusApproval,
-				}).Error; err != nil {
-					return err
-				}
+				accountUpdateMap["status"] = dao.AccountStatusApproval
 			case common.SubActionRevokeApproval:
-				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(map[string]interface{}{
-					"status": dao.AccountStatusNormal,
-				}).Error; err != nil {
-					return err
-				}
+				accountUpdateMap["status"] = dao.AccountStatusNormal
 			case common.SubActionFullfillApproval:
 				approval := currentSubAccount.AccountApproval
 				switch approval.Action {
@@ -636,20 +634,20 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 					if err != nil {
 						return err
 					}
-					if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(map[string]interface{}{
-						"status":               dao.AccountStatusNormal,
-						"owner":                owner.AddressHex,
-						"owner_chain_type":     owner.ChainType,
-						"owner_algorithm_id":   owner.DasAlgorithmId,
-						"manager":              manager.AddressHex,
-						"manager_chain_type":   manager.ChainType,
-						"manager_algorithm_id": manager.DasAlgorithmId,
-						"nonce":                currentSubAccount.Nonce,
-					}).Error; err != nil {
-						return err
-					}
+					accountUpdateMap["status"] = dao.AccountStatusNormal
+					accountUpdateMap["owner"] = owner.AddressHex
+					accountUpdateMap["owner_chain_type"] = owner.ChainType
+					accountUpdateMap["owner_algorithm_id"] = owner.DasAlgorithmId
+					accountUpdateMap["manager"] = manager.AddressHex
+					accountUpdateMap["manager_chain_type"] = manager.ChainType
+					accountUpdateMap["manager_algorithm_id"] = manager.DasAlgorithmId
 				}
 			}
+
+			if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(accountUpdateMap).Error; err != nil {
+				return err
+			}
+			return nil
 		}
 		return nil
 	})
