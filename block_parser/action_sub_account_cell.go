@@ -611,12 +611,11 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 		return nil
 	}
 	return b.dbDao.Transaction(func(tx *gorm.DB) error {
-		for k, v := range approvalBuilderMap {
-			log.Info("actionUpdateSubAccountForApproval sub_action:", k)
-
+		for _, v := range approvalBuilderMap {
 			currentSubAccount := v.CurrentSubAccountData
+			log.Infof("actionUpdateSubAccountForApproval action: %s account: %s accountId: %s", v.Action, currentSubAccount.Account(), currentSubAccount.AccountId)
 
-			switch k {
+			switch v.Action {
 			case common.SubActionCreateApproval:
 				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(map[string]interface{}{
 					"status": dao.AccountStatusApproval,
