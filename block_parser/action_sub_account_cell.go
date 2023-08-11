@@ -149,11 +149,15 @@ func (b *BlockParser) actionUpdateSubAccountForRecycle(req FuncTransactionHandle
 	indexTx := uint(0)
 	for _, builder := range recycleBuilderMap {
 		subAccIds = append(subAccIds, builder.SubAccountData.AccountId)
+		value, err := builder.CurrentSubAccountData.ToH256()
+		if err != nil {
+			return err
+		}
 		smtInfo := dao.TableSmtInfo{
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     outpoint,
 			AccountId:    builder.SubAccountData.AccountId,
-			LeafDataHash: common.Bytes2Hex(builder.CurrentSubAccountData.ToH256()),
+			LeafDataHash: common.Bytes2Hex(value),
 		}
 		smtInfos = append(smtInfos, smtInfo)
 		oHex, _, err := b.dasCore.Daf().ScriptToHex(builder.SubAccountData.Lock)
@@ -245,12 +249,16 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		})
 		parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
 		subAccountIds = append(subAccountIds, v.SubAccountData.AccountId)
+		value, err := v.SubAccountData.ToH256()
+		if err != nil {
+			return fmt.Errorf("SubAccountData.ToH256() err: %s", err.Error())
+		}
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:     req.BlockNumber,
 			Outpoint:        subAccountCellOutpoint,
 			AccountId:       v.SubAccountData.AccountId,
 			ParentAccountId: parentAccountId,
-			LeafDataHash:    common.Bytes2Hex(v.SubAccountData.ToH256()),
+			LeafDataHash:    common.Bytes2Hex(value),
 		})
 		capacity += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * newPrice
 		for _, record := range v.SubAccountData.Records {
@@ -424,11 +432,15 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			ExpiredAt:   v.CurrentSubAccountData.ExpiredAt,
 		})
 
+		value, err := v.CurrentSubAccountData.ToH256()
+		if err != nil {
+			return fmt.Errorf("CurrentSubAccountData.ToH256() err: %s", err.Error())
+		}
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     subAccountCellOutpoint,
 			AccountId:    v.CurrentSubAccountData.AccountId,
-			LeafDataHash: common.Bytes2Hex(v.CurrentSubAccountData.ToH256()),
+			LeafDataHash: common.Bytes2Hex(value),
 		})
 	}
 
@@ -521,11 +533,15 @@ func (b *BlockParser) actionUpdateSubAccountForEdit(req FuncTransactionHandleReq
 			Nonce:       builder.CurrentSubAccountData.Nonce,
 		}
 
+		value, err := builder.CurrentSubAccountData.ToH256()
+		if err != nil {
+			return fmt.Errorf("CurrentSubAccountData.ToH256() err: %s", err.Error())
+		}
 		smtInfo := dao.TableSmtInfo{
 			BlockNumber:  req.BlockNumber,
 			Outpoint:     outpoint,
 			AccountId:    builder.SubAccountData.AccountId,
-			LeafDataHash: common.Bytes2Hex(builder.CurrentSubAccountData.ToH256()),
+			LeafDataHash: common.Bytes2Hex(value),
 		}
 		transactionInfo := dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
@@ -597,28 +613,31 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 	return b.dbDao.Transaction(func(tx *gorm.DB) error {
 		for k, v := range approvalBuilderMap {
 			log.Info("actionUpdateSubAccountForApproval sub_action:", k)
+
+			currentSubAccount := v.CurrentSubAccountData
+
 			switch k {
 			case common.SubActionCreateApproval:
-				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", v.SubAccountData.AccountId).Updates(map[string]interface{}{
+				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(map[string]interface{}{
 					"status": dao.AccountStatusApproval,
 				}).Error; err != nil {
 					return err
 				}
 			case common.SubActionRevokeApproval:
-				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", v.SubAccountData.AccountId).Updates(map[string]interface{}{
+				if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(map[string]interface{}{
 					"status": dao.AccountStatusNormal,
 				}).Error; err != nil {
 					return err
 				}
 			case common.SubActionFullfillApproval:
-				approval := v.CurrentSubAccountData.AccountApproval
+				approval := currentSubAccount.AccountApproval
 				switch approval.Action {
 				case witness.AccountApprovalActionTransfer:
 					owner, manager, err := b.dasCore.Daf().ScriptToHex(approval.Params.Transfer.ToLock)
 					if err != nil {
 						return err
 					}
-					if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", v.SubAccountData.AccountId).Updates(map[string]interface{}{
+					if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(map[string]interface{}{
 						"status":               dao.AccountStatusNormal,
 						"owner":                owner.AddressHex,
 						"owner_chain_type":     owner.ChainType,
@@ -626,7 +645,7 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 						"manager":              manager.AddressHex,
 						"manager_chain_type":   manager.ChainType,
 						"manager_algorithm_id": manager.DasAlgorithmId,
-						"nonce":                v.CurrentSubAccountData.Nonce,
+						"nonce":                currentSubAccount.Nonce,
 					}).Error; err != nil {
 						return err
 					}
@@ -729,12 +748,17 @@ func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp
 		})
 		parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
 		subAccountIds = append(subAccountIds, v.SubAccountData.AccountId)
+		value, err := v.SubAccountData.ToH256()
+		if err != nil {
+			resp.Err = fmt.Errorf("SubAccountData.ToH256() err: %s", err.Error())
+			return
+		}
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:     req.BlockNumber,
 			Outpoint:        common.OutPoint2String(req.TxHash, 1),
 			AccountId:       v.SubAccountData.AccountId,
 			ParentAccountId: parentAccountId,
-			LeafDataHash:    common.Bytes2Hex(v.SubAccountData.ToH256()),
+			LeafDataHash:    common.Bytes2Hex(value),
 		})
 		capacity += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * newPrice
 	}
