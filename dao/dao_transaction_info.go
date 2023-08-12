@@ -28,6 +28,7 @@ const (
 
 	ServiceTypeRegister    = 1
 	ServiceTypeTransaction = 2
+	ServiceTypeSubAccount  = 3
 )
 
 func (t *TableTransactionInfo) TableName() string {

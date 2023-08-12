@@ -610,47 +610,94 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 	if len(approvalBuilderMap) == 0 {
 		return nil
 	}
-	return b.dbDao.Transaction(func(tx *gorm.DB) error {
-		for _, v := range approvalBuilderMap {
-			currentSubAccount := v.CurrentSubAccountData
-			log.Infof("actionUpdateSubAccountForApproval action: %s account: %s accountId: %s", v.Action, currentSubAccount.Account(), currentSubAccount.AccountId)
 
-			accountUpdateMap := map[string]interface{}{
-				"nonce":        v.SubAccountData.Nonce,
-				"block_number": req.BlockNumber,
-				"outpoint":     common.OutPoint2String(req.TxHash, 0),
-			}
-
-			switch v.Action {
-			case common.SubActionCreateApproval:
-				accountUpdateMap["status"] = dao.AccountStatusApproval
-			case common.SubActionRevokeApproval:
-				accountUpdateMap["status"] = dao.AccountStatusNormal
-			case common.SubActionFullfillApproval:
-				approval := currentSubAccount.AccountApproval
-				switch approval.Action {
-				case witness.AccountApprovalActionTransfer:
-					owner, manager, err := b.dasCore.Daf().ScriptToHex(approval.Params.Transfer.ToLock)
-					if err != nil {
-						return err
-					}
-					accountUpdateMap["status"] = dao.AccountStatusNormal
-					accountUpdateMap["owner"] = owner.AddressHex
-					accountUpdateMap["owner_chain_type"] = owner.ChainType
-					accountUpdateMap["owner_algorithm_id"] = owner.DasAlgorithmId
-					accountUpdateMap["manager"] = manager.AddressHex
-					accountUpdateMap["manager_chain_type"] = manager.ChainType
-					accountUpdateMap["manager_algorithm_id"] = manager.DasAlgorithmId
-				}
-			}
-
-			if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", currentSubAccount.AccountId).Updates(accountUpdateMap).Error; err != nil {
-				return err
-			}
-			return nil
+	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
+	if err != nil {
+		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+	var subAccountCellOutpoint string
+	for i, v := range req.Tx.Outputs {
+		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
+			subAccountCellOutpoint = common.OutPoint2String(req.TxHash, uint(i))
 		}
-		return nil
-	})
+	}
+
+	indexTx := uint(0)
+	var parentAccount string
+	var txs []dao.TableTransactionInfo
+	var smtInfos []dao.TableSmtInfo
+	var accountInfos []dao.TableAccountInfo
+
+	for _, v := range approvalBuilderMap {
+		if parentAccount == "" {
+			parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
+		}
+
+		value, err := v.CurrentSubAccountData.ToH256()
+		if err != nil {
+			return fmt.Errorf("CurrentSubAccountData.ToH256() err: %s", err.Error())
+		}
+		smtInfos = append(smtInfos, dao.TableSmtInfo{
+			BlockNumber:  req.BlockNumber,
+			Outpoint:     subAccountCellOutpoint,
+			AccountId:    v.CurrentSubAccountData.AccountId,
+			LeafDataHash: common.Bytes2Hex(value),
+		})
+
+		oHex, _, err := b.dasCore.Daf().ScriptToHex(v.CurrentSubAccountData.Lock)
+		if err != nil {
+			return fmt.Errorf("ScriptToHex err: %s", err.Error())
+		}
+		outpointTx := common.OutPoint2String(req.TxHash, indexTx)
+		txInfo := dao.TableTransactionInfo{
+			BlockNumber:    req.BlockNumber,
+			AccountId:      v.SubAccountData.AccountId,
+			Account:        v.SubAccountData.Account(),
+			Action:         v.Action,
+			ServiceType:    dao.ServiceTypeSubAccount,
+			ChainType:      oHex.ChainType,
+			Address:        oHex.AddressHex,
+			Outpoint:       outpointTx,
+			BlockTimestamp: req.BlockTimestamp,
+		}
+		txs = append(txs, txInfo)
+		indexTx++
+
+		accountInfo := dao.TableAccountInfo{
+			BlockNumber: req.BlockNumber,
+			Outpoint:    subAccountCellOutpoint,
+			AccountId:   v.CurrentSubAccountData.AccountId,
+			Nonce:       v.CurrentSubAccountData.Nonce,
+		}
+
+		switch v.Action {
+		case common.SubActionCreateApproval:
+			accountInfo.Status = uint8(dao.AccountStatusApproval)
+		case common.SubActionRevokeApproval:
+			accountInfo.Status = uint8(dao.AccountStatusNormal)
+		case common.SubActionFullfillApproval:
+			approval := v.CurrentSubAccountData.AccountApproval
+			switch approval.Action {
+			case witness.AccountApprovalActionTransfer:
+				owner, manager, err := b.dasCore.Daf().ScriptToHex(approval.Params.Transfer.ToLock)
+				if err != nil {
+					return err
+				}
+				accountInfo.Status = uint8(dao.AccountStatusNormal)
+				accountInfo.Owner = owner.AddressHex
+				accountInfo.OwnerChainType = owner.ChainType
+				accountInfo.OwnerAlgorithmId = owner.DasAlgorithmId
+				accountInfo.Manager = manager.AddressHex
+				accountInfo.ManagerChainType = manager.ChainType
+				accountInfo.ManagerAlgorithmId = manager.DasAlgorithmId
+			}
+		}
+		accountInfos = append(accountInfos, accountInfo)
+	}
+	if err := b.dbDao.ApprovalSubAccount(accountInfos, smtInfos, txs); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
