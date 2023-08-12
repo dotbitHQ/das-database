@@ -264,3 +264,33 @@ func (d *DbDao) RecycleSubAccount(subAccIds []string, smtInfos []TableSmtInfo, t
 		return nil
 	})
 }
+
+func (d *DbDao) ApprovalSubAccount(accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		for idx := range accountInfos {
+			accountInfo := accountInfos[idx]
+			if err := tx.Select("block_number", "outpoint", "nonce").
+				Where("account_id = ?", accountInfo.AccountId).
+				Updates(&accountInfo).Error; err != nil {
+				return err
+			}
+		}
+		for idx := range smtInfos {
+			smtInfo := smtInfos[idx]
+			if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+				Where("account_id = ?", smtInfo.AccountId).
+				Updates(&smtInfo).Error; err != nil {
+				return err
+			}
+		}
+		for idx := range transactionInfos {
+			transactionInfo := transactionInfos[idx]
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&transactionInfo).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
