@@ -626,7 +626,7 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 	var parentAccount string
 	var txs []dao.TableTransactionInfo
 	var smtInfos []dao.TableSmtInfo
-	var accountInfos []dao.TableAccountInfo
+	var accountInfos []map[string]interface{}
 
 	for _, v := range approvalBuilderMap {
 		if parentAccount == "" {
@@ -663,18 +663,18 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 		txs = append(txs, txInfo)
 		indexTx++
 
-		accountInfo := dao.TableAccountInfo{
-			BlockNumber: req.BlockNumber,
-			Outpoint:    subAccountCellOutpoint,
-			AccountId:   v.CurrentSubAccountData.AccountId,
-			Nonce:       v.CurrentSubAccountData.Nonce,
+		accountInfo := map[string]interface{}{
+			"block_number": req.BlockNumber,
+			"outpoint":     subAccountCellOutpoint,
+			"account_id":   v.CurrentSubAccountData.AccountId,
+			"nonce":        v.CurrentSubAccountData.Nonce,
 		}
 
 		switch v.Action {
 		case common.SubActionCreateApproval:
-			accountInfo.Status = uint8(dao.AccountStatusApproval)
+			accountInfo["status"] = uint8(dao.AccountStatusApproval)
 		case common.SubActionRevokeApproval:
-			accountInfo.Status = uint8(dao.AccountStatusNormal)
+			accountInfo["status"] = uint8(dao.AccountStatusNormal)
 		case common.SubActionFullfillApproval:
 			approval := v.CurrentSubAccountData.AccountApproval
 			switch approval.Action {
@@ -683,13 +683,13 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 				if err != nil {
 					return err
 				}
-				accountInfo.Status = uint8(dao.AccountStatusNormal)
-				accountInfo.Owner = owner.AddressHex
-				accountInfo.OwnerChainType = owner.ChainType
-				accountInfo.OwnerAlgorithmId = owner.DasAlgorithmId
-				accountInfo.Manager = manager.AddressHex
-				accountInfo.ManagerChainType = manager.ChainType
-				accountInfo.ManagerAlgorithmId = manager.DasAlgorithmId
+				accountInfo["status"] = uint8(dao.AccountStatusNormal)
+				accountInfo["owner"] = owner.AddressHex
+				accountInfo["owner_chain_type"] = owner.ChainType
+				accountInfo["owner_algorithm_id"] = owner.DasAlgorithmId
+				accountInfo["manager"] = manager.AddressHex
+				accountInfo["manager_chain_type"] = manager.ChainType
+				accountInfo["manager_algorithm_id"] = manager.DasAlgorithmId
 			}
 		}
 		accountInfos = append(accountInfos, accountInfo)
