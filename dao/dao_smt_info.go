@@ -265,12 +265,11 @@ func (d *DbDao) RecycleSubAccount(subAccIds []string, smtInfos []TableSmtInfo, t
 	})
 }
 
-func (d *DbDao) ApprovalSubAccount(accountInfos []TableAccountInfo, smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo) error {
+func (d *DbDao) ApprovalSubAccount(accountInfos []map[string]interface{}, smtInfos []TableSmtInfo, transactionInfos []TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		for idx := range accountInfos {
 			accountInfo := accountInfos[idx]
-			if err := tx.Select("block_number", "outpoint", "nonce").
-				Where("account_id = ?", accountInfo.AccountId).
+			if err := tx.Model(&TableAccountInfo{}).Where("account_id = ?", accountInfo["account_id"]).
 				Updates(&accountInfo).Error; err != nil {
 				return err
 			}
