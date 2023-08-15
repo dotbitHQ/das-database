@@ -64,6 +64,9 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionCollectSubAccountProfit] = b.ActionCollectSubAccountProfit
 	b.mapTransactionHandle[common.DasActionCollectSubAccountChannelProfit] = b.ActionCollectSubAccountChannelProfit
 	b.mapTransactionHandle[common.DasActionConfigSubAccount] = b.ActionConfigSubAccount
+	//webauthn
+	b.mapTransactionHandle[common.DasActionCreateKeyList] = b.ActionCreateDeviceKeyList
+	b.mapTransactionHandle[common.DasActionUpdateKeyList] = b.ActionUpdateDeviceKeyList
 }
 
 func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {
