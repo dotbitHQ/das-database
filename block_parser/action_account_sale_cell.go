@@ -46,9 +46,11 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		Account:            accBuilder.Account,
 		Status:             accBuilder.Status,
 		OwnerAlgorithmId:   ownerHex.DasAlgorithmId,
+		OwnerSubAid:        ownerHex.DasSubAlgorithmId,
 		OwnerChainType:     ownerHex.ChainType,
 		Owner:              ownerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerSubAid:      managerHex.DasSubAlgorithmId,
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 	}
@@ -328,6 +330,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		ManagerChainType:   managerHex.ChainType,
 		Manager:            managerHex.AddressHex,
 		ManagerAlgorithmId: managerHex.DasAlgorithmId,
+		ManagerSubAid:      managerHex.DasSubAlgorithmId,
 		Status:             accBuilder.Status,
 	}
 	transactionInfoBuy := dao.TableTransactionInfo{

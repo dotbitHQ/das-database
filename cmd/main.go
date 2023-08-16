@@ -112,6 +112,7 @@ func runServer(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("NewBlockParser err: %s", err.Error())
 	}
+
 	bp.RunParser()
 
 	// timer
