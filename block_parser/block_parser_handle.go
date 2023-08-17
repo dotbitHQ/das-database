@@ -68,6 +68,7 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionCreateKeyList] = b.ActionCreateDeviceKeyList
 	b.mapTransactionHandle[common.DasActionUpdateKeyList] = b.ActionUpdateDeviceKeyList
 	b.mapTransactionHandle[common.DasActionCreateApproval] = b.DasActionCreateApproval
+	b.mapTransactionHandle[common.DasActionDelayApproval] = b.DasActionDelayApproval
 	b.mapTransactionHandle[common.DasActionRevokeApproval] = b.DasActionRevokeApproval
 	b.mapTransactionHandle[common.DasActionFulfillApproval] = b.DasActionFulfillApproval
 }
