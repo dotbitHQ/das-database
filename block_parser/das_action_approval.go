@@ -23,7 +23,31 @@ func (b *BlockParser) DasActionCreateApproval(req FuncTransactionHandleReq) (res
 		return
 	}
 	resp.Err = b.dbDao.UpdateAccountInfo(accBuilder.AccountId, map[string]interface{}{
-		"status": dao.AccountStatusApproval,
+		"outpoint":     common.OutPoint2String(req.TxHash, 0),
+		"block_number": req.BlockNumber,
+		"status":       dao.AccountStatusApproval,
+	})
+	return
+}
+
+func (b *BlockParser) DasActionDelayApproval(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warn("not current version edit records tx")
+		return
+	}
+	log.Info("DasActionDelayApproval:", req.BlockNumber, req.TxHash)
+
+	accBuilder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
+	if err != nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+	resp.Err = b.dbDao.UpdateAccountInfo(accBuilder.AccountId, map[string]interface{}{
+		"outpoint":     common.OutPoint2String(req.TxHash, 0),
+		"block_number": req.BlockNumber,
 	})
 	return
 }
@@ -44,7 +68,9 @@ func (b *BlockParser) DasActionRevokeApproval(req FuncTransactionHandleReq) (res
 		return
 	}
 	resp.Err = b.dbDao.UpdateAccountInfo(accBuilder.AccountId, map[string]interface{}{
-		"status": dao.AccountStatusNormal,
+		"outpoint":     common.OutPoint2String(req.TxHash, 0),
+		"block_number": req.BlockNumber,
+		"status":       dao.AccountStatusNormal,
 	})
 	return
 }
@@ -74,6 +100,8 @@ func (b *BlockParser) DasActionFulfillApproval(req FuncTransactionHandleReq) (re
 			return
 		}
 		resp.Err = b.dbDao.UpdateAccountInfo(accBuilder.AccountId, map[string]interface{}{
+			"outpoint":             common.OutPoint2String(req.TxHash, 0),
+			"block_number":         req.BlockNumber,
 			"status":               dao.AccountStatusNormal,
 			"owner":                owner.AddressHex,
 			"owner_chain_type":     owner.ChainType,
