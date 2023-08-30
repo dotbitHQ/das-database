@@ -73,6 +73,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		&TableSubAccountAutoMintStatement{},
 		&TableCidPk{},
 		&TableAuthorize{},
+		&ApprovalInfo{},
 	); err != nil {
 		return nil, err
 	}
