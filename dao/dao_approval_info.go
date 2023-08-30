@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"das_sub_account/tables"
 	"errors"
 	"github.com/dotbitHQ/das-lib/common"
 	"gorm.io/gorm"
@@ -56,7 +55,7 @@ func (d *DbDao) UpdateAccountApproval(id uint64, info map[string]interface{}) (e
 }
 
 func (d *DbDao) GetAccountPendingApproval(accountId string) (approval ApprovalInfo, err error) {
-	err = d.db.Where("account_id=? and status=?", accountId, tables.ApprovalStatusEnable).Order("id desc").First(&approval).Error
+	err = d.db.Where("account_id=? and status=?", accountId, ApprovalStatusEnable).Order("id desc").First(&approval).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = nil
 	}
