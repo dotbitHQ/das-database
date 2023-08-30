@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/witness"
+	"gorm.io/gorm"
 )
 
 func (b *BlockParser) DasActionCreateApproval(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -99,16 +100,25 @@ func (b *BlockParser) DasActionFulfillApproval(req FuncTransactionHandleReq) (re
 			resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
 			return
 		}
-		resp.Err = b.dbDao.UpdateAccountInfo(accBuilder.AccountId, map[string]interface{}{
-			"outpoint":             common.OutPoint2String(req.TxHash, 0),
-			"block_number":         req.BlockNumber,
-			"status":               dao.AccountStatusNormal,
-			"owner":                owner.AddressHex,
-			"owner_chain_type":     owner.ChainType,
-			"owner_algorithm_id":   owner.DasAlgorithmId,
-			"manager":              manager.AddressHex,
-			"manager_chain_type":   manager.ChainType,
-			"manager_algorithm_id": manager.DasAlgorithmId,
+
+		resp.Err = b.dbDao.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id=?", accBuilder.AccountId).Updates(map[string]interface{}{
+				"outpoint":             common.OutPoint2String(req.TxHash, 0),
+				"block_number":         req.BlockNumber,
+				"status":               dao.AccountStatusNormal,
+				"owner":                owner.AddressHex,
+				"owner_chain_type":     owner.ChainType,
+				"owner_algorithm_id":   owner.DasAlgorithmId,
+				"manager":              manager.AddressHex,
+				"manager_chain_type":   manager.ChainType,
+				"manager_algorithm_id": manager.DasAlgorithmId,
+			}).Error; err != nil {
+				return err
+			}
+			if err := tx.Where("account_id = ?", accBuilder.AccountId).Delete(&dao.TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+			return nil
 		})
 	}
 	return
