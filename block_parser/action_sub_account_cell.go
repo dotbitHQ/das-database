@@ -1,6 +1,7 @@
 package block_parser
 
 import (
+	"das_database/config"
 	"das_database/dao"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
@@ -616,15 +617,9 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 		return nil
 	}
 
-	contractSub, err := core.GetDasContractInfo(common.DASContractNameSubAccountCellType)
+	refOutpoint, outpoint, err := b.getOutpoint(req, common.DASContractNameSubAccountCellType)
 	if err != nil {
-		return fmt.Errorf("GetDasContractInfo err: %s", err.Error())
-	}
-	var subAccountCellOutpoint string
-	for i, v := range req.Tx.Outputs {
-		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
-			subAccountCellOutpoint = common.OutPoint2String(req.TxHash, uint(i))
-		}
+		return err
 	}
 
 	indexTx := uint(0)
@@ -632,6 +627,7 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 	var txs []dao.TableTransactionInfo
 	var smtInfos []dao.TableSmtInfo
 	var accountInfos []map[string]interface{}
+	var approvals []dao.ApprovalInfo
 
 	for _, v := range approvalBuilderMap {
 		if parentAccount == "" {
@@ -644,7 +640,7 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 		}
 		smtInfos = append(smtInfos, dao.TableSmtInfo{
 			BlockNumber:  req.BlockNumber,
-			Outpoint:     subAccountCellOutpoint,
+			Outpoint:     outpoint,
 			AccountId:    v.CurrentSubAccountData.AccountId,
 			LeafDataHash: common.Bytes2Hex(value),
 		})
@@ -670,22 +666,86 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 
 		accountInfo := map[string]interface{}{
 			"block_number": req.BlockNumber,
-			"outpoint":     subAccountCellOutpoint,
+			"outpoint":     outpoint,
 			"account_id":   v.CurrentSubAccountData.AccountId,
 			"nonce":        v.CurrentSubAccountData.Nonce,
 			"action":       v.Action,
 		}
 
+		approval := dao.ApprovalInfo{
+			BlockNumber: req.BlockNumber,
+			RefOutpoint: refOutpoint,
+			Outpoint:    outpoint,
+		}
+
 		switch v.Action {
 		case common.SubActionCreateApproval:
 			accountInfo["status"] = uint8(dao.AccountStatusApproval)
+			transfer := v.CurrentSubAccountData.AccountApproval.Params.Transfer
+			dasf := core.DasAddressFormat{DasNetType: config.Cfg.Server.Net}
+			toHex, _, err := dasf.ScriptToHex(transfer.ToLock)
+			if err != nil {
+				return err
+			}
+			platformHex, _, err := dasf.ScriptToHex(transfer.PlatformLock)
+			if err != nil {
+				return err
+			}
+			accInfo, err := b.dbDao.GetAccountInfoByAccountId(v.CurrentSubAccountData.AccountId)
+			if err != nil {
+				return err
+			}
+			approval = dao.ApprovalInfo{
+				BlockNumber:      req.BlockNumber,
+				RefOutpoint:      refOutpoint,
+				Outpoint:         outpoint,
+				Account:          v.CurrentSubAccountData.Account(),
+				AccountID:        v.CurrentSubAccountData.AccountId,
+				Platform:         platformHex.AddressHex,
+				OwnerAlgorithmID: accInfo.OwnerAlgorithmId,
+				Owner:            accInfo.Owner,
+				ToAlgorithmID:    toHex.DasAlgorithmId,
+				To:               toHex.AddressHex,
+				ProtectedUntil:   transfer.ProtectedUntil,
+				SealedUntil:      transfer.SealedUntil,
+				MaxDelayCount:    transfer.DelayCountRemain,
+				Status:           dao.ApprovalStatusEnable,
+			}
+		case common.SubActionDelayApproval:
+			approval, err = b.dbDao.GetAccountPendingApproval(v.CurrentSubAccountData.AccountId)
+			if err != nil {
+				return err
+			}
+			if approval.ID == 0 {
+				return fmt.Errorf("approval not found")
+			}
+			transfer := v.CurrentSubAccountData.AccountApproval.Params.Transfer
+			approval.SealedUntil = transfer.SealedUntil
+			approval.PostponedCount++
 		case common.SubActionRevokeApproval:
 			accountInfo["status"] = uint8(dao.AccountStatusNormal)
+			approval, err = b.dbDao.GetAccountPendingApproval(v.CurrentSubAccountData.AccountId)
+			if err != nil {
+				return fmt.Errorf("GetAccountPendingApproval err: %s", err.Error())
+			}
+			if approval.ID == 0 {
+				return fmt.Errorf("approval not found")
+			}
+			approval.Status = dao.ApprovalStatusRevoke
 		case common.SubActionFullfillApproval:
-			approval := v.CurrentSubAccountData.AccountApproval
-			switch approval.Action {
+			chainApproval := v.CurrentSubAccountData.AccountApproval
+			switch chainApproval.Action {
 			case witness.AccountApprovalActionTransfer:
-				owner, manager, err := b.dasCore.Daf().ScriptToHex(approval.Params.Transfer.ToLock)
+				approval, err = b.dbDao.GetAccountPendingApproval(v.CurrentSubAccountData.AccountId)
+				if err != nil {
+					return fmt.Errorf("GetAccountApprovalByOutpoint err: %s", err.Error())
+				}
+				if approval.ID == 0 {
+					return fmt.Errorf("approval not found")
+				}
+				approval.Status = dao.ApprovalStatusFulFill
+
+				owner, manager, err := b.dasCore.Daf().ScriptToHex(chainApproval.Params.Transfer.ToLock)
 				if err != nil {
 					return err
 				}
@@ -697,13 +757,56 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 				accountInfo["manager_chain_type"] = manager.ChainType
 				accountInfo["manager_algorithm_id"] = manager.DasAlgorithmId
 			}
+		default:
+			return fmt.Errorf("unknown sub action: %s", v.Action)
 		}
 		accountInfos = append(accountInfos, accountInfo)
+		approvals = append(approvals, approval)
 	}
-	if err := b.dbDao.ApprovalSubAccount(accountInfos, smtInfos, txs); err != nil {
-		return err
-	}
-	return nil
+
+	return b.dbDao.Transaction(func(tx *gorm.DB) error {
+		for idx := range accountInfos {
+			accountInfo := accountInfos[idx]
+			accId := accountInfo["account_id"]
+			action := accountInfo["action"]
+			delete(accountInfo, "action")
+			if err := tx.Model(&dao.TableAccountInfo{}).Where("account_id = ?", accId).
+				Updates(&accountInfo).Error; err != nil {
+				return err
+			}
+			if action == common.SubActionFullfillApproval {
+				if err := tx.Where("account_id = ?", accId).Delete(&dao.TableRecordsInfo{}).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		for idx := range approvals {
+			approval := approvals[idx]
+			if err := tx.Save(&approval).Error; err != nil {
+				return err
+			}
+		}
+
+		for idx := range smtInfos {
+			smtInfo := smtInfos[idx]
+			if err := tx.Select("block_number", "outpoint", "leaf_data_hash").
+				Where("account_id = ?", smtInfo.AccountId).
+				Updates(&smtInfo).Error; err != nil {
+				return err
+			}
+		}
+
+		for idx := range txs {
+			transactionInfo := txs[idx]
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&transactionInfo).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (b *BlockParser) ActionCreateSubAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
@@ -1091,4 +1194,30 @@ func (b *BlockParser) ActionConfigSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 	return
+}
+
+func (b *BlockParser) getOutpoint(req FuncTransactionHandleReq, dasContractName common.DasContractName) (string, string, error) {
+	// get ref outpoint
+	contractSub, err := core.GetDasContractInfo(dasContractName)
+	if err != nil {
+		return "", "", err
+	}
+	outpoint, refOutpoint := "", ""
+	for i, v := range req.Tx.Outputs {
+		if v.Type != nil && contractSub.IsSameTypeId(v.Type.CodeHash) {
+			outpoint = common.OutPoint2String(req.TxHash, uint(i))
+		}
+	}
+	for _, v := range req.Tx.Inputs {
+		res, err := b.dasCore.Client().GetTransaction(b.ctx, v.PreviousOutput.TxHash)
+		if err != nil {
+			return "", "", err
+		}
+		tmp := res.Transaction.Outputs[v.PreviousOutput.Index]
+		if tmp.Type != nil && contractSub.IsSameTypeId(tmp.Type.CodeHash) {
+			refOutpoint = common.OutPointStruct2String(v.PreviousOutput)
+			break
+		}
+	}
+	return refOutpoint, outpoint, nil
 }
