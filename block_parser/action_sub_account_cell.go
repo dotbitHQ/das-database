@@ -673,6 +673,7 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 			"outpoint":     subAccountCellOutpoint,
 			"account_id":   v.CurrentSubAccountData.AccountId,
 			"nonce":        v.CurrentSubAccountData.Nonce,
+			"action":       v.Action,
 		}
 
 		switch v.Action {

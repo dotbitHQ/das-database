@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"github.com/dotbitHQ/das-lib/common"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -269,9 +270,17 @@ func (d *DbDao) ApprovalSubAccount(accountInfos []map[string]interface{}, smtInf
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		for idx := range accountInfos {
 			accountInfo := accountInfos[idx]
-			if err := tx.Model(&TableAccountInfo{}).Where("account_id = ?", accountInfo["account_id"]).
+			accId := accountInfo["account_id"]
+			action := accountInfo["action"]
+			delete(accountInfo, "action")
+			if err := tx.Model(&TableAccountInfo{}).Where("account_id = ?", accId).
 				Updates(&accountInfo).Error; err != nil {
 				return err
+			}
+			if action == common.SubActionFullfillApproval {
+				if err := tx.Where("account_id = ?", accId).Delete(&TableRecordsInfo{}).Error; err != nil {
+					return err
+				}
 			}
 		}
 		for idx := range smtInfos {
