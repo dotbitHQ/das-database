@@ -3,7 +3,7 @@ module das_database
 go 1.17
 
 require (
-	github.com/dotbitHQ/das-lib v1.1.0
+	github.com/dotbitHQ/das-lib v1.1.1-0.20230905103033-f8bea45308c0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/redis v6.15.9+incompatible
