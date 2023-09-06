@@ -733,10 +733,10 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 			}
 			approval.Status = dao.ApprovalStatusRevoke
 		case common.SubActionFullfillApproval:
-			chainApproval := v.CurrentSubAccountData.AccountApproval
+			chainApproval := v.SubAccountData.AccountApproval
 			switch chainApproval.Action {
 			case witness.AccountApprovalActionTransfer:
-				approval, err = b.dbDao.GetAccountPendingApproval(v.CurrentSubAccountData.AccountId)
+				approval, err = b.dbDao.GetAccountPendingApproval(v.SubAccountData.AccountId)
 				if err != nil {
 					return fmt.Errorf("GetAccountApprovalByOutpoint err: %s", err.Error())
 				}
