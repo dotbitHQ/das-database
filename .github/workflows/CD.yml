@@ -27,11 +27,11 @@ jobs:
             ssh root@backendtest 'supervisorctl stop das_database_svr'
             rsync -a das_database_server root@backendtest:/mnt/das/server/das_database/das_database_server
             ssh root@backendtest 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
-          elif [[ "${{ github.ref }}" == "refs/heads/test3" ]]; then
+          elif [[ "$branch" == "refs/heads/test3" ]]; then
             ssh root@backendtest3 'supervisorctl stop das_database_svr'
             rsync -a das_database_server root@backendtest:/mnt/das/server/das_database/das_database_server
             ssh root@backendtest3 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
           else
-            echo "Skipping build and deploy for branch ${GITHUB_REF}"
+            echo "Skipping build and deploy for branch ${branch}"
             exit 1
           fi
