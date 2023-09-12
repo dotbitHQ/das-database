@@ -4,7 +4,7 @@ BINARY_NAME=das_database_server
 
 # update
 update:
-	go mod tidy -compat=1.17
+	go mod tidy
 
 # linux
 parser_linux:
@@ -35,10 +35,10 @@ parser_win:
 	@echo "build $(BINARY_NAME) successfully."
 
 docker: 
-	docker build --network host -t dotbitteam/das-database:latest .
+	docker build --network host -t admindid/das-database:latest .
 
 docker-publish:
-	docker image push dotbitteam/das-database:latest
+	docker image push admindid/das-database:latest
 
 # default
 default: parser_linux

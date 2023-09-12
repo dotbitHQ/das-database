@@ -3,11 +3,13 @@
 ##
 ## Build
 ##
-FROM golang:1.17-buster AS build
+FROM golang:1.18.10-buster AS build
 
 WORKDIR /app
 
 COPY . ./
+
+ENV GOPROXY=https://goproxy.cn,direct
 
 RUN go build -ldflags -s -v -o das-database cmd/main.go
 

@@ -17,9 +17,11 @@ jobs:
           go-version-file: go.mod
           cache: false
       - name: Build
-        run: make default
+        run: make default && echo "${{ github.ref }}" > bin/linux/branch.txt
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3.1.2
         with:
           name: das_database_server
-          path: bin/linux/das_database_server
+          path: |
+            bin/linux/das_database_server
+            bin/linux/branch.txt
