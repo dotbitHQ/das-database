@@ -33,8 +33,6 @@ jobs:
             exit 1
           fi
           
-          echo "$host_name"
-          
-          ssh root@"$host_name" 'supervisorctl stop das_database_svr'
           rsync -a das_database_server root@"$host_name":/mnt/das/server/das_database/das_database_server
-          ssh root@"$host_name" 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
+          ssh root@"$host_name" 'chmod +x /mnt/das/server/das_database/das_database_server'
+          ssh root@"$host_name" 'supervisorctl restart das_database_svr'
