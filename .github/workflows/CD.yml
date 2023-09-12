@@ -22,16 +22,15 @@ jobs:
           name: das_database_server
       - name: Deploy
         run: |
-          svr_host = ""
           if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            svr_host = "backendtest"
+            ssh root@backendtest 'supervisorctl stop das_database_svr'
+            rsync -a das_database_server root@backendtest:/mnt/das/server/das_database/das_database_server
+            ssh root@backendtest 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
           elif [[ "${{ github.ref }}" == "refs/heads/test3" ]]; then
-            svr_host = "backendtest3"
+            ssh root@backendtest3 'supervisorctl stop das_database_svr'
+            rsync -a das_database_server root@backendtest:/mnt/das/server/das_database/das_database_server
+            ssh root@backendtest3 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
           else
             echo "Skipping build and deploy for branch ${GITHUB_REF}"
             exit 1
           fi
-          
-          ssh root@backendtest 'supervisorctl stop das_database_svr'
-          rsync -a das_database_server root@"${svr_host}":/mnt/das/server/das_database/das_database_server
-          ssh root@"${svr_host}" 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
