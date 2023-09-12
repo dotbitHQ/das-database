@@ -22,7 +22,8 @@ jobs:
           name: das_database_server
       - name: Deploy
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+          branch=$(cat branch.txt)
+          if [[ "$branch" == "refs/heads/dev" ]]; then
             ssh root@backendtest 'supervisorctl stop das_database_svr'
             rsync -a das_database_server root@backendtest:/mnt/das/server/das_database/das_database_server
             ssh root@backendtest 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
