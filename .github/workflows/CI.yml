@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - test3
 
 jobs:
   ci:
