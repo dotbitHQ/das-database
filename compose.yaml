@@ -9,14 +9,14 @@ networks:
 
 services:
   das-database:
-    image: dotbitteam/das-database:latest
+    image: admindid/das-database:latest
     restart: always
     working_dir: /app
     entrypoint: [ "/app/das-database", "--config", "/app/config/config.yaml" ]
     ports:
       - ${DAS_DATABASE_PORT:-8118}:8118
     volumes:
-      - $PWD/config/config.yaml:/app/config/config.yaml
+      - ./config/config.yaml:/app/config/config.yaml
     depends_on:
       - mysql
     networks:
@@ -30,7 +30,7 @@ services:
     ports:
       - ${MYSQL_PORT:-3306}:3306
     volumes:
-      - $PWD/mysql-data:/var/lib/mysql
+      - ./mysql-data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${DAS_DB_PORT:-123456}
       MYSQL_DATABASE: das_database

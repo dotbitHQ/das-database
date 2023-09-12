@@ -21,5 +21,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: das_database_server
+          name: das_database_server_${{ github.sha }}
           path: bin/linux/das_database_server
