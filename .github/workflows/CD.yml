@@ -22,12 +22,11 @@ jobs:
           name: das_database_server_${{ github.event.workflow_run.head_commit.id }}
       - name: Deploy
         run: |
-          echo "${{ github.event.workflow_run.head_branch }}"
-          
           host_name=""
-          if [[ ${{ github.event.workflow_run.head_branch }} == "refs/heads/dev" ]]; then
+          branch="${{ github.event.workflow_run.head_branch }}"
+          if [[ "$branch" == "dev" ]]; then
             host_name="backendtest"
-          elif [[ ${{ github.event.workflow_run.head_branch }} == "refs/heads/test3" ]]; then
+          elif [[ "$branch" == "test3" ]]; then
             host_name="backendtest3"
           else
             echo "Skipping build and deploy for branch ${branch}"
