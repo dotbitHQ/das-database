@@ -22,16 +22,17 @@ jobs:
           name: das_database_server
       - name: Deploy
         run: |
+          host_name=""
           branch=$(cat branch.txt)
           if [[ "$branch" == "refs/heads/dev" ]]; then
-            ssh root@backendtest 'supervisorctl stop das_database_svr'
-            rsync -a das_database_server root@backendtest:/mnt/das/server/das_database/das_database_server
-            ssh root@backendtest 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
+            host_name="backendtest"
           elif [[ "$branch" == "refs/heads/test3" ]]; then
-            ssh root@backendtest3 'supervisorctl stop das_database_svr'
-            rsync -a das_database_server root@backendtest:/mnt/das/server/das_database/das_database_server
-            ssh root@backendtest3 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
+            host_name="backendtest3"
           else
             echo "Skipping build and deploy for branch ${branch}"
             exit 1
           fi
+          
+          ssh root@"$host_name" 'supervisorctl stop das_database_svr'
+          rsync -a das_database_server root@"$host_name":/mnt/das/server/das_database/das_database_server
+          ssh root@"$host_name" 'chmod +x /mnt/das/server/das_database/das_database_server && supervisorctl start das_database_svr'
