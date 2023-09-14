@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/http_api"
+	"github.com/dotbitHQ/das-lib/http_api/logger"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
-	"github.com/scorpiotzh/mylog"
 	"sync"
 	"time"
 )
 
-var log = mylog.NewLogger("snapshot", mylog.LevelDebug)
+var log = logger.NewLogger("snapshot", logger.LevelDebug)
 
 type ToolSnapshot struct {
 	Ctx            context.Context
@@ -81,6 +82,7 @@ func (t *ToolSnapshot) RunDataSnapshot() {
 	t.Wg.Add(1)
 	tickerParser := time.NewTicker(time.Second * 10)
 	go func() {
+		defer http_api.RecoverPanic()
 		for {
 			select {
 			case <-tickerParser.C:

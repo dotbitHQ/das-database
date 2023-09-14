@@ -33,7 +33,7 @@ func CheckContractVersion(dasCore *core.DasCore, cancel context.CancelFunc) erro
 	}
 	for _, v := range contractNames {
 		defaultVersion, chainVersion, err := dasCore.CheckContractVersionV2(sysStatus, v)
-		log.Info("CheckContractVersion:", defaultVersion, chainVersion, v)
+		log.Debug("CheckContractVersion:", defaultVersion, chainVersion, v)
 		if err != nil {
 			if err == core.ErrContractMajorVersionDiff {
 				log.Errorf("contract[%s] version diff, chain[%s], service[%s].", v, chainVersion, defaultVersion)

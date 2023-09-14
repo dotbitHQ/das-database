@@ -2,7 +2,7 @@ package dao
 
 import (
 	"fmt"
-	"github.com/scorpiotzh/mylog"
+	"github.com/dotbitHQ/das-lib/http_api/logger"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var log = mylog.NewLogger("dao", mylog.LevelDebug)
+var log = logger.NewLogger("dao", logger.LevelDebug)
 
 type DbDao struct {
 	db *gorm.DB

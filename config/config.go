@@ -3,14 +3,14 @@ package config
 import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
+	"github.com/dotbitHQ/das-lib/http_api/logger"
 	"github.com/fsnotify/fsnotify"
-	"github.com/scorpiotzh/mylog"
 	"github.com/scorpiotzh/toolib"
 )
 
 var (
 	Cfg CfgServer
-	log = mylog.NewLogger("config", mylog.LevelDebug)
+	log = logger.NewLogger("config", logger.LevelDebug)
 )
 
 func InitCfg(configFilePath string) error {
@@ -47,6 +47,7 @@ type CfgServer struct {
 	} `json:"server" yaml:"server"`
 	Notice struct {
 		WebhookLarkErr string `json:"webhook_lark_err" yaml:"webhook_lark_err"`
+		SentryDsn      string `json:"sentry_dsn" yaml:"sentry_dsn"`
 	} `json:"notice" yaml:"notice"`
 	Chain struct {
 		CkbUrl             string `json:"ckb_url" yaml:"ckb_url"`

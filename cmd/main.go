@@ -10,8 +10,9 @@ import (
 	"das_database/timer"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/http_api"
+	"github.com/dotbitHQ/das-lib/http_api/logger"
 	"github.com/nervosnetwork/ckb-sdk-go/rpc"
-	"github.com/scorpiotzh/mylog"
 	"github.com/scorpiotzh/toolib"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -20,7 +21,7 @@ import (
 )
 
 var (
-	log               = mylog.NewLogger("main", mylog.LevelDebug)
+	log               = logger.NewLogger("main", logger.LevelDebug)
 	exit              = make(chan struct{})
 	ctxServer, cancel = context.WithCancel(context.Background())
 	wgServer          = sync.WaitGroup{}
@@ -57,9 +58,15 @@ func runServer(ctx *cli.Context) error {
 		return err
 	}
 
+	//sentry
+	if err := http_api.SentryInit(config.Cfg.Notice.SentryDsn); err != nil {
+		return fmt.Errorf("SentryInit err: %s", err.Error())
+	}
+	defer http_api.RecoverPanic()
+
 	// db
 	cfgMysql := config.Cfg.DB.Mysql
-	db, err := dao.NewGormDataBase(cfgMysql.Addr, cfgMysql.User, cfgMysql.Password, cfgMysql.DbName, cfgMysql.MaxOpenConn, cfgMysql.MaxIdleConn)
+	db, err := http_api.NewGormDB(cfgMysql.Addr, cfgMysql.User, cfgMysql.Password, cfgMysql.DbName, cfgMysql.MaxOpenConn, cfgMysql.MaxIdleConn)
 	if err != nil {
 		return fmt.Errorf("NewGormDataBase err:%s", err.Error())
 	}

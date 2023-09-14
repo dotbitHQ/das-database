@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/http_api"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 	"golang.org/x/sync/errgroup"
@@ -34,6 +35,7 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 	atomic.AddUint64(&t.currentBlockNumber, 1)
 	t.Wg.Add(1)
 	go func() {
+		defer http_api.RecoverPanic()
 		for {
 			select {
 			default:
@@ -54,7 +56,7 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 						} else {
 							t.errTxCount = 0
 						}
-						log.Warn("parserConcurrencyMode time:", time.Since(nowTime).Seconds())
+						log.Debug("parserConcurrencyMode time:", time.Since(nowTime).Seconds())
 					} else if t.currentBlockNumber < (latestBlockNumber - t.ConfirmNum) {
 						nowTime := time.Now()
 						if err = t.parserMode(); err != nil {
@@ -68,9 +70,9 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 						} else {
 							t.errTxCount = 0
 						}
-						log.Warn("parserMode time:", time.Since(nowTime).Seconds())
+						log.Debug("parserMode time:", time.Since(nowTime).Seconds())
 					} else {
-						log.Info("RunParser:", t.currentBlockNumber, latestBlockNumber)
+						log.Debug("RunParser:", t.currentBlockNumber, latestBlockNumber)
 						time.Sleep(time.Second * 10)
 					}
 					time.Sleep(time.Millisecond * 300)

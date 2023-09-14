@@ -8,15 +8,16 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/http_api"
+	"github.com/dotbitHQ/das-lib/http_api/logger"
 	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
-	"github.com/scorpiotzh/mylog"
 	"sync"
 	"sync/atomic"
 	"time"
 )
 
-var log = mylog.NewLogger("block_parser", mylog.LevelDebug)
+var log = logger.NewLogger("block_parser", logger.LevelDebug)
 var IsLatestBlockNumber bool
 
 type BlockParser struct {
@@ -82,6 +83,7 @@ func (b *BlockParser) RunParser() {
 	atomic.AddUint64(&b.currentBlockNumber, 1)
 	b.wg.Add(1)
 	go func() {
+		defer http_api.RecoverPanic()
 		for {
 			select {
 			default:
@@ -96,15 +98,15 @@ func (b *BlockParser) RunParser() {
 						if err = b.parserConcurrencyMode(); err != nil {
 							log.Error("parserConcurrencyMode err:", err.Error(), b.currentBlockNumber)
 						}
-						log.Warn("parserConcurrencyMode time:", time.Since(nowTime).Seconds())
+						log.Debug("parserConcurrencyMode time:", time.Since(nowTime).Seconds())
 					} else if b.currentBlockNumber < (latestBlockNumber - b.confirmNum) { // check rollback
 						nowTime := time.Now()
 						if err = b.parserSubMode(); err != nil {
 							log.Error("parserSubMode err:", err.Error(), b.currentBlockNumber)
 						}
-						log.Warn("parserSubMode time:", time.Since(nowTime).Seconds())
+						log.Debug("parserSubMode time:", time.Since(nowTime).Seconds())
 					} else {
-						log.Info("RunParser:", IsLatestBlockNumber, b.currentBlockNumber, latestBlockNumber)
+						log.Debug("RunParser:", IsLatestBlockNumber, b.currentBlockNumber, latestBlockNumber)
 						IsLatestBlockNumber = true
 						time.Sleep(time.Second * 10)
 					}
@@ -120,19 +122,19 @@ func (b *BlockParser) RunParser() {
 
 // subscribe mode
 func (b *BlockParser) parserSubMode() error {
-	log.Info("parserSubMode:", b.currentBlockNumber)
+	log.Debug("parserSubMode:", b.currentBlockNumber)
 	block, err := b.dasCore.Client().GetBlockByNumber(b.ctx, b.currentBlockNumber)
 	if err != nil {
 		return fmt.Errorf("GetBlockByNumber err: %s", err.Error())
 	} else {
 		blockHash := block.Header.Hash.Hex()
 		parentHash := block.Header.ParentHash.Hex()
-		log.Info("parserSubMode:", b.currentBlockNumber, blockHash, parentHash)
+		log.Debug("parserSubMode:", b.currentBlockNumber, blockHash, parentHash)
 		// block fork check
 		if fork, err := b.checkFork(parentHash); err != nil {
 			return fmt.Errorf("checkFork err: %s", err.Error())
 		} else if fork {
-			log.Warn("CheckFork is true:", b.currentBlockNumber, blockHash, parentHash)
+			log.Debug("CheckFork is true:", b.currentBlockNumber, blockHash, parentHash)
 			atomic.AddUint64(&b.currentBlockNumber, ^uint64(0))
 		} else if err = b.parsingBlockData(block); err != nil {
 			return fmt.Errorf("parsingBlockData err: %s", err.Error())
@@ -210,7 +212,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 }
 
 func (b *BlockParser) parserConcurrencyMode() error {
-	log.Info("parserConcurrencyMode:", b.currentBlockNumber, b.concurrencyNum)
+	log.Debug("parserConcurrencyMode:", b.currentBlockNumber, b.concurrencyNum)
 	for i := uint64(0); i < b.concurrencyNum; i++ {
 		block, err := b.dasCore.Client().GetBlockByNumber(b.ctx, b.currentBlockNumber)
 		if err != nil {
@@ -218,7 +220,7 @@ func (b *BlockParser) parserConcurrencyMode() error {
 		}
 		blockHash := block.Header.Hash.Hex()
 		parentHash := block.Header.ParentHash.Hex()
-		log.Info("parserConcurrencyMode:", b.currentBlockNumber, blockHash, parentHash)
+		log.Debug("parserConcurrencyMode:", b.currentBlockNumber, blockHash, parentHash)
 
 		if err = b.parsingBlockData(block); err != nil {
 			return fmt.Errorf("parsingBlockData err: %s", err.Error())
