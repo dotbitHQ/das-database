@@ -99,7 +99,7 @@ func (b blockList) Swap(i, j int) {
 }
 
 func (t *ToolSnapshot) parserConcurrencyMode() error {
-	log.Info("parserConcurrencyMode:", t.currentBlockNumber, t.ConcurrencyNum)
+	log.Debug("parserConcurrencyMode:", t.currentBlockNumber, t.ConcurrencyNum)
 
 	blockLock := &sync.Mutex{}
 	blockInfoList := make([]dao.TableBlockInfo, 0)
@@ -155,19 +155,19 @@ func (t *ToolSnapshot) parserConcurrencyMode() error {
 }
 
 func (t *ToolSnapshot) parserMode() error {
-	log.Info("parserMode:", t.currentBlockNumber)
+	log.Debug("parserMode:", t.currentBlockNumber)
 	block, err := t.DasCore.Client().GetBlockByNumber(t.Ctx, t.currentBlockNumber)
 	if err != nil {
 		return fmt.Errorf("GetBlockByNumber err: %s", err.Error())
 	} else {
 		blockHash := block.Header.Hash.Hex()
 		parentHash := block.Header.ParentHash.Hex()
-		log.Info("parserSubMode:", t.currentBlockNumber, blockHash, parentHash)
+		log.Debug("parserSubMode:", t.currentBlockNumber, blockHash, parentHash)
 		// block fork check
 		if fork, err := t.checkFork(parentHash); err != nil {
 			return fmt.Errorf("checkFork err: %s", err.Error())
 		} else if fork {
-			log.Warn("CheckFork is true:", t.currentBlockNumber, blockHash, parentHash)
+			log.Debug("CheckFork is true:", t.currentBlockNumber, blockHash, parentHash)
 			atomic.AddUint64(&t.currentBlockNumber, ^uint64(0))
 		} else if err = t.parsingBlockData(block); err != nil {
 			return fmt.Errorf("parsingBlockData err: %s", err.Error())
