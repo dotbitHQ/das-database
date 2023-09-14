@@ -118,7 +118,7 @@ func (t *ToolSnapshot) runDataSnapshot() error {
 			return fmt.Errorf("InitSnapshotSchedule err: %s", err.Error())
 		}
 	}
-	log.Info("runDataSnapshot:", currentBlockNumber)
+	log.Debug("runDataSnapshot:", currentBlockNumber)
 
 	// get parser list
 	list, err := t.DbDao.GetTxSnapshotByBlockNumber(currentBlockNumber, config.Cfg.Snapshot.SnapshotNum)
