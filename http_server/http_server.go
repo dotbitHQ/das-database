@@ -9,16 +9,17 @@ import (
 	"das_database/http_server/handle"
 	"encoding/json"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/http_api/logger"
+	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
-	"github.com/scorpiotzh/mylog"
 	"github.com/scorpiotzh/toolib"
 	"net/http"
 	"time"
 )
 
 var (
-	log = mylog.NewLogger("http_server", mylog.LevelDebug)
+	log = logger.NewLogger("http_server", logger.LevelDebug)
 )
 
 type HttpServer struct {
@@ -66,6 +67,9 @@ func (h *HttpServer) Run() {
 
 	h.engine.Use(toolib.MiddlewareCors())
 	h.engine.POST("", cacheHandle, h.h.JasonRpcHandle)
+	h.engine.Use(sentrygin.New(sentrygin.Options{
+		Repanic: true,
+	}))
 	v1 := h.engine.Group("v1")
 	{
 		v1.POST("/latest/block/number", h.h.IsLatestBlockNumber)

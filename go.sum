@@ -53,8 +53,8 @@ github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1/go.mod h1:hyedUtir6IdtD/7lIxGeC
 github.com/decred/dcrd/lru v1.0.0/go.mod h1:mxKOwFd7lFjN2GZYsiz/ecgqR6kkYAl+0pz0tEMk218=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
-github.com/dotbitHQ/das-lib v1.1.1-0.20230905112039-574f19c40652 h1:Mbuq9pZmLmRltlmMwDXfIEs0ppkuFb3Ircf4gE36g3g=
-github.com/dotbitHQ/das-lib v1.1.1-0.20230905112039-574f19c40652/go.mod h1:hlSLEmq7KQj0KP2DTAOaHAvpj3ecN74W2CyrCOmEORk=
+github.com/dotbitHQ/das-lib v1.1.1-0.20230914082914-c82fd8ea602c h1:DMCb632Iym+GiUp8xa4kCDzqihPjJL+qbeG5hEvNBhg=
+github.com/dotbitHQ/das-lib v1.1.1-0.20230914082914-c82fd8ea602c/go.mod h1:6zhVMmqpRLq1bR8BqAdh/Nf8GQdJ5pREhBAwnImYQGg=
 github.com/elazarl/goproxy v0.0.0-20221015165544-a0805db90819 h1:RIB4cRk+lBqKK3Oy0r2gRX4ui7tuhiZq2SuTtTCi0/0=
 github.com/ethereum/go-ethereum v1.10.26 h1:i/7d9RBBwiXCEuyduBQzJw/mKmnvzsN14jqBmytw72s=
 github.com/ethereum/go-ethereum v1.10.26/go.mod h1:EYFyF19u3ezGLD4RqOkLq+ZCXzYbLoNDdZlMt7kyKFg=
