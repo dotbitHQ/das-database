@@ -83,3 +83,14 @@ type DbMysql struct {
 	MaxOpenConn int    `json:"max_open_conn" yaml:"max_open_conn"`
 	MaxIdleConn int    `json:"max_idle_conn" yaml:"max_idle_conn"`
 }
+
+func PriceToCKB(price, quote, years uint64) (total uint64) {
+	log.Info("PriceToCKB:", price, quote, years)
+	if price > quote {
+		total = price / quote * common.OneCkb * years
+	} else {
+		total = price * common.OneCkb / quote * years
+	}
+	log.Info("PriceToCKB:", price, quote, total)
+	return
+}
