@@ -375,6 +375,10 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			if err != nil {
 				return err
 			}
+			years := (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec)
+			if years == 0 {
+				years = 1
+			}
 			if err := tx.Clauses(clause.Insert{
 				Modifier: "IGNORE",
 			}).Create(&dao.TableSubAccountAutoMintStatement{
@@ -385,6 +389,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 				ServiceProviderId: providerId,
 				Price:             decimal.NewFromInt(int64(price)),
 				Quote:             decimal.NewFromInt(int64(quote)),
+				Years:             years,
 				BlockTimestamp:    req.BlockTimestamp,
 				TxType:            dao.SubAccountAutoMintTxTypeIncome,
 				SubAction:         v.Action,
@@ -427,21 +432,13 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			parentAccount = v.Account[strings.Index(v.Account, ".")+1:]
 		}
 
-		subAcc, err := b.dbDao.GetAccountInfoByAccountId(v.CurrentSubAccountData.AccountId)
-		if err != nil {
-			return err
-		}
-		if subAcc.Id == 0 {
-			return fmt.Errorf("account: [%s] no exist", v.Account)
-		}
-
 		switch v.EditKey {
 		case common.EditKeyManual, "":
-			manualRenewYears += (v.CurrentSubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec)
+			manualRenewYears += (v.CurrentSubAccountData.ExpiredAt - v.SubAccountData.ExpiredAt) / uint64(common.OneYearSec)
 		}
 
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
-			Id:          subAcc.Id,
+			AccountId:   v.CurrentSubAccountData.AccountId,
 			BlockNumber: req.BlockNumber,
 			Outpoint:    common.OutPoint2String(req.TxHash, 0),
 			Nonce:       v.CurrentSubAccountData.Nonce,
@@ -484,7 +481,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
 		for i := range accountInfos {
 			accountInfo := accountInfos[i]
-			if err := tx.Where("id=?", accountInfo.Id).Updates(&accountInfo).Error; err != nil {
+			if err := tx.Where("account_id=?", accountInfo.AccountId).Updates(&accountInfo).Error; err != nil {
 				return err
 			}
 		}
@@ -505,6 +502,10 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			if v.EditKey != common.EditKeyCustomRule {
 				continue
 			}
+			years := (v.CurrentSubAccountData.ExpiredAt - v.SubAccountData.ExpiredAt) / uint64(common.OneYearSec)
+			if years == 0 {
+				years = 1
+			}
 			//expiredAt, _ := molecule.Bytes2GoU64(v.EditValue[:8])
 			providerId := common.Bytes2Hex(v.EditValue[8:28])
 			price, err := molecule.Bytes2GoU64(v.EditValue[28:])
@@ -519,6 +520,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 				ServiceProviderId: providerId,
 				Price:             decimal.NewFromInt(int64(price)),
 				Quote:             decimal.NewFromInt(int64(quote)),
+				Years:             years,
 				BlockTimestamp:    req.BlockTimestamp,
 				TxType:            dao.SubAccountAutoMintTxTypeIncome,
 				SubAction:         common.SubActionRenew,
