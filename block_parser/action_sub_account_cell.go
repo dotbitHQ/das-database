@@ -3,6 +3,7 @@ package block_parser
 import (
 	"das_database/config"
 	"das_database/dao"
+	"encoding/binary"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
@@ -113,18 +114,49 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 			return
 		}
 	}
+	// price
+	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsSubAccount)
+	if err != nil {
+		resp.Err = fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
+		return
+	}
+	newSubAccountPrice, err := builderConfig.NewSubAccountPrice()
+	if err != nil {
+		resp.Err = fmt.Errorf("NewSubAccountPrice err: %s", err.Error())
+		return
+	}
+	renewSubAccountPrice, err := builderConfig.RenewSubAccountPrice()
+	if err != nil {
+		resp.Err = fmt.Errorf("RenewSubAccountPrice err: %s", err.Error())
+		return
+	}
+	// get quote cell
+	var quote uint64
+	for _, v := range req.Tx.CellDeps {
+		cellDepTx, err := b.dasCore.Client().GetTransaction(b.ctx, v.OutPoint.TxHash)
+		if err != nil {
+			resp.Err = fmt.Errorf("GetTransaction CellDeps err: %s", err.Error())
+		}
+		cell := cellDepTx.Transaction.Outputs[v.OutPoint.Index]
+		if cell.Type != nil {
+			if common.Bytes2Hex(cell.Type.Args) == "0x00" {
+				quote = binary.BigEndian.Uint64(cellDepTx.Transaction.OutputsData[v.OutPoint.Index][2:])
+				break
+			}
+		}
+	}
 
 	if err := b.actionUpdateSubAccountForRecycle(req, recycleBuilderMap); err != nil {
 		resp.Err = fmt.Errorf("recycle sub-account err: %s", err.Error())
 		return
 	}
 
-	if err := b.actionUpdateSubAccountForCreate(req, createBuilderMap); err != nil {
+	if err := b.actionUpdateSubAccountForCreate(req, createBuilderMap, newSubAccountPrice, quote); err != nil {
 		resp.Err = fmt.Errorf("create sub-account err: %s", err.Error())
 		return
 	}
 
-	if err := b.actionUpdateSubAccountForRenew(req, renewBuilderMap); err != nil {
+	if err := b.actionUpdateSubAccountForRenew(req, renewBuilderMap, renewSubAccountPrice, quote); err != nil {
 		resp.Err = fmt.Errorf("create err: %s", err.Error())
 		return
 	}
@@ -189,7 +221,7 @@ func (b *BlockParser) actionUpdateSubAccountForRecycle(req FuncTransactionHandle
 	return nil
 }
 
-func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleReq, createBuilderMap map[string]*witness.SubAccountNew) error {
+func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleReq, createBuilderMap map[string]*witness.SubAccountNew, newSubAccountPrice, quote uint64) error {
 	if len(createBuilderMap) == 0 {
 		return nil
 	}
@@ -207,20 +239,11 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		}
 	}
 
-	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsSubAccount)
-	if err != nil {
-		return fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
-	}
-	newPrice, err := builderConfig.NewSubAccountPrice()
-	if err != nil {
-		return fmt.Errorf("NewSubAccountPrice err: %s", err.Error())
-	}
-
 	var accountInfos []dao.TableAccountInfo
 	var records []dao.TableRecordsInfo
 	var subAccountIds []string
 	var smtInfos []dao.TableSmtInfo
-	var capacity uint64
+	var manualCapacity, manualMintYears uint64
 	var parentAccount string
 
 	for _, v := range createBuilderMap {
@@ -263,7 +286,10 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			ParentAccountId: parentAccountId,
 			LeafDataHash:    common.Bytes2Hex(value),
 		})
-		capacity += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec) * newPrice
+		switch v.EditKey {
+		case common.EditKeyManual:
+			manualMintYears += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec)
+		}
 		for _, record := range v.SubAccountData.Records {
 			records = append(records, dao.TableRecordsInfo{
 				AccountId:       v.SubAccountData.AccountId,
@@ -276,7 +302,6 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 				Ttl:             strconv.FormatUint(uint64(record.TTL), 10),
 			})
 		}
-
 	}
 
 	ownerHex, _, err := b.dasCore.Daf().ScriptToHex(req.Tx.Outputs[len(req.Tx.Outputs)-1].Lock)
@@ -284,6 +309,9 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		return fmt.Errorf("ArgsToHex err: %s", err.Error())
 	}
 
+	if manualMintYears > 0 {
+		manualCapacity = config.PriceToCKB(newSubAccountPrice, quote, manualMintYears)
+	}
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
 		AccountId:      parentAccountId,
@@ -292,7 +320,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 		ServiceType:    dao.ServiceTypeRegister,
 		ChainType:      ownerHex.ChainType,
 		Address:        ownerHex.AddressHex,
-		Capacity:       capacity,
+		Capacity:       manualCapacity,
 		Outpoint:       subAccountCellOutpoint,
 		BlockTimestamp: req.BlockTimestamp,
 	}
@@ -370,7 +398,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 	return nil
 }
 
-func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleReq, renewBuilderMap map[string]*witness.SubAccountNew) error {
+func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleReq, renewBuilderMap map[string]*witness.SubAccountNew, renewSubAccountPrice, quote uint64) error {
 	if len(renewBuilderMap) == 0 {
 		return nil
 	}
@@ -388,16 +416,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		}
 	}
 
-	builderConfig, err := b.dasCore.ConfigCellDataBuilderByTypeArgs(common.ConfigCellTypeArgsSubAccount)
-	if err != nil {
-		return fmt.Errorf("ConfigCellDataBuilderByTypeArgs err: %s", err.Error())
-	}
-	renewPriceConfig, err := builderConfig.RenewSubAccountPrice()
-	if err != nil {
-		return fmt.Errorf("RenewSubAccountPrice err: %s", err.Error())
-	}
-
-	var capacity uint64
+	var manualCapacity, manualRenewYears uint64
 	var parentAccount string
 	var smtInfos []dao.TableSmtInfo
 	var accountInfos []dao.TableAccountInfo
@@ -415,17 +434,10 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 			return fmt.Errorf("account: [%s] no exist", v.Account)
 		}
 
-		renewPrice := uint64(0)
 		switch v.EditKey {
 		case common.EditKeyManual:
-			renewPrice = (v.CurrentSubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec) * renewPriceConfig
-		case common.EditKeyCustomRule:
-			renewPrice, err = molecule.Bytes2GoU64(v.EditValue[28:])
-			if err != nil {
-				return err
-			}
+			manualRenewYears += (v.CurrentSubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec)
 		}
-		capacity += renewPrice
 
 		accountInfos = append(accountInfos, dao.TableAccountInfo{
 			Id:          subAcc.Id,
@@ -451,6 +463,9 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 	if err != nil {
 		return fmt.Errorf("ArgsToHex err: %s", err.Error())
 	}
+	if manualRenewYears > 0 {
+		manualCapacity = config.PriceToCKB(renewSubAccountPrice, quote, manualRenewYears)
+	}
 
 	transactionInfo := dao.TableTransactionInfo{
 		BlockNumber:    req.BlockNumber,
@@ -460,7 +475,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		ServiceType:    dao.ServiceTypeRegister,
 		ChainType:      ownerHex.ChainType,
 		Address:        ownerHex.AddressHex,
-		Capacity:       capacity,
+		Capacity:       manualCapacity,
 		Outpoint:       subAccountCellOutpoint,
 		BlockTimestamp: req.BlockTimestamp,
 	}
@@ -479,7 +494,6 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 				return err
 			}
 		}
-
 		if err := tx.Clauses(clause.Insert{
 			Modifier: "IGNORE",
 		}).Create(&transactionInfo).Error; err != nil {
