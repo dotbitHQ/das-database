@@ -287,7 +287,7 @@ func (b *BlockParser) actionUpdateSubAccountForCreate(req FuncTransactionHandleR
 			LeafDataHash:    common.Bytes2Hex(value),
 		})
 		switch v.EditKey {
-		case common.EditKeyManual:
+		case common.EditKeyManual, "":
 			manualMintYears += (v.SubAccountData.ExpiredAt - v.SubAccountData.RegisteredAt) / uint64(common.OneYearSec)
 		}
 		for _, record := range v.SubAccountData.Records {
@@ -436,7 +436,7 @@ func (b *BlockParser) actionUpdateSubAccountForRenew(req FuncTransactionHandleRe
 		}
 
 		switch v.EditKey {
-		case common.EditKeyManual:
+		case common.EditKeyManual, "":
 			manualRenewYears += (v.CurrentSubAccountData.ExpiredAt - subAcc.ExpiredAt) / uint64(common.OneYearSec)
 		}
 
