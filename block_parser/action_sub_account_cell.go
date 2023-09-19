@@ -1106,7 +1106,44 @@ func (b *BlockParser) ActionCollectSubAccountProfit(req FuncTransactionHandleReq
 
 	return
 }
+func (b *BlockParser) ActionCollectSubAccountChannelProfit2(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		return
+	}
+	log.Info("ActionCollectSubAccountChannelProfit:", req.BlockNumber, req.TxHash)
 
+	parentAccountId := common.Bytes2Hex(req.Tx.Outputs[0].Type.Args)
+	var list []dao.TableSubAccountAutoMintStatement
+	for i := 1; i < len(req.Tx.Outputs)-1; i++ {
+		providerId := common.Bytes2Hex(req.Tx.Outputs[i].Lock.Args)
+		price := req.Tx.Outputs[i].Capacity
+		tmp := dao.TableSubAccountAutoMintStatement{
+			BlockNumber:       req.BlockNumber,
+			TxHash:            req.TxHash,
+			WitnessIndex:      i,
+			ParentAccountId:   parentAccountId,
+			ServiceProviderId: providerId,
+			Price:             decimal.NewFromInt(int64(price)),
+			BlockTimestamp:    req.BlockTimestamp,
+			TxType:            dao.SubAccountAutoMintTxTypeExpenditure,
+		}
+		list = append(list, tmp)
+	}
+	if err := b.dbDao.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&list).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		resp.Err = fmt.Errorf("Transaction err: %s", err.Error())
+		return
+	}
+
+	return
+}
 func (b *BlockParser) ActionCollectSubAccountChannelProfit(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
 	if isCV, err := isCurrentVersionTx(req.Tx, common.DASContractNameSubAccountCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
