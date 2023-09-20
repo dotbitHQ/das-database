@@ -3,7 +3,6 @@ package block_parser
 import (
 	"das_database/config"
 	"das_database/dao"
-	"encoding/binary"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
@@ -131,21 +130,10 @@ func (b *BlockParser) ActionUpdateSubAccount(req FuncTransactionHandleReq) (resp
 		return
 	}
 	// get quote cell
-	env := core.InitEnv(b.dasCore.NetType())
-	var quote uint64
-	for _, v := range req.Tx.CellDeps {
-		cellDepTx, err := b.dasCore.Client().GetTransaction(b.ctx, v.OutPoint.TxHash)
-		if err != nil {
-			resp.Err = fmt.Errorf("GetTransaction CellDeps err: %s", err.Error())
-			return
-		}
-		cell := cellDepTx.Transaction.Outputs[v.OutPoint.Index]
-		if cell.Type != nil {
-			if common.Bytes2Hex(cell.Type.Args) == "0x00" && env.THQCodeHash == cell.Type.CodeHash.Hex() {
-				quote = binary.BigEndian.Uint64(cellDepTx.Transaction.OutputsData[v.OutPoint.Index][2:])
-				break
-			}
-		}
+	quote, err := b.dasCore.GetTxQuote(req.Tx)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTxQuote err: %s", err.Error())
+		return
 	}
 
 	if err := b.actionUpdateSubAccountForRecycle(req, recycleBuilderMap); err != nil {
