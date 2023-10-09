@@ -62,7 +62,7 @@ func (b *BlockParser) registerTransactionHandle() {
 	//b.mapTransactionHandle[common.DasActionUnlockSubAccountForCrossChain] = b.ActionSubAccountCrossChain
 	b.mapTransactionHandle[common.DasActionConfigSubAccountCustomScript] = b.ActionConfigSubAccountCreatingScript
 	b.mapTransactionHandle[common.DasActionCollectSubAccountProfit] = b.ActionCollectSubAccountProfit
-	b.mapTransactionHandle[common.DasActionCollectSubAccountChannelProfit] = b.ActionCollectSubAccountChannelProfit
+	b.mapTransactionHandle[common.DasActionCollectSubAccountChannelProfit] = b.ActionCollectSubAccountChannelProfit2
 	b.mapTransactionHandle[common.DasActionConfigSubAccount] = b.ActionConfigSubAccount
 	//webauthn
 	b.mapTransactionHandle[common.DasActionCreateKeyList] = b.ActionCreateDeviceKeyList
