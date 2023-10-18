@@ -2,10 +2,12 @@ package handle
 
 import (
 	"das_database/http_server/api_code"
+	"das_database/prometheus"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/scorpiotzh/toolib"
 	"net/http"
+	"time"
 )
 
 func (h *HttpHandle) JasonRpcHandle(ctx *gin.Context) {
@@ -16,6 +18,12 @@ func (h *HttpHandle) JasonRpcHandle(ctx *gin.Context) {
 		clientIp = GetClientIp(ctx)
 	)
 	resp.Result = &apiResp
+
+	start := time.Now()
+
+	defer func() {
+		prometheus.Tools.Metrics.Api().WithLabelValues(req.Method, "200", fmt.Sprint(apiResp.ErrNo), apiResp.ErrMsg).Observe(time.Since(start).Seconds())
+	}()
 
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
@@ -39,7 +47,6 @@ func (h *HttpHandle) JasonRpcHandle(ctx *gin.Context) {
 		log.Error("method not exist:", req.Method)
 		apiResp.ApiRespErr(api_code.ApiCodeMethodNotExist, fmt.Sprintf("method [%s] not exits", req.Method))
 	}
-
 	ctx.JSON(http.StatusOK, resp)
 	return
 }

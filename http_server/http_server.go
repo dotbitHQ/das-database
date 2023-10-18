@@ -72,11 +72,11 @@ func (h *HttpServer) Run() {
 	}))
 	v1 := h.engine.Group("v1")
 	{
-		v1.POST("/latest/block/number", h.h.IsLatestBlockNumber)
-		v1.POST("/snapshot/progress", cacheHandle, h.h.SnapshotProgress)
-		v1.POST("/snapshot/permissions/info", cacheHandle, h.h.SnapshotPermissionsInfo)
-		v1.POST("/snapshot/address/accounts", cacheHandle, h.h.SnapshotAddressAccounts)
-		v1.POST("/snapshot/register/history", cacheHandle, h.h.SnapshotRegisterHistory)
+		v1.POST("/latest/block/number", api_code.DoMonitorLog(api_code.MethodLatestBlockNumber), h.h.IsLatestBlockNumber)
+		v1.POST("/snapshot/progress", api_code.DoMonitorLog(api_code.MethodSnapshotProgress), cacheHandle, h.h.SnapshotProgress)
+		v1.POST("/snapshot/permissions/info", api_code.DoMonitorLog(api_code.MethodSnapshotPermissionsInfo), cacheHandle, h.h.SnapshotPermissionsInfo)
+		v1.POST("/snapshot/address/accounts", api_code.DoMonitorLog(api_code.MethodSnapshotAddressAccounts), cacheHandle, h.h.SnapshotAddressAccounts)
+		v1.POST("/snapshot/register/history", api_code.DoMonitorLog(api_code.MethodSnapshotRegisterHistory), cacheHandle, h.h.SnapshotRegisterHistory)
 	}
 
 	h.srv = &http.Server{

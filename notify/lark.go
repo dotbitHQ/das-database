@@ -1,6 +1,7 @@
 package notify
 
 import (
+	"das_database/prometheus"
 	"fmt"
 	"github.com/parnurzeal/gorequest"
 	"net/http"
@@ -51,4 +52,11 @@ func SendLarkTextNotify(url, title, text string) error {
 		return fmt.Errorf("http code:%d", resp.StatusCode)
 	}
 	return nil
+}
+
+func SendLarkErrNotify(title, text string) {
+	if title == "" || text == "" {
+		return
+	}
+	prometheus.Tools.Metrics.ErrNotify().WithLabelValues(title, text).Inc()
 }

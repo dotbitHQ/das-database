@@ -18,6 +18,11 @@ const (
 	ApiCodeAccountExpired               ApiCode = 20023 // account expired
 )
 
+const (
+	MethodLatestBlockNumber = "latest_block_number"
+	MethodSnapshotProgress  = "snapshot_progress"
+)
+
 type ApiResp struct {
 	ErrNo  ApiCode     `json:"err_no"`
 	ErrMsg string      `json:"err_msg"`

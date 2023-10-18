@@ -40,10 +40,12 @@ func AddCfgFileWatcher(configFilePath string) (*fsnotify.Watcher, error) {
 
 type CfgServer struct {
 	Server struct {
-		Net            common.DasNetType `json:"net" yaml:"net"`
-		HttpServerAddr string            `json:"http_server_addr" yaml:"http_server_addr"`
-		FixCharset     bool              `json:"fix_charset" yaml:"fix_charset"`
-		NotExit        bool              `json:"not_exit" yaml:"not_exit"`
+		Name                  string            `json:"name" yaml:"name"`
+		Net                   common.DasNetType `json:"net" yaml:"net"`
+		HttpServerAddr        string            `json:"http_server_addr" yaml:"http_server_addr"`
+		FixCharset            bool              `json:"fix_charset" yaml:"fix_charset"`
+		NotExit               bool              `json:"not_exit" yaml:"not_exit"`
+		PrometheusPushGateway string            `json:"prometheus_push_gateway" yaml:"prometheus_push_gateway"`
 	} `json:"server" yaml:"server"`
 	Notice struct {
 		WebhookLarkErr string `json:"webhook_lark_err" yaml:"webhook_lark_err"`

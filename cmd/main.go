@@ -6,6 +6,7 @@ import (
 	"das_database/config"
 	"das_database/dao"
 	"das_database/http_server"
+	"das_database/prometheus"
 	"das_database/snapshot"
 	"das_database/timer"
 	"fmt"
@@ -63,6 +64,10 @@ func runServer(ctx *cli.Context) error {
 		return fmt.Errorf("SentryInit err: %s", err.Error())
 	}
 	defer http_api.RecoverPanic()
+
+	// prometheus
+	prometheus.Init()
+	prometheus.Tools.Run()
 
 	// db
 	cfgMysql := config.Cfg.DB.Mysql
