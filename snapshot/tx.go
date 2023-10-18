@@ -49,9 +49,7 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 							log.Error("parserConcurrencyMode err:", err.Error(), t.currentBlockNumber)
 							if t.errTxCount < 100 {
 								t.errTxCount++
-								if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "RunTxSnapshot parserConcurrencyMode", err.Error()); err != nil {
-									log.Error("SendLarkTextNotify err: ", err.Error())
-								}
+								notify.SendLarkErrNotify("RunTxSnapshot parserConcurrencyMode", err.Error())
 							}
 						} else {
 							t.errTxCount = 0
@@ -63,9 +61,7 @@ func (t *ToolSnapshot) RunTxSnapshot() {
 							log.Error("parserMode err:", err.Error(), t.currentBlockNumber)
 							if t.errTxCount < 100 {
 								t.errTxCount++
-								if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "RunTxSnapshot parserMode", err.Error()); err != nil {
-									log.Error("SendLarkTextNotify err: ", err.Error())
-								}
+								notify.SendLarkErrNotify("RunTxSnapshot parserMode", err.Error())
 							}
 						} else {
 							t.errTxCount = 0

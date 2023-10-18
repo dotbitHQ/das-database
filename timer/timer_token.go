@@ -1,7 +1,6 @@
 package timer
 
 import (
-	"das_database/config"
 	"das_database/dao"
 	"das_database/notify"
 	"github.com/scorpiotzh/toolib"
@@ -59,9 +58,7 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 
 	if list, err := GetTokenPriceNew(geckoIds); err != nil {
 		log.Error("GetTokenPriceNew err:", err.Error())
-		if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "GetTokenPriceNew", err.Error()); err != nil {
-			log.Error("SendLarkTextNotify err: ", err.Error())
-		}
+		notify.SendLarkErrNotify("GetTokenPriceNew", err.Error())
 	} else {
 		var tokenList []dao.TableTokenPriceInfo
 		for _, v := range list {
@@ -77,14 +74,11 @@ func (p *ParserTimer) updateTokenPriceInfoList() {
 	}
 }
 
-//
 func (p *ParserTimer) updateUSDRate() {
 	rate, err := GetCnyRate()
 	if err != nil {
 		log.Error("GetCnyRate err: ", err.Error())
-		if err = notify.SendLarkTextNotify(config.Cfg.Notice.WebhookLarkErr, "GetCnyRate", err.Error()); err != nil {
-			log.Error("SendLarkTextNotify err: ", err.Error())
-		}
+		notify.SendLarkErrNotify("GetCnyRate", err.Error())
 	}
 	log.Info("updateUSDRate:", toolib.JsonString(&rate))
 	if rate != nil && rate.Value > 0 {
