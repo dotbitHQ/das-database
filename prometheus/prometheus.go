@@ -1,7 +1,7 @@
 package prometheus
 
 import (
-	"das_register_server/config"
+	"das_database/config"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/http_api/logger"
 	"github.com/prometheus/client_golang/prometheus"
