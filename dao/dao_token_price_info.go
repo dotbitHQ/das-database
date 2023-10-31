@@ -12,6 +12,7 @@ type TableTokenPriceInfo struct {
 	TokenId       string          `json:"token_id" gorm:"column:token_id;uniqueIndex:uk_token_id;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT ''"`
 	GeckoId       string          `json:"gecko_id" gorm:"column:gecko_id;uniqueIndex:uk_gecko_id;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'the id from coingecko'"`
 	ChainType     int             `json:"chain_type" gorm:"column:chain_type;index:k_ct_c;type:smallint(6) NOT NULL DEFAULT '0' COMMENT ''"`
+	CoinType      string          `json:"coin_type" gorm:"column:coin_type"`
 	Contract      string          `json:"contact" gorm:"column:contract;index:k_ct_c;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT ''"`
 	Name          string          `json:"name" gorm:"column:name;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'the name of token'"`
 	Symbol        string          `json:"symbol" gorm:"column:symbol;index:k_symbol;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT 'the symbol of token'"`
