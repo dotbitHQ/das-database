@@ -223,6 +223,17 @@ var tokenList = []TableTokenPriceInfo{
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
 	},
+	{
+		TokenId:       "did_point",
+		ChainType:     98,
+		GeckoId:       "did_point",
+		Name:          "DID Point",
+		Symbol:        "DID Point",
+		Decimals:      6,
+		Logo:          "",
+		Price:         decimal.NewFromInt(1),
+		LastUpdatedAt: time.Now().Unix(),
+	},
 }
 
 func (d *DbDao) Transaction(fn func(tx *gorm.DB) error) error {
