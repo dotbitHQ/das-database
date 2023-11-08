@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/http_api/logger"
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/mysql"
@@ -89,13 +90,12 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 				if err := tx.Model(TableTokenPriceInfo{}).
 					Where("token_id=?", tokenList[i].TokenId).
 					Updates(map[string]interface{}{
-						"chain_type":      tokenList[i].ChainType,
-						"coin_type":       tokenList[i].CoinType,
-						"name":            tokenList[i].Name,
-						"symbol":          tokenList[i].Symbol,
-						"decimals":        tokenList[i].Decimals,
-						"logo":            tokenList[i].Logo,
-						"last_updated_at": tokenList[i].LastUpdatedAt,
+						"chain_type": tokenList[i].ChainType,
+						"name":       tokenList[i].Name,
+						"symbol":     tokenList[i].Symbol,
+						"decimals":   tokenList[i].Decimals,
+						"logo":       tokenList[i].Logo,
+						"coin_type":  tokenList[i].CoinType,
 					}).Error; err != nil {
 					return err
 				}
@@ -113,7 +113,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "ckb_ckb",
 		ChainType:     0,
-		CoinType:      "309",
+		CoinType:      common.CoinTypeCKB,
 		GeckoId:       "nervos-network",
 		Name:          "Nervos Network",
 		Symbol:        "CKB",
@@ -124,7 +124,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "eth_eth",
 		ChainType:     1,
-		CoinType:      "60",
+		CoinType:      common.CoinTypeEth,
 		GeckoId:       "ethereum",
 		Name:          "Ethereum",
 		Symbol:        "ETH",
@@ -135,7 +135,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "btc_btc",
 		ChainType:     2,
-		CoinType:      "",
+		CoinType:      "0",
 		GeckoId:       "bitcoin",
 		Name:          "Bitcoin",
 		Symbol:        "BTC",
@@ -146,7 +146,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "tron_trx",
 		ChainType:     3,
-		CoinType:      "195",
+		CoinType:      common.CoinTypeTrx,
 		GeckoId:       "tron",
 		Name:          "TRON",
 		Symbol:        "TRX",
@@ -157,7 +157,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "bsc_bnb",
 		ChainType:     1,
-		CoinType:      "9006",
+		CoinType:      common.CoinTypeBSC,
 		GeckoId:       "binancecoin",
 		Name:          "Binance",
 		Symbol:        "BNB",
@@ -168,7 +168,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "polygon_matic",
 		ChainType:     1,
-		CoinType:      "966",
+		CoinType:      common.CoinTypeMatic,
 		GeckoId:       "matic-network",
 		Name:          "Polygon",
 		Symbol:        "MATIC",
@@ -179,7 +179,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "doge_doge",
 		ChainType:     7,
-		CoinType:      "3",
+		CoinType:      common.CoinTypeDogeCoin,
 		GeckoId:       "doge_doge",
 		Name:          "Dogecoin",
 		Symbol:        "doge",
@@ -190,7 +190,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "eth_erc20_usdt",
 		ChainType:     1,
-		CoinType:      "60",
+		CoinType:      common.CoinTypeEth,
 		GeckoId:       "eth_erc20_usdt",
 		Name:          "ERC20-USDT",
 		Symbol:        "ERC20-USDT",
@@ -202,7 +202,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "bsc_bep20_usdt",
 		ChainType:     1,
-		CoinType:      "9006",
+		CoinType:      common.CoinTypeBSC,
 		GeckoId:       "bsc_bep20_usdt",
 		Name:          "BEP20-USDT",
 		Symbol:        "BEP20-USDT",
@@ -214,7 +214,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "tron_trc20_usdt",
 		ChainType:     3,
-		CoinType:      "195",
+		CoinType:      common.CoinTypeTrx,
 		GeckoId:       "tron_trc20_usdt",
 		Name:          "TRC20-USDT",
 		Symbol:        "TRC20-USDT",
@@ -226,11 +226,21 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "stripe_usd",
 		ChainType:     99,
-		CoinType:      "",
 		GeckoId:       "stripe_usd",
 		Name:          "USD",
 		Symbol:        "USD",
 		Decimals:      2,
+		Logo:          "",
+		Price:         decimal.NewFromInt(1),
+		LastUpdatedAt: time.Now().Unix(),
+	},
+	{
+		TokenId:       "did_point",
+		ChainType:     98,
+		GeckoId:       "did_point",
+		Name:          "DID Point",
+		Symbol:        "DID Point",
+		Decimals:      6,
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
