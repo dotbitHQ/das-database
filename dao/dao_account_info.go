@@ -244,6 +244,32 @@ func (d *DbDao) GetAccountInfoByParentAccountId(parentAccountId string) (account
 	return
 }
 
+func (d *DbDao) BidExpiredAccountAuction(accountInfo TableAccountInfo, transactionInfos []TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		//update account_info
+		if err := tx.Select("expired_at", "registered_at", "block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "owner_sub_aid", "manager_chain_type", "manager", "manager_algorithm_id", "manager_sub_aid").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfos).Error; err != nil {
+			return err
+		}
+
+		//delete record
+		if err := tx.Where("account_id=?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 func (d *DbDao) RecycleExpiredAccount(accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, accountId string, enableSubAccount uint8) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint").
