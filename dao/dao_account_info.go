@@ -181,7 +181,9 @@ func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountIn
 
 		if len(cidPks) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
-				DoUpdates: clause.AssignmentColumns([]string{}),
+				DoUpdates: clause.AssignmentColumns([]string{
+					"pk",
+				}),
 			}).Create(&cidPks).Error; err != nil {
 				return err
 			}
