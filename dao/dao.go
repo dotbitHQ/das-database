@@ -90,12 +90,14 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 				if err := tx.Model(TableTokenPriceInfo{}).
 					Where("token_id=?", tokenList[i].TokenId).
 					Updates(map[string]interface{}{
-						"chain_type": tokenList[i].ChainType,
-						"name":       tokenList[i].Name,
-						"symbol":     tokenList[i].Symbol,
-						"decimals":   tokenList[i].Decimals,
-						"logo":       tokenList[i].Logo,
-						"coin_type":  tokenList[i].CoinType,
+						"chain_type":   tokenList[i].ChainType,
+						"name":         tokenList[i].Name,
+						"symbol":       tokenList[i].Symbol,
+						"decimals":     tokenList[i].Decimals,
+						"logo":         tokenList[i].Logo,
+						"coin_type":    tokenList[i].CoinType,
+						"display_name": tokenList[i].DisplayName,
+						"icon":         tokenList[i].Icon,
 					}).Error; err != nil {
 					return err
 				}
@@ -120,6 +122,8 @@ var tokenList = []TableTokenPriceInfo{
 		Decimals:      8,
 		Logo:          "https://app.did.id/images/components/portal-wallet.svg",
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   ".bit Balance",
+		Icon:          "dotbit-balance",
 	},
 	{
 		TokenId:       "eth_eth",
@@ -131,6 +135,8 @@ var tokenList = []TableTokenPriceInfo{
 		Decimals:      18,
 		Logo:          "https://app.did.id/images/components/ethereum.svg",
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Ethereum",
+		Icon:          "ethereum",
 	},
 	{
 		TokenId:       "btc_btc",
@@ -142,6 +148,8 @@ var tokenList = []TableTokenPriceInfo{
 		Decimals:      8,
 		Logo:          "https://app.did.id/images/components/bitcoin.svg",
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Bitcoin",
+		Icon:          "",
 	},
 	{
 		TokenId:       "tron_trx",
@@ -153,6 +161,8 @@ var tokenList = []TableTokenPriceInfo{
 		Decimals:      6,
 		Logo:          "https://app.did.id/images/components/tron.svg",
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "TRON",
+		Icon:          "tron",
 	},
 	{
 		TokenId:       "bsc_bnb",
@@ -164,6 +174,8 @@ var tokenList = []TableTokenPriceInfo{
 		Decimals:      18,
 		Logo:          "https://app.did.id/images/components/binance-smart-chain.svg",
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Binance",
+		Icon:          "binance-smart-chain",
 	},
 	{
 		TokenId:       "polygon_matic",
@@ -175,6 +187,8 @@ var tokenList = []TableTokenPriceInfo{
 		Decimals:      18,
 		Logo:          "https://app.did.id/images/components/polygon.svg",
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Polygon",
+		Icon:          "polygon",
 	},
 	{
 		TokenId:       "doge_doge",
@@ -186,6 +200,8 @@ var tokenList = []TableTokenPriceInfo{
 		Decimals:      8,
 		Logo:          "https://app.did.id/images/components/doge.svg",
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Dogecoin",
+		Icon:          "dogecoin",
 	},
 	{
 		TokenId:       "eth_erc20_usdt",
@@ -198,6 +214,8 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Ethereum",
+		Icon:          "ethereum",
 	},
 	{
 		TokenId:       "bsc_bep20_usdt",
@@ -210,6 +228,8 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Binance",
+		Icon:          "binance-smart-chain",
 	},
 	{
 		TokenId:       "tron_trc20_usdt",
@@ -222,6 +242,8 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "TRON",
+		Icon:          "tron",
 	},
 	{
 		TokenId:       "stripe_usd",
@@ -233,6 +255,8 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "by stripe",
+		Icon:          "stripe",
 	},
 	{
 		TokenId:       "did_point",
@@ -244,6 +268,8 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "DIDPoint",
+		Icon:          "didpoint",
 	},
 }
 

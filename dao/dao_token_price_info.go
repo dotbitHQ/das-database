@@ -25,6 +25,8 @@ type TableTokenPriceInfo struct {
 	MarketCap     decimal.Decimal `json:"market_cap" gorm:"column:market_cap;type:decimal(50, 8) NOT NULL DEFAULT '0.00000000' COMMENT ''"`
 	LastUpdatedAt int64           `json:"last_updated_at" gorm:"column:last_updated_at;type:bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT ''"`
 	Status        int             `json:"status" gorm:"column:status;type:smallint(6) NOT NULL DEFAULT '0' COMMENT '0: normal 1: banned'"`
+	Icon          string          `json:"icon" gorm:"column:icon; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
+	DisplayName   string          `json:"display_name" gorm:"column:display_name; type:varchar(255) NOT NULL DEFAULT '' COMMENT '';"`
 	CreatedAt     time.Time       `json:"created_at" gorm:"column:created_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT ''"`
 	UpdatedAt     time.Time       `json:"updated_at" gorm:"column:updated_at;type:timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT ''"`
 }
