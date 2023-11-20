@@ -71,7 +71,7 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionDelayApproval] = b.DasActionDelayApproval
 	b.mapTransactionHandle[common.DasActionRevokeApproval] = b.DasActionRevokeApproval
 	b.mapTransactionHandle[common.DasActionFulfillApproval] = b.DasActionFulfillApproval
-	b.mapTransactionHandle[common.DasBidExpiredAccountAuction] = b.ActionBidExpiredAccountAuction
+	b.mapTransactionHandle[common.DasActionBidExpiredAccountAuction] = b.ActionBidExpiredAccountAuction
 
 }
 
