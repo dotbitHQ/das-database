@@ -296,7 +296,22 @@ func (b *BlockParser) ActionBidExpiredAccountAuction(req FuncTransactionHandleRe
 	}
 	log.Info("ActionBidExpiredAccountAuction:", accountInfo)
 
-	if err := b.dbDao.BidExpiredAccountAuction(accountInfo, transactionInfos); err != nil {
+	var recordsInfos []dao.TableRecordsInfo
+
+	recordList := builder.Records
+	for _, v := range recordList {
+		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+			AccountId: accountId,
+			Account:   account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+		})
+	}
+
+	if err := b.dbDao.BidExpiredAccountAuction(accountInfo, recordsInfos, transactionInfos); err != nil {
 		log.Error("ActionBidExpiredAccountAuction err:", err.Error(), toolib.JsonString(accountInfo))
 		resp.Err = fmt.Errorf("ActionBidExpiredAccountAuction err: %s", err.Error())
 	}
