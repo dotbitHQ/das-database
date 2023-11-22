@@ -68,6 +68,7 @@ func (t *ToolSnapshot) registerTransactionHandle() {
 	t.mapTransactionHandle[common.DasActionConfirmProposal] = []FuncTransactionHandle{t.addAccountPermissionsByDasActionConfirmProposal, t.addAccountRegisterByDasActionConfirmProposal}
 	t.mapTransactionHandle[common.DasActionRenewAccount] = []FuncTransactionHandle{t.addAccountPermissions}
 	t.mapTransactionHandle[common.DasActionForceRecoverAccountStatus] = []FuncTransactionHandle{t.addAccountPermissions}
+	t.mapTransactionHandle[common.DasActionBidExpiredAccountAuction] = []FuncTransactionHandle{t.addAccountPermissions}
 
 	t.mapTransactionHandle[common.DasActionUnlockAccountForCrossChain] = []FuncTransactionHandle{t.addAccountPermissions}
 	t.mapTransactionHandle[common.DasActionLockAccountForCrossChain] = []FuncTransactionHandle{t.addAccountPermissions}
