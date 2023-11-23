@@ -217,6 +217,95 @@ func (b *BlockParser) ActionRenewAccount(req FuncTransactionHandleReq) (resp Fun
 	return
 }
 
+func (b *BlockParser) ActionBidExpiredAccountAuction(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warn("not current version transfer account tx")
+		return
+	}
+	log.Info("BidExpiredAccountAuction:", req.BlockNumber, req.TxHash)
+
+	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
+	if err != nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+	account := builder.Account
+	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
+	oHex, mHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[builder.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+
+	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[builder.Index].PreviousOutput.TxHash)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
+		return
+	}
+
+	oldHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[builder.Index].PreviousOutput.Index].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+	transactionInfos := make([]dao.TableTransactionInfo, 0)
+
+	transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
+		Account:        account,
+		Action:         common.DasActionBidExpiredAccountAuction,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      oldHex.ChainType,
+		Address:        oldHex.AddressHex,
+		Capacity:       res.Transaction.Outputs[req.Tx.Inputs[builder.Index].PreviousOutput.Index].Capacity,
+		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		BlockTimestamp: req.BlockTimestamp,
+	})
+
+	accountInfo := dao.TableAccountInfo{
+		BlockNumber:        req.BlockNumber,
+		Outpoint:           common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		AccountId:          accountId,
+		Account:            account,
+		OwnerChainType:     oHex.ChainType,
+		Owner:              oHex.AddressHex,
+		OwnerAlgorithmId:   oHex.DasAlgorithmId,
+		OwnerSubAid:        oHex.DasSubAlgorithmId,
+		ManagerChainType:   mHex.ChainType,
+		Manager:            mHex.AddressHex,
+		ManagerAlgorithmId: mHex.DasAlgorithmId,
+		ManagerSubAid:      mHex.DasSubAlgorithmId,
+		ExpiredAt:          builder.ExpiredAt,
+		RegisteredAt:       builder.RegisteredAt,
+	}
+	log.Info("ActionBidExpiredAccountAuction:", accountInfo)
+
+	var recordsInfos []dao.TableRecordsInfo
+
+	recordList := builder.Records
+	for _, v := range recordList {
+		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+			AccountId: accountId,
+			Account:   account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+		})
+	}
+
+	if err := b.dbDao.BidExpiredAccountAuction(accountInfo, recordsInfos, transactionInfos); err != nil {
+		log.Error("ActionBidExpiredAccountAuction err:", err.Error(), toolib.JsonString(accountInfo))
+		resp.Err = fmt.Errorf("ActionBidExpiredAccountAuction err: %s", err.Error())
+	}
+	return
+}
+
 func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
 	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
