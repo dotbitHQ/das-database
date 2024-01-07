@@ -281,6 +281,7 @@ func (b *BlockParser) ActionBidExpiredAccountAuction(req FuncTransactionHandleRe
 		ManagerSubAid:      mHex.DasSubAlgorithmId,
 		ExpiredAt:          builder.ExpiredAt,
 		RegisteredAt:       builder.RegisteredAt,
+		Status:             builder.Status,
 	}
 	log.Info("ActionBidExpiredAccountAuction:", accountInfo)
 
