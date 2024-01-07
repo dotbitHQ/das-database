@@ -249,7 +249,7 @@ func (d *DbDao) GetAccountInfoByParentAccountId(parentAccountId string) (account
 func (d *DbDao) BidExpiredAccountAuction(accountInfo TableAccountInfo, recordsInfos []TableRecordsInfo, transactionInfos []TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		//update account_info
-		if err := tx.Select("expired_at", "registered_at", "block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "owner_sub_aid", "manager_chain_type", "manager", "manager_algorithm_id", "manager_sub_aid").
+		if err := tx.Select("status", "expired_at", "registered_at", "block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "owner_sub_aid", "manager_chain_type", "manager", "manager_algorithm_id", "manager_sub_aid").
 			Where("account_id = ?", accountInfo.AccountId).
 			Updates(accountInfo).Error; err != nil {
 			return err
