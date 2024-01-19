@@ -45,6 +45,12 @@ func (b *BlockParser) DasActionCreateApproval(req FuncTransactionHandleReq) (res
 		resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
 		return
 	}
+	toNormal, err := dasf.HexToNormal(toHex)
+	if err != nil {
+		resp.Err = fmt.Errorf("HexToNormal err: %s", err.Error())
+		return
+	}
+
 	platformHex, _, err := dasf.ScriptToHex(transfer.PlatformLock)
 	if err != nil {
 		resp.Err = fmt.Errorf("ScriptToHex err: %s", err.Error())
@@ -61,7 +67,7 @@ func (b *BlockParser) DasActionCreateApproval(req FuncTransactionHandleReq) (res
 		OwnerAlgorithmID: accountInfo.OwnerAlgorithmId,
 		Owner:            accountInfo.Owner,
 		ToAlgorithmID:    toHex.DasAlgorithmId,
-		To:               toHex.AddressHex,
+		To:               toNormal.AddressNormal,
 		ProtectedUntil:   transfer.ProtectedUntil,
 		SealedUntil:      transfer.SealedUntil,
 		MaxDelayCount:    transfer.DelayCountRemain,
