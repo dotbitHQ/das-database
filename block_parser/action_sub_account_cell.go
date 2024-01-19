@@ -695,6 +695,10 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 			if err != nil {
 				return err
 			}
+			toNormal, err := dasf.HexToNormal(toHex)
+			if err != nil {
+				return err
+			}
 			platformHex, _, err := dasf.ScriptToHex(transfer.PlatformLock)
 			if err != nil {
 				return err
@@ -703,22 +707,20 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 			if err != nil {
 				return err
 			}
-			approval = dao.ApprovalInfo{
-				BlockNumber:      req.BlockNumber,
-				RefOutpoint:      refOutpoint,
-				Outpoint:         outpoint,
-				Account:          v.CurrentSubAccountData.Account(),
-				AccountID:        v.CurrentSubAccountData.AccountId,
-				Platform:         platformHex.AddressHex,
-				OwnerAlgorithmID: accInfo.OwnerAlgorithmId,
-				Owner:            accInfo.Owner,
-				ToAlgorithmID:    toHex.DasAlgorithmId,
-				To:               toHex.AddressHex,
-				ProtectedUntil:   transfer.ProtectedUntil,
-				SealedUntil:      transfer.SealedUntil,
-				MaxDelayCount:    transfer.DelayCountRemain,
-				Status:           dao.ApprovalStatusEnable,
-			}
+			approval.BlockNumber = req.BlockNumber
+			approval.RefOutpoint = refOutpoint
+			approval.Outpoint = outpoint
+			approval.Account = v.CurrentSubAccountData.Account()
+			approval.AccountID = v.CurrentSubAccountData.AccountId
+			approval.Platform = platformHex.AddressHex
+			approval.OwnerAlgorithmID = accInfo.OwnerAlgorithmId
+			approval.Owner = accInfo.Owner
+			approval.ToAlgorithmID = toHex.DasAlgorithmId
+			approval.To = toNormal.AddressNormal
+			approval.ProtectedUntil = transfer.ProtectedUntil
+			approval.SealedUntil = transfer.SealedUntil
+			approval.MaxDelayCount = transfer.DelayCountRemain
+			approval.Status = dao.ApprovalStatusEnable
 		case common.SubActionDelayApproval:
 			approval, err = b.dbDao.GetAccountPendingApproval(v.CurrentSubAccountData.AccountId)
 			if err != nil {
@@ -728,6 +730,9 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 				return fmt.Errorf("approval not found")
 			}
 			transfer := v.CurrentSubAccountData.AccountApproval.Params.Transfer
+			approval.BlockNumber = req.BlockNumber
+			approval.RefOutpoint = refOutpoint
+			approval.Outpoint = outpoint
 			approval.SealedUntil = transfer.SealedUntil
 			approval.PostponedCount++
 		case common.SubActionRevokeApproval:
@@ -739,6 +744,9 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 			if approval.ID == 0 {
 				return fmt.Errorf("approval not found")
 			}
+			approval.BlockNumber = req.BlockNumber
+			approval.RefOutpoint = refOutpoint
+			approval.Outpoint = outpoint
 			approval.Status = dao.ApprovalStatusRevoke
 		case common.SubActionFullfillApproval:
 			chainApproval := v.SubAccountData.AccountApproval
@@ -752,6 +760,9 @@ func (b *BlockParser) actionUpdateSubAccountForApproval(req FuncTransactionHandl
 					return fmt.Errorf("approval not found")
 				}
 				approval.Status = dao.ApprovalStatusFulFill
+				approval.BlockNumber = req.BlockNumber
+				approval.RefOutpoint = refOutpoint
+				approval.Outpoint = outpoint
 
 				owner, manager, err := b.dasCore.Daf().ScriptToHex(chainApproval.Params.Transfer.ToLock)
 				if err != nil {
