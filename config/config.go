@@ -88,6 +88,9 @@ type DbMysql struct {
 
 func PriceToCKB(price, quote, years uint64) (total uint64) {
 	log.Info("PriceToCKB:", price, quote, years)
+	if quote == 0 {
+		return 0
+	}
 	if price > quote {
 		total = price / quote * common.OneCkb * years
 	} else {
