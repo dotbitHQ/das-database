@@ -479,6 +479,8 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		InviterAccount:   "",
 		InviterChainType: inviterHex.ChainType,
 		InviterAddress:   inviterHex.AddressHex,
+		InviterAlgId:     inviterHex.DasAlgorithmId,
+		InviterSubAlgId:  inviterHex.DasSubAlgorithmId,
 		BlockTimestamp:   req.BlockTimestamp,
 	})
 
@@ -497,6 +499,8 @@ func (b *BlockParser) getRebateInfoList(salePrice decimal.Decimal, account strin
 		InviterAccount:   "",
 		InviterChainType: channelHex.ChainType,
 		InviterAddress:   channelHex.AddressHex,
+		InviterAlgId:     channelHex.DasAlgorithmId,
+		InviterSubAlgId:  channelHex.DasSubAlgorithmId,
 		BlockTimestamp:   req.BlockTimestamp,
 	})
 	return list, nil

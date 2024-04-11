@@ -215,6 +215,8 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				InviteeAccount:   preAcc.Account,
 				InviteeChainType: inviteeHex.ChainType,
 				InviteeAddress:   inviteeHex.AddressHex,
+				InviteeAlgId:     inviteeHex.DasAlgorithmId,
+				InviteeSubAlgId:  inviteeHex.DasSubAlgorithmId,
 				RewardType:       dao.RewardTypeInviter,
 				Reward:           capacity.Div(decimal.NewFromInt(common.PercentRateBase)).Mul(decimal.NewFromInt(int64(profitRateInviter))).BigInt().Uint64(),
 				Action:           common.DasActionConfirmProposal,
@@ -223,6 +225,8 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				InviterId:        inviterId,
 				InviterChainType: inviterHex.ChainType,
 				InviterAddress:   inviterHex.AddressHex,
+				InviterAlgId:     inviterHex.DasAlgorithmId,
+				InviterSubAlgId:  inviterHex.DasSubAlgorithmId,
 				BlockTimestamp:   req.BlockTimestamp,
 			})
 
@@ -244,6 +248,8 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				InviteeAccount:   preAcc.Account,
 				InviteeChainType: inviteeHex.ChainType,
 				InviteeAddress:   inviteeHex.AddressHex,
+				InviteeAlgId:     inviteeHex.DasAlgorithmId,
+				InviteeSubAlgId:  inviteeHex.DasSubAlgorithmId,
 				RewardType:       dao.RewardTypeChannel,
 				Reward:           capacity.Div(decimal.NewFromInt(common.PercentRateBase)).Mul(decimal.NewFromInt(int64(profitRateChannel))).BigInt().Uint64(),
 				Action:           common.DasActionConfirmProposal,
@@ -251,6 +257,8 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				InviterArgs:      common.Bytes2Hex(channelLock.Args().RawData()),
 				InviterChainType: channelHex.ChainType,
 				InviterAddress:   channelHex.AddressHex,
+				InviterAlgId:     inviterHex.DasAlgorithmId,
+				InviterSubAlgId:  inviterHex.DasSubAlgorithmId,
 				BlockTimestamp:   req.BlockTimestamp,
 			})
 

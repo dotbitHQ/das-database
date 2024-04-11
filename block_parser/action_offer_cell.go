@@ -424,6 +424,8 @@ func (b *BlockParser) getOfferRebateInfoList(salePrice decimal.Decimal, account 
 		InviterAccount:   "",
 		InviterChainType: inviterHex.ChainType,
 		InviterAddress:   inviterHex.AddressHex,
+		InviterAlgId:     inviterHex.DasAlgorithmId,
+		InviterSubAlgId:  inviterHex.DasSubAlgorithmId,
 		BlockTimestamp:   req.BlockTimestamp,
 	})
 	channelHex, _, err := b.dasCore.Daf().ScriptToHex(molecule.MoleculeScript2CkbScript(channelScript))
@@ -445,6 +447,8 @@ func (b *BlockParser) getOfferRebateInfoList(salePrice decimal.Decimal, account 
 		InviterAccount:   "",
 		InviterChainType: channelHex.ChainType,
 		InviterAddress:   channelHex.AddressHex,
+		InviterAlgId:     channelHex.DasAlgorithmId,
+		InviterSubAlgId:  channelHex.DasSubAlgorithmId,
 		BlockTimestamp:   req.BlockTimestamp,
 	})
 	return list, nil
