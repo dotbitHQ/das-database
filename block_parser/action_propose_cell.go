@@ -174,6 +174,8 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				ServiceType:    dao.ServiceTypeRegister,
 				ChainType:      ownerHex.ChainType,
 				Address:        ownerHex.AddressHex,
+				AlgId:          ownerHex.DasAlgorithmId,
+				SubAlgId:       ownerHex.DasSubAlgorithmId,
 				Capacity:       req.Tx.Outputs[v.Index].Capacity,
 				Outpoint:       common.OutPoint2String(req.TxHash, uint(v.Index)),
 				BlockTimestamp: req.BlockTimestamp,

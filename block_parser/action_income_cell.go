@@ -54,6 +54,8 @@ func (b *BlockParser) ActionConsolidateIncome(req FuncTransactionHandleReq) (res
 				ServiceType:    dao.ServiceTypeTransaction,
 				ChainType:      ownerHex.ChainType,
 				Address:        ownerHex.AddressHex,
+				AlgId:          ownerHex.DasAlgorithmId,
+				SubAlgId:       ownerHex.DasSubAlgorithmId,
 				Capacity:       v.Capacity,
 				Outpoint:       common.OutPoint2String(req.TxHash, uint(i)),
 				BlockTimestamp: req.BlockTimestamp,

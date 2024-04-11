@@ -103,6 +103,8 @@ func (b *BlockParser) ActionStartAccountSale(req FuncTransactionHandleReq) (resp
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      tradeInfo.OwnerChainType,
 		Address:        tradeInfo.OwnerAddress,
+		AlgId:          ownerHex.DasAlgorithmId,
+		SubAlgId:       ownerHex.DasSubAlgorithmId,
 		Capacity:       req.Tx.Outputs[builder.Index].Capacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		BlockTimestamp: req.BlockTimestamp,
@@ -187,6 +189,8 @@ func (b *BlockParser) ActionEditAccountSale(req FuncTransactionHandleReq) (resp 
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      oHex.ChainType,
 		Address:        oHex.AddressHex,
+		AlgId:          oHex.DasAlgorithmId,
+		SubAlgId:       oHex.DasSubAlgorithmId,
 		Capacity:       0,
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		BlockTimestamp: req.BlockTimestamp,
@@ -239,6 +243,8 @@ func (b *BlockParser) ActionCancelAccountSale(req FuncTransactionHandleReq) (res
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      ownerHex.ChainType,
 		Address:        ownerHex.AddressHex,
+		AlgId:          ownerHex.DasAlgorithmId,
+		SubAlgId:       ownerHex.DasSubAlgorithmId,
 		Capacity:       req.Tx.Outputs[1].Capacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
@@ -341,6 +347,8 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      ownerHex.ChainType,
 		Address:        ownerHex.AddressHex,
+		AlgId:          ownerHex.DasAlgorithmId,
+		SubAlgId:       ownerHex.DasSubAlgorithmId,
 		Capacity:       builder.Price,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
@@ -358,6 +366,8 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 		ServiceType:    dao.ServiceTypeTransaction,
 		ChainType:      ownerHex.ChainType,
 		Address:        ownerHex.AddressHex,
+		AlgId:          ownerHex.DasAlgorithmId,
+		SubAlgId:       ownerHex.DasSubAlgorithmId,
 		Outpoint:       common.OutPoint2String(req.TxHash, 1),
 		BlockTimestamp: req.BlockTimestamp,
 	}
@@ -367,7 +377,7 @@ func (b *BlockParser) ActionBuyAccount(req FuncTransactionHandleReq) (resp FuncT
 			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 			return
 		}
-		if transactionInfoSale.ChainType == ownerHex.ChainType && strings.EqualFold(transactionInfoSale.Address, ownerHex.AddressHex) {
+		if transactionInfoSale.ChainType == ownerHex.ChainType && transactionInfoSale.SubAlgId == ownerHex.DasSubAlgorithmId && strings.EqualFold(transactionInfoSale.Address, ownerHex.AddressHex) {
 			transactionInfoSale.Capacity = req.Tx.Outputs[i].Capacity
 			break
 		}
