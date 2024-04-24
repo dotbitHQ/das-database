@@ -349,6 +349,35 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 	})
 }
 
+func (d *DbDao) AccountUpgrade(accountInfo TableAccountInfo, didCellInfo TableDidCellInfo, transactionInfo TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("status").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"args", "account", "expired_at",
+				"created_at", "updated_at",
+			}),
+		}).Create(&didCellInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (d *DbDao) GetNeedFixCharsetAccountList() (list []TableAccountInfo, err error) {
 	err = d.db.Where("parent_account_id='' AND charset_num=0 AND account_id!='0x0000000000000000000000000000000000000000' ").Limit(200).Find(&list).Error
 	return

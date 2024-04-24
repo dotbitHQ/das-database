@@ -176,11 +176,29 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 		blockNumber := block.Header.Number
 		blockTimestamp := block.Header.Timestamp
 		//log.Info("parsingBlockData txHash:", txHash)
-
-		if builder, err := witness.ActionDataBuilderFromTx(tx); err != nil {
+		//var builder *witness.ActionDataBuilder
+		builder, err := witness.ActionDataBuilderFromTx(tx)
+		action := ""
+		if err != nil {
 			//log.Warn("ActionDataBuilderFromTx err:", err.Error())
+			//交易里没有das 的action_data witness, 检测交易是否是did（ 输入里没有account cell）
+			//did cell : edit owner, recycle, edit record
+			if err == witness.ErrNotExistActionData {
+				if didCellAction, err := b.dasCore.TxToDidCellAction(tx); err != nil {
+					log.Error("TxToDidCellAction err :", builder.Action, blockNumber, txHash, err.Error())
+				} else {
+					action = didCellAction
+				}
+			}
 		} else {
-			if handle, ok := b.mapTransactionHandle[builder.Action]; ok {
+			// 交易有 das 的 action_data的witness
+			//
+			//输入有account cell, 包含了did cell的交易（account 操作伴随升级did cell（转移owner伴随升级），直接升级did cell， did cell 续费)
+			//
+			action = builder.Action
+		}
+		if action != "" {
+			if handle, ok := b.mapTransactionHandle[action]; ok {
 				// transaction parse by action
 				resp := handle(FuncTransactionHandleReq{
 					DbDao:          b.dbDao,

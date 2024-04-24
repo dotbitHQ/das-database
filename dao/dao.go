@@ -75,6 +75,7 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		&TableCidPk{},
 		&TableAuthorize{},
 		&ApprovalInfo{},
+		&TableDidCellInfo{},
 	); err != nil {
 		return nil, err
 	}
