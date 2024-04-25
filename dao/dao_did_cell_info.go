@@ -25,9 +25,9 @@ func (t *TableDidCellInfo) TableName() string {
 	return TableNameDidCellInfo
 }
 
-func (d *DbDao) CreateDidCellRecordsInfos(accountId string, recordsInfos []TableRecordsInfo) error {
+func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidCellInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("account_id = ?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+		if err := tx.Where("account_id = ?", didCellInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
 		if len(recordsInfos) > 0 {
@@ -35,14 +35,19 @@ func (d *DbDao) CreateDidCellRecordsInfos(accountId string, recordsInfos []Table
 				return err
 			}
 		}
+		if err := tx.Select("outpoint", "expired_at", "expired_at", "block_number").
+			Where("outpoint = ?", outpoint).
+			Updates(didCellInfo).Error; err != nil {
+			return err
+		}
 		return nil
 	})
 }
 
-func (d *DbDao) EditDidCellOwner(didCellInfo TableDidCellInfo) error {
+func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("status").
-			Where("account_id = ?", didCellInfo.AccountId).
+			Where("outpoint = ?", outpoint).
 			Updates(didCellInfo).Error; err != nil {
 			return err
 		}
@@ -51,9 +56,9 @@ func (d *DbDao) EditDidCellOwner(didCellInfo TableDidCellInfo) error {
 	})
 }
 
-func (d *DbDao) DidCellRecycle(didCellInfo TableDidCellInfo) error {
+func (d *DbDao) DidCellRecycle(outpoint string) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("account_id = ? and args= ? ", didCellInfo.AccountId, didCellInfo.Args).Delete(&TableRecordsInfo{}).Error; err != nil {
+		if err := tx.Where("outpoint = ? ", outpoint).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
 		return nil

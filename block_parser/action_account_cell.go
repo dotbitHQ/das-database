@@ -209,7 +209,26 @@ func (b *BlockParser) ActionRenewAccount(req FuncTransactionHandleReq) (resp Fun
 
 	log.Info("ActionRenewAccount:", builder.Account, builder.ExpiredAt, transactionInfo.Capacity)
 
-	if err := b.dbDao.RenewAccount(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo); err != nil {
+	//renew did cell
+	var didCellInfo dao.TableDidCellInfo
+	var oldDidCellOutpoint string
+	if didCellAction, err := b.dasCore.TxToDidCellAction(req.Tx); err != nil {
+		if err != core.ErrorNotExistDidCell {
+			log.Error("TxToDidCellAction err :", err.Error())
+		}
+	} else if didCellAction == common.DidCellActionRenew {
+		txDidEntity, err := witness.TxToDidEntity(req.Tx)
+		if err != nil {
+			resp.Err = fmt.Errorf("witness.TxToDidEntity err: %s", err.Error())
+		} else {
+			oldDidCellOutpoint = common.OutPointStruct2String(req.Tx.Inputs[txDidEntity.Inputs[0].Target.Index].PreviousOutput)
+			didCellInfo.Outpoint = common.OutPoint2String(req.Tx.Hash.Hex(), uint(txDidEntity.Outputs[0].Target.Index))
+			didCellInfo.ExpiredAt = accountInfo.ExpiredAt
+			didCellInfo.BlockNumber = accountInfo.BlockNumber
+		}
+	}
+
+	if err := b.dbDao.RenewAccount(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo, oldDidCellOutpoint, didCellInfo); err != nil {
 		log.Error("RenewAccount err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("RenewAccount err: %s", err.Error())
 	}
