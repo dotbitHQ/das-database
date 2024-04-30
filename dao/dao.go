@@ -261,6 +261,7 @@ var tokenList = []TableTokenPriceInfo{
 	{
 		TokenId:       "did_point",
 		ChainType:     98,
+		CoinType:      common.CoinTypeCKB,
 		GeckoId:       "did_point",
 		Name:          "DIDPoint",
 		Symbol:        "DIDPoint",
