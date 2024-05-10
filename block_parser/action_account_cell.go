@@ -406,7 +406,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 			}
 
 			var recordsInfos []dao.TableRecordsInfo
-			recordList := txDidEntity.Outputs[txDidEntity.Outputs[0].Target.Index].DidCellWitnessDataV0.Records
+			recordList := txDidEntity.Outputs[0].DidCellWitnessDataV0.Records
 			for _, v := range recordList {
 				recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
 					AccountId: accountId,
