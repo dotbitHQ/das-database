@@ -180,8 +180,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 		builder, err := witness.ActionDataBuilderFromTx(tx)
 		action := ""
 		if err != nil {
-			//log.Warn("ActionDataBuilderFromTx err:", err.Error())
-			//交易里没有das 的action_data witness, 检测交易是否是did（ 输入里没有account cell）
+			//check didcellaction
 			//did cell : edit owner, recycle, edit record
 			if err == witness.ErrNotExistActionData {
 				if didCellAction, err := b.dasCore.TxToDidCellAction(tx); err != nil {
@@ -189,12 +188,11 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 				} else {
 					action = didCellAction
 				}
+			} else {
+				log.Warn("ActionDataBuilderFromTx err:", err.Error())
 			}
 		} else {
-			// 交易有 das 的 action_data的witness
-			//
-			//输入有account cell, 包含了did cell的交易（account 操作伴随升级did cell（转移owner伴随升级），直接升级did cell， did cell 续费)
-			//
+			//das action with did cell (renew didCell, upgrade didCell, transfer accCell to didCell, accCell operate with upgrade)
 			action = builder.Action
 		}
 		if action != "" {
