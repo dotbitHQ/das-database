@@ -377,6 +377,40 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		BlockTimestamp: req.BlockTimestamp,
 	}
+
+	// transfer accCell to didCell (for passkey)
+	if builder.Status == common.AccountStatusOnUpgrade {
+		txDidEntity, err := witness.TxToDidEntity(req.Tx)
+		if err != nil {
+			resp.Err = fmt.Errorf("witness.TxToDidEntity err: %s", err.Error())
+			return
+		}
+
+		if len(txDidEntity.Inputs) == 0 && len(txDidEntity.Outputs) == 1 {
+			didCellArgs := common.Bytes2Hex(req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.Args)
+			accountInfo := dao.TableAccountInfo{
+				BlockNumber: req.BlockNumber,
+				Outpoint:    common.OutPoint2String(req.TxHash, uint(builder.Index)),
+				AccountId:   builder.AccountId,
+				Status:      builder.Status,
+			}
+
+			didCellInfo := dao.TableDidCellInfo{
+				BlockNumber:  req.BlockNumber,
+				Outpoint:     common.OutPoint2String(req.TxHash, uint(txDidEntity.Outputs[0].Target.Index)),
+				AccountId:    builder.AccountId,
+				Account:      builder.Account,
+				Args:         didCellArgs,
+				LockCodeHash: req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.CodeHash.Hex(),
+			}
+			if err := b.dbDao.TransferAccountToDid(accountInfo, didCellInfo, transactionInfo); err != nil {
+				log.Error("TransferAccountToDid err:", err.Error(), toolib.JsonString(transactionInfo))
+				resp.Err = fmt.Errorf("TransferAccount err: %s", err.Error())
+			}
+			return
+		}
+	}
+
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(builder.Index)),
@@ -635,6 +669,7 @@ func (b *BlockParser) ActionAccountUpgrade(req FuncTransactionHandleReq) (resp F
 		log.Warn("not current version account cross chain tx")
 		return
 	}
+	fmt.Println("aaaaaaaaaaaaaaaaa")
 	log.Info("ActionAccountCrossChain:", req.BlockNumber, req.TxHash, req.Action)
 
 	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)

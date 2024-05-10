@@ -92,7 +92,7 @@ func (b *BlockParser) RunParser() {
 				if err != nil {
 					log.Error("get latest block number err:", err.Error())
 				} else {
-					// async
+					// async  c -4-100
 					if b.concurrencyNum > 1 && b.currentBlockNumber < (latestBlockNumber-b.confirmNum-b.concurrencyNum) {
 						nowTime := time.Now()
 						if err = b.parserConcurrencyMode(); err != nil {
@@ -185,7 +185,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 			//did cell : edit owner, recycle, edit record
 			if err == witness.ErrNotExistActionData {
 				if didCellAction, err := b.dasCore.TxToDidCellAction(tx); err != nil {
-					log.Error("TxToDidCellAction err :", builder.Action, blockNumber, txHash, err.Error())
+					log.Error("TxToDidCellAction err :", blockNumber, txHash, err.Error())
 				} else {
 					action = didCellAction
 				}
