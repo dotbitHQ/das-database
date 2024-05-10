@@ -93,6 +93,8 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 	}
 
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
+	fmt.Println("ssssssssssss: ", oldOutpoint, accountId)
+	//return
 	if err := b.dbDao.EditDidCellOwner(oldOutpoint, didCellInfo); err != nil {
 		log.Error("EditDidCellOwner err:", err.Error())
 		resp.Err = fmt.Errorf("EditDidCellOwner err: %s", err.Error())
