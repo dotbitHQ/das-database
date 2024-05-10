@@ -404,7 +404,21 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 				ExpiredAt:    builder.ExpiredAt,
 				LockCodeHash: req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.CodeHash.Hex(),
 			}
-			if err := b.dbDao.TransferAccountToDid(accountInfo, didCellInfo, transactionInfo); err != nil {
+
+			var recordsInfos []dao.TableRecordsInfo
+			recordList := txDidEntity.Outputs[txDidEntity.Outputs[0].Target.Index].DidCellWitnessDataV0.Records
+			for _, v := range recordList {
+				recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+					AccountId: accountId,
+					Account:   account,
+					Key:       v.Key,
+					Type:      v.Type,
+					Label:     v.Label,
+					Value:     v.Value,
+					Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+				})
+			}
+			if err := b.dbDao.TransferAccountToDid(accountInfo, didCellInfo, transactionInfo, recordsInfos); err != nil {
 				log.Error("TransferAccountToDid err:", err.Error(), toolib.JsonString(transactionInfo))
 				resp.Err = fmt.Errorf("TransferAccount err: %s", err.Error())
 			}
@@ -697,10 +711,11 @@ func (b *BlockParser) ActionAccountUpgrade(req FuncTransactionHandleReq) (resp F
 	}
 
 	didCellInfo := dao.TableDidCellInfo{
-		BlockNumber: req.BlockNumber,
-		Outpoint:    common.OutPoint2String(req.TxHash, 0),
-		AccountId:   builder.AccountId,
-		Args:        didCellArgs,
+		BlockNumber:  req.BlockNumber,
+		Outpoint:     common.OutPoint2String(req.TxHash, 0),
+		AccountId:    builder.AccountId,
+		Args:         didCellArgs,
+		LockCodeHash: req.Tx.Outputs[didEntity.Target.Index].Lock.CodeHash.Hex(),
 	}
 
 	transactionInfo := dao.TableTransactionInfo{
@@ -716,7 +731,20 @@ func (b *BlockParser) ActionAccountUpgrade(req FuncTransactionHandleReq) (resp F
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
-	if err = b.dbDao.AccountUpgrade(accountInfo, didCellInfo, transactionInfo); err != nil {
+	var recordsInfos []dao.TableRecordsInfo
+	recordList := didEntity.DidCellWitnessDataV0.Records
+	for _, v := range recordList {
+		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+			AccountId: builder.AccountId,
+			Account:   builder.Account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+		})
+	}
+	if err = b.dbDao.AccountUpgrade(accountInfo, didCellInfo, transactionInfo, recordsInfos); err != nil {
 		log.Error("AccountCrossChain err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("AccountCrossChain err: %s ", err.Error())
 		return

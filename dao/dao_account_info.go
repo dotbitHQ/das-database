@@ -119,7 +119,7 @@ func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo Ta
 		return nil
 	})
 }
-func (d *DbDao) TransferAccountToDid(accountInfo TableAccountInfo, didCellInfo TableDidCellInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) TransferAccountToDid(accountInfo TableAccountInfo, didCellInfo TableDidCellInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("block_number", "outpoint", "status").
 			Where("account_id = ?", accountInfo.AccountId).
@@ -134,6 +134,15 @@ func (d *DbDao) TransferAccountToDid(accountInfo TableAccountInfo, didCellInfo T
 			}),
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
+		}
+
+		if err := tx.Where("account_id = ?", didCellInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+		if len(recordsInfos) > 0 {
+			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
 		}
 
 		if err := tx.Clauses(clause.OnConflict{
@@ -378,7 +387,7 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 	})
 }
 
-func (d *DbDao) AccountUpgrade(accountInfo TableAccountInfo, didCellInfo TableDidCellInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) AccountUpgrade(accountInfo TableAccountInfo, didCellInfo TableDidCellInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("status").
 			Where("account_id = ?", accountInfo.AccountId).
@@ -393,6 +402,15 @@ func (d *DbDao) AccountUpgrade(accountInfo TableAccountInfo, didCellInfo TableDi
 			}),
 		}).Create(&transactionInfo).Error; err != nil {
 			return err
+		}
+		if err := tx.Where("account_id = ?", didCellInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+
+		if len(recordsInfos) > 0 {
+			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
 		}
 		if err := tx.Clauses(clause.OnConflict{
 			DoUpdates: clause.AssignmentColumns([]string{

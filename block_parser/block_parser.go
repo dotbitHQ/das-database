@@ -195,6 +195,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 			//das action with did cell (renew didCell, upgrade didCell, transfer accCell to didCell, accCell operate with upgrade)
 			action = builder.Action
 		}
+
 		if action != "" {
 			if handle, ok := b.mapTransactionHandle[action]; ok {
 				// transaction parse by action
@@ -204,15 +205,15 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 					TxHash:         txHash,
 					BlockNumber:    blockNumber,
 					BlockTimestamp: blockTimestamp,
-					Action:         builder.Action,
+					Action:         action,
 				})
 				if resp.Err != nil {
-					log.Error("action handle resp:", builder.Action, blockNumber, txHash, resp.Err.Error())
+					log.Error("action handle resp:", action, blockNumber, txHash, resp.Err.Error())
 					b.errCountHandle++
 					if b.errCountHandle < 100 {
 						// notify
 						msg := "> Transaction hash：%s\n> Action：%s\n> Timestamp：%s\n> Error message：%s"
-						msg = fmt.Sprintf(msg, txHash, builder.Action, time.Now().Format("2006-01-02 15:04:05"), resp.Err.Error())
+						msg = fmt.Sprintf(msg, txHash, action, time.Now().Format("2006-01-02 15:04:05"), resp.Err.Error())
 						notify.SendLarkErrNotify("DasDatabase BlockParser", msg)
 					}
 					return resp.Err
