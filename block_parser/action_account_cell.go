@@ -401,6 +401,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 				AccountId:    builder.AccountId,
 				Account:      builder.Account,
 				Args:         didCellArgs,
+				ExpiredAt:    builder.ExpiredAt,
 				LockCodeHash: req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.CodeHash.Hex(),
 			}
 			if err := b.dbDao.TransferAccountToDid(accountInfo, didCellInfo, transactionInfo); err != nil {
