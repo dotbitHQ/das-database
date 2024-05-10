@@ -68,7 +68,7 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 		log.Warn("not current version account cross chain tx")
 		return
 	}
-	log.Info("ActionAccountCrossChain:", req.BlockNumber, req.TxHash, req.Action)
+	log.Info("ActionEditDidCellOwner:", req.BlockNumber, req.TxHash, req.Action)
 	//transfer：获取output里didcell的args
 	//renew：获取input里的didcell的args（更新t_did_cell 的expired_at）
 	didEntity, err := witness.TxToOneDidEntity(req.Tx, witness.SourceTypeOutputs)
@@ -85,10 +85,11 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 	account := didCellData.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	didCellInfo := dao.TableDidCellInfo{
-		BlockNumber: req.BlockNumber,
-		Outpoint:    common.OutPoint2String(req.TxHash, 0),
-		AccountId:   accountId,
-		Args:        didCellArgs,
+		BlockNumber:  req.BlockNumber,
+		Outpoint:     common.OutPoint2String(req.TxHash, uint(didEntity.Target.Index)),
+		AccountId:    accountId,
+		Args:         didCellArgs,
+		LockCodeHash: req.Tx.Outputs[didEntity.Target.Index].Lock.CodeHash.Hex(),
 	}
 
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
