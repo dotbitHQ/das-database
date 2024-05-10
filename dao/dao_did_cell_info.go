@@ -49,7 +49,7 @@ func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidC
 
 func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Select("outpoint", "expired_at", "block_number", "args", "lock_code_hash").
+		if err := tx.Select("outpoint", "block_number", "args", "lock_code_hash").
 			Where("outpoint = ?", outpoint).
 			Updates(didCellInfo).Error; err != nil {
 			return err
