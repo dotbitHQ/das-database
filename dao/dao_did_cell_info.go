@@ -31,11 +31,13 @@ func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidC
 		if err := tx.Where("account_id = ?", didCellInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
+
 		if len(recordsInfos) > 0 {
 			if err := tx.Create(&recordsInfos).Error; err != nil {
 				return err
 			}
 		}
+
 		if err := tx.Select("outpoint", "expired_at", "expired_at", "block_number").
 			Where("outpoint = ?", outpoint).
 			Updates(didCellInfo).Error; err != nil {

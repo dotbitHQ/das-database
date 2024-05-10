@@ -16,7 +16,7 @@ func (b *BlockParser) ActionEditDidCellRecords(req FuncTransactionHandleReq) (re
 		log.Warn("not current version account cross chain tx")
 		return
 	}
-	log.Info("ActionAccountCrossChain:", req.BlockNumber, req.TxHash, req.Action)
+	log.Info("ActionEditDidCellRecords:", req.BlockNumber, req.TxHash, req.Action)
 
 	txDidEntity, err := witness.TxToDidEntity(req.Tx)
 	if err != nil {
@@ -29,9 +29,10 @@ func (b *BlockParser) ActionEditDidCellRecords(req FuncTransactionHandleReq) (re
 		resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
 		return
 	}
-	var recordsInfos []dao.TableRecordsInfo
+
 	account := didCellData.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
+	var recordsInfos []dao.TableRecordsInfo
 	recordList := txDidEntity.Outputs[0].DidCellWitnessDataV0.Records
 	for _, v := range recordList {
 		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
