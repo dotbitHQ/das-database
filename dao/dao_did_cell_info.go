@@ -38,7 +38,7 @@ func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidC
 			}
 		}
 
-		if err := tx.Select("outpoint", "expired_at", "block_number").
+		if err := tx.Select("outpoint", "block_number").
 			Where("outpoint = ?", outpoint).
 			Updates(didCellInfo).Error; err != nil {
 			return err
@@ -59,8 +59,11 @@ func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo) 
 	})
 }
 
-func (d *DbDao) DidCellRecycle(outpoint string) error {
+func (d *DbDao) DidCellRecycle(outpoint, accountId string) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("account_id=?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
 		if err := tx.Where("outpoint = ? ", outpoint).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}

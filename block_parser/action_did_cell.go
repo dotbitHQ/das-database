@@ -45,8 +45,6 @@ func (b *BlockParser) ActionEditDidCellRecords(req FuncTransactionHandleReq) (re
 			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
 		})
 	}
-	log.Info("ActionEditDidRecords:", account)
-
 	oldDidCellOutpoint := common.OutPointStruct2String(req.Tx.Inputs[txDidEntity.Inputs[0].Target.Index].PreviousOutput)
 	var didCellInfo dao.TableDidCellInfo
 	didCellInfo.AccountId = accountId
@@ -93,8 +91,6 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 	}
 
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
-	fmt.Println("ssssssssssss: ", oldOutpoint, accountId)
-	//return
 	if err := b.dbDao.EditDidCellOwner(oldOutpoint, didCellInfo); err != nil {
 		log.Error("EditDidCellOwner err:", err.Error())
 		resp.Err = fmt.Errorf("EditDidCellOwner err: %s", err.Error())
@@ -121,14 +117,11 @@ func (b *BlockParser) ActionDidCellRecycle(req FuncTransactionHandleReq) (resp F
 		resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
 		return
 	}
-	didCellArgs := common.Bytes2Hex(req.Tx.Outputs[didEntity.Target.Index].Lock.Args)
 	account := didCellData.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
-	var didCellInfo dao.TableDidCellInfo
-	didCellInfo.Args = didCellArgs
-	didCellInfo.AccountId = accountId
+
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
-	if err := b.dbDao.DidCellRecycle(oldOutpoint); err != nil {
+	if err := b.dbDao.DidCellRecycle(oldOutpoint, accountId); err != nil {
 		log.Error("DidCellRecycle err:", err.Error())
 		resp.Err = fmt.Errorf("DidCellRecycle err: %s", err.Error())
 	}

@@ -420,7 +420,7 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 			}
 			if err := b.dbDao.TransferAccountToDid(accountInfo, didCellInfo, transactionInfo, recordsInfos); err != nil {
 				log.Error("TransferAccountToDid err:", err.Error(), toolib.JsonString(transactionInfo))
-				resp.Err = fmt.Errorf("TransferAccount err: %s", err.Error())
+				resp.Err = fmt.Errorf("TransferAccountToDid err: %s", err.Error())
 			}
 			return
 		}
