@@ -136,7 +136,7 @@ func (d *DbDao) RenewAccount(outpoints []string, incomeCellInfos []TableIncomeCe
 		}
 
 		if oldDidCellOutpoint != "" {
-			if err := tx.Select("outpoint", "expired_at", "expired_at", "block_number").
+			if err := tx.Select("outpoint", "expired_at", "block_number").
 				Where("outpoint = ?", oldDidCellOutpoint).
 				Updates(didCellInfo).Error; err != nil {
 				return err
