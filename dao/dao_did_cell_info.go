@@ -64,7 +64,7 @@ func (d *DbDao) DidCellRecycle(outpoint, accountId string) error {
 		if err := tx.Where("account_id=?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
-		if err := tx.Where("outpoint = ? ", outpoint).Delete(&TableRecordsInfo{}).Error; err != nil {
+		if err := tx.Where("outpoint = ? ", outpoint).Delete(&TableDidCellInfo{}).Error; err != nil {
 			return err
 		}
 		return nil

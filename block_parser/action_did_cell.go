@@ -13,7 +13,7 @@ func (b *BlockParser) ActionEditDidCellRecords(req FuncTransactionHandleReq) (re
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
-		log.Warn("not current version account cross chain tx")
+		log.Warn("not current version edit didcell records tx")
 		return
 	}
 	log.Info("ActionEditDidCellRecords:", req.BlockNumber, req.TxHash, req.Action)
@@ -63,7 +63,7 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
 		return
 	} else if !isCV {
-		log.Warn("not current version account cross chain tx")
+		log.Warn("not current version edit didcell owner")
 		return
 	}
 	log.Info("ActionEditDidCellOwner:", req.BlockNumber, req.TxHash, req.Action)
@@ -99,27 +99,34 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 }
 
 func (b *BlockParser) ActionDidCellRecycle(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
-	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameDidCellType); err != nil {
-		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
-		return
-	} else if !isCV {
-		log.Warn("not current version account cross chain tx")
-		return
-	}
-	log.Info("ActionAccountCrossChain:", req.BlockNumber, req.TxHash, req.Action)
-	didEntity, err := witness.TxToOneDidEntity(req.Tx, witness.SourceTypeOutputs)
+	didEntity, err := witness.TxToOneDidEntity(req.Tx, witness.SourceTypeInputs)
 	if err != nil {
 		resp.Err = fmt.Errorf("TxToOneDidEntity err: %s", err.Error())
 		return
 	}
-	var didCellData witness.DidCellData
-	if err := didCellData.BysToObj(req.Tx.OutputsData[didEntity.Target.Index]); err != nil {
+	preTx, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[didEntity.Target.Index].PreviousOutput.TxHash)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
+		return
+	}
+
+	if isCV, err := isCurrentVersionTx(preTx.Transaction, common.DasContractNameDidCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warn("not current version didcell recycle")
+		return
+	}
+	log.Info("ActionDidCellRecycle:", req.BlockNumber, req.TxHash, req.Action)
+	preTxDidEntity, err := witness.TxToOneDidEntity(preTx.Transaction, witness.SourceTypeOutputs)
+
+	var preDidCellData witness.DidCellData
+	if err := preDidCellData.BysToObj(preTx.Transaction.OutputsData[preTxDidEntity.Target.Index]); err != nil {
 		resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
 		return
 	}
-	account := didCellData.Account
+	account := preDidCellData.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
-
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
 	if err := b.dbDao.DidCellRecycle(oldOutpoint, accountId); err != nil {
 		log.Error("DidCellRecycle err:", err.Error())
