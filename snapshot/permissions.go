@@ -1,11 +1,13 @@
 package snapshot
 
 import (
+	"das_database/config"
 	"das_database/dao"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
+	"github.com/nervosnetwork/ckb-sdk-go/address"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 )
 
@@ -56,6 +58,34 @@ func (t *ToolSnapshot) addAccountPermissions(info dao.TableSnapshotTxInfo, tx *t
 				tmp.Manager = manager.AddressHex
 				tmp.ManagerAlgorithmId = manager.DasAlgorithmId
 			}
+		} else if (info.Action == common.DasActionTransferAccount || info.Action == common.DasActionRenewAccount) && v.Status == common.AccountStatusOnUpgrade {
+			didEntity, err := witness.TxToOneDidEntity(tx, witness.SourceTypeOutputs)
+			if err != nil {
+				return fmt.Errorf("witness.TxToOneDidEntity err: %s", err.Error())
+			}
+			mode := address.Mainnet
+			if config.Cfg.Server.Net != common.DasNetTypeMainNet {
+				mode = address.Testnet
+			}
+			addr, err := address.ConvertScriptToAddress(mode, tx.Outputs[didEntity.Target.Index].Lock)
+			if err != nil {
+				return fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
+			}
+			cta := core.ChainTypeAddress{
+				Type: "blockchain",
+				KeyInfo: core.KeyInfo{
+					CoinType: common.CoinTypeCKB,
+					Key:      addr,
+				},
+			}
+			addrHex, err := cta.FormatChainTypeAddress(config.Cfg.Server.Net, true)
+			if err != nil {
+				return fmt.Errorf("FormatChainTypeAddress err: %s", err.Error())
+			}
+			tmp.Owner = addrHex.AddressHex
+			tmp.OwnerAlgorithmId = addrHex.DasAlgorithmId
+			tmp.Manager = addrHex.AddressHex
+			tmp.ManagerAlgorithmId = addrHex.DasAlgorithmId
 		}
 		list = append(list, tmp)
 	}
