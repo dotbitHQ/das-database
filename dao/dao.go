@@ -264,7 +264,7 @@ var tokenList = []TableTokenPriceInfo{
 		CoinType:      common.CoinTypeCKB,
 		GeckoId:       "did_point",
 		Name:          "Credits",
-		Symbol:        "CREDIT",
+		Symbol:        "Credits",
 		Decimals:      6,
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
