@@ -264,7 +264,7 @@ var tokenList = []TableTokenPriceInfo{
 		ChainType:     98,
 		CoinType:      common.CoinTypeCKB,
 		GeckoId:       "did_point",
-		Name:          "Credits",
+		Name:          "DIDCredits",
 		Symbol:        "Credits",
 		Decimals:      6,
 		Logo:          "",
