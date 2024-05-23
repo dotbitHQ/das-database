@@ -269,7 +269,7 @@ var tokenList = []TableTokenPriceInfo{
 		Logo:          "",
 		Price:         decimal.NewFromInt(1),
 		LastUpdatedAt: time.Now().Unix(),
-		DisplayName:   "DIDPoint",
+		DisplayName:   "DIDCredits",
 		Icon:          "didpoint",
 	},
 }
