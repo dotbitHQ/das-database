@@ -67,6 +67,14 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 			accountId := common.Bytes2Hex(common.GetAccountIdByAccount(v.NextAccount))
 			algorithmId := common.DasAlgorithmId(v.SignType)
 			address := common.FormatAddressPayload(v.Address, algorithmId)
+			p2shP2wpkh, err := v.GetP2SHP2WPKH(b.dasCore.NetType())
+			if err != nil {
+				log.Error("GetP2SHP2WPKH err: %s", err.Error())
+			}
+			p2tr, err := v.GetP2TR(b.dasCore.NetType())
+			if err != nil {
+				log.Error("GetP2TR err: %s", err.Error())
+			}
 			reverseInfo := &dao.TableReverseInfo{
 				BlockNumber:    req.BlockNumber,
 				BlockTimestamp: req.BlockTimestamp,
@@ -77,6 +85,8 @@ func (b *BlockParser) ActionReverseRecordRoot(req FuncTransactionHandleReq) (res
 				Account:        v.NextAccount,
 				AccountId:      accountId,
 				ReverseType:    dao.ReverseTypeSmt,
+				P2shP2wpkh:     p2shP2wpkh,
+				P2tr:           p2tr,
 			}
 			switch v.Action {
 			case witness.ReverseSmtRecordActionUpdate:
