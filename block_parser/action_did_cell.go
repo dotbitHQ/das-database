@@ -24,13 +24,29 @@ func (b *BlockParser) ActionEditDidCellRecords(req FuncTransactionHandleReq) (re
 		return
 	}
 
-	var didCellData witness.DidCellData
-	if err := didCellData.BysToObj(req.Tx.OutputsData[txDidEntity.Outputs[0].Target.Index]); err != nil {
-		resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
+	//var didCellData witness.DidCellData
+	//if err := didCellData.BysToObj(req.Tx.OutputsData[txDidEntity.Outputs[0].Target.Index]); err != nil {
+	//	resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
+	//	return
+	//}
+	sporeData, didCellData, err := witness.BysToDidCellData(req.Tx.OutputsData[txDidEntity.Outputs[0].Target.Index])
+	if err != nil {
+		resp.Err = fmt.Errorf("witness.BysToDidCellData err: %s", err.Error())
 		return
 	}
+	account := ""
+	if sporeData != nil {
+		didCellDataLV, err := sporeData.ContentToDidCellDataLV()
+		if err != nil {
+			resp.Err = fmt.Errorf("sporeData.ContentToDidCellDataLV err: %s", err.Error())
+			return
+		}
+		account = didCellDataLV.Account
+	} else if didCellData != nil {
+		account = didCellData.Account
+	}
 
-	account := didCellData.Account
+	//account := didCellData.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	var recordsInfos []dao.TableRecordsInfo
 	recordList := txDidEntity.Outputs[0].DidCellWitnessDataV0.Records
@@ -74,13 +90,29 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 		resp.Err = fmt.Errorf("TxToOneDidEntity err: %s", err.Error())
 		return
 	}
-	var didCellData witness.DidCellData
-	if err := didCellData.BysToObj(req.Tx.OutputsData[didEntity.Target.Index]); err != nil {
-		resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
+	//var didCellData witness.DidCellData
+	//if err := didCellData.BysToObj(req.Tx.OutputsData[didEntity.Target.Index]); err != nil {
+	//	resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
+	//	return
+	//}
+	sporeData, didCellData, err := witness.BysToDidCellData(req.Tx.OutputsData[didEntity.Target.Index])
+	if err != nil {
+		resp.Err = fmt.Errorf("witness.BysToDidCellData err: %s", err.Error())
 		return
 	}
+	account := ""
+	if sporeData != nil {
+		didCellDataLV, err := sporeData.ContentToDidCellDataLV()
+		if err != nil {
+			resp.Err = fmt.Errorf("sporeData.ContentToDidCellDataLV err: %s", err.Error())
+			return
+		}
+		account = didCellDataLV.Account
+	} else if didCellData != nil {
+		account = didCellData.Account
+	}
+
 	didCellArgs := common.Bytes2Hex(req.Tx.Outputs[didEntity.Target.Index].Lock.Args)
-	account := didCellData.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	didCellInfo := dao.TableDidCellInfo{
 		BlockNumber:  req.BlockNumber,
@@ -120,12 +152,28 @@ func (b *BlockParser) ActionDidCellRecycle(req FuncTransactionHandleReq) (resp F
 	log.Info("ActionDidCellRecycle:", req.BlockNumber, req.TxHash, req.Action)
 	preTxDidEntity, err := witness.TxToOneDidEntity(preTx.Transaction, witness.SourceTypeOutputs)
 
-	var preDidCellData witness.DidCellData
-	if err := preDidCellData.BysToObj(preTx.Transaction.OutputsData[preTxDidEntity.Target.Index]); err != nil {
-		resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
+	preSporeData, preDidCellData, err := witness.BysToDidCellData(preTx.Transaction.OutputsData[preTxDidEntity.Target.Index])
+	if err != nil {
+		resp.Err = fmt.Errorf("witness.BysToDidCellData err: %s", err.Error())
 		return
 	}
-	account := preDidCellData.Account
+	account := ""
+	if preSporeData != nil {
+		didCellData, err := preSporeData.ContentToDidCellDataLV()
+		if err != nil {
+			resp.Err = fmt.Errorf("preSporeData.ContentToDidCellDataLV err: %s", err.Error())
+			return
+		}
+		account = didCellData.Account
+	} else if preDidCellData != nil {
+		account = preDidCellData.Account
+	}
+	//var preDidCellData witness.DidCellData
+	//if err := preDidCellData.BysToObj(preTx.Transaction.OutputsData[preTxDidEntity.Target.Index]); err != nil {
+	//	resp.Err = fmt.Errorf("didCellData.BysToObj err: %s", err.Error())
+	//	return
+	//}
+	//account := preDidCellData.Account
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
 	if err := b.dbDao.DidCellRecycle(oldOutpoint, accountId); err != nil {
