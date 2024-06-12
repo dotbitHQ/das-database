@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/http_api/logger"
+	"github.com/dotbitHQ/das-lib/witness"
 	"github.com/fsnotify/fsnotify"
 	"github.com/scorpiotzh/toolib"
 )
@@ -98,4 +99,25 @@ func PriceToCKB(price, quote, years uint64) (total uint64) {
 	}
 	log.Info("PriceToCKB:", price, quote, total)
 	return
+}
+
+func GetDidCellAccountAndExpire(bys []byte) (string, uint64, error) {
+	account := ""
+	expiredAt := uint64(0)
+
+	sporeData, didCellData, err := witness.BysToDidCellData(bys)
+	if err != nil {
+		return "", 0, fmt.Errorf("BysToDidCellData err: %s", err.Error())
+	} else if sporeData != nil {
+		didCellDataLV, err := sporeData.ContentToDidCellDataLV()
+		if err != nil {
+			return "", 0, fmt.Errorf("ContentToDidCellDataLV err: %s", err.Error())
+		}
+		account = didCellDataLV.Account
+		expiredAt = didCellDataLV.ExpireAt
+	} else if didCellData != nil {
+		account = didCellData.Account
+		expiredAt = didCellData.ExpireAt
+	}
+	return account, expiredAt, nil
 }
