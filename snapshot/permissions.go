@@ -20,7 +20,7 @@ func (t *ToolSnapshot) addAccountPermissionsForDidCell(info dao.TableSnapshotTxI
 		if err != nil {
 			return fmt.Errorf("TxToOneDidEntity err: %s", err.Error())
 		}
-		account, expiredAt, err := config.GetDidCellAccountAndExpire(tx.OutputsData[didEntity.Target.Index])
+		account, expiredAt, err := witness.GetAccountAndExpireFromDidCellData(tx.OutputsData[didEntity.Target.Index])
 		if err != nil {
 			return fmt.Errorf("config.GetDidCellAccountAndExpire err: %s", err.Error())
 		}
