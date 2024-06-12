@@ -1,7 +1,6 @@
 package block_parser
 
 import (
-	"das_database/config"
 	"das_database/dao"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
@@ -25,7 +24,7 @@ func (b *BlockParser) ActionEditDidCellRecords(req FuncTransactionHandleReq) (re
 		return
 	}
 
-	account, _, err := config.GetDidCellAccountAndExpire(req.Tx.OutputsData[txDidEntity.Outputs[0].Target.Index])
+	account, _, err := witness.GetAccountAndExpireFromDidCellData(req.Tx.OutputsData[txDidEntity.Outputs[0].Target.Index])
 	if err != nil {
 		resp.Err = fmt.Errorf("config.GetDidCellAccountAndExpire err: %s", err.Error())
 		return
@@ -76,7 +75,7 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 		return
 	}
 
-	account, _, err := config.GetDidCellAccountAndExpire(req.Tx.OutputsData[didEntity.Target.Index])
+	account, _, err := witness.GetAccountAndExpireFromDidCellData(req.Tx.OutputsData[didEntity.Target.Index])
 	if err != nil {
 		resp.Err = fmt.Errorf("config.GetDidCellAccountAndExpire err: %s", err.Error())
 		return
@@ -122,7 +121,7 @@ func (b *BlockParser) ActionDidCellRecycle(req FuncTransactionHandleReq) (resp F
 	log.Info("ActionDidCellRecycle:", req.BlockNumber, req.TxHash, req.Action)
 	preTxDidEntity, err := witness.TxToOneDidEntity(preTx.Transaction, witness.SourceTypeOutputs)
 
-	account, _, err := config.GetDidCellAccountAndExpire(preTx.Transaction.OutputsData[preTxDidEntity.Target.Index])
+	account, _, err := witness.GetAccountAndExpireFromDidCellData(preTx.Transaction.OutputsData[preTxDidEntity.Target.Index])
 	if err != nil {
 		resp.Err = fmt.Errorf("config.GetDidCellAccountAndExpire err: %s", err.Error())
 		return
