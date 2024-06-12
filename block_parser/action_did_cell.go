@@ -1,6 +1,7 @@
 package block_parser
 
 import (
+	"context"
 	"das_database/config"
 	"das_database/dao"
 	"fmt"
@@ -93,35 +94,41 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 	}
 	log.Info("ActionEditDidCellOwner:", req.BlockNumber, req.TxHash, req.Action)
 
-	didEntity, err := witness.TxToOneDidEntity(req.Tx, witness.SourceTypeOutputs)
+	txDidEntity, err := witness.TxToDidEntity(req.Tx)
 	if err != nil {
-		resp.Err = fmt.Errorf("TxToOneDidEntity err: %s", err.Error())
+		resp.Err = fmt.Errorf("TxToDidEntity err: %s", err.Error())
 		return
 	}
 
-	account, _, err := witness.GetAccountAndExpireFromDidCellData(req.Tx.OutputsData[didEntity.Target.Index])
+	account, _, err := witness.GetAccountAndExpireFromDidCellData(req.Tx.OutputsData[txDidEntity.Outputs[0].Target.Index])
 	if err != nil {
 		resp.Err = fmt.Errorf("config.GetDidCellAccountAndExpire err: %s", err.Error())
 		return
 	}
 
-	didCellArgs := common.Bytes2Hex(req.Tx.Outputs[didEntity.Target.Index].Lock.Args)
+	didCellArgs := common.Bytes2Hex(req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.Args)
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	didCellInfo := dao.TableDidCellInfo{
 		BlockNumber:  req.BlockNumber,
-		Outpoint:     common.OutPoint2String(req.TxHash, uint(didEntity.Target.Index)),
+		Outpoint:     common.OutPoint2String(req.TxHash, uint(txDidEntity.Outputs[0].Target.Index)),
 		AccountId:    accountId,
 		Args:         didCellArgs,
-		LockCodeHash: req.Tx.Outputs[didEntity.Target.Index].Lock.CodeHash.Hex(),
+		LockCodeHash: req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.CodeHash.Hex(),
 	}
 
-	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
+	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[txDidEntity.Inputs[0].Target.Index].PreviousOutput)
 
+	preInput := req.Tx.Inputs[txDidEntity.Inputs[0].Target.Index].PreviousOutput
+	preTx, err := b.dasCore.Client().GetTransaction(context.Background(), preInput.TxHash)
+	if err != nil {
+		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
+		return
+	}
 	mode := address.Mainnet
 	if config.Cfg.Server.Net != common.DasNetTypeMainNet {
 		mode = address.Testnet
 	}
-	anyLockAddr, err := address.ConvertScriptToAddress(mode, req.Tx.Outputs[didEntity.Target.Index].Lock)
+	anyLockAddr, err := address.ConvertScriptToAddress(mode, preTx.Transaction.Outputs[preInput.Index].Lock)
 	if err != nil {
 		resp.Err = fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
 		return
