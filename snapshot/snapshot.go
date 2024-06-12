@@ -79,6 +79,7 @@ func (t *ToolSnapshot) registerTransactionHandle() {
 	t.mapTransactionHandle[common.DasActionUpdateSubAccount] = []FuncTransactionHandle{t.addSubAccountPermissions, t.addSubAccountRegister}
 
 	t.mapTransactionHandle[common.DasActionBidExpiredAccountAuction] = []FuncTransactionHandle{t.addAccountPermissions}
+	t.mapTransactionHandle[common.DidCellActionEditOwner] = []FuncTransactionHandle{t.addAccountPermissionsForDidCell}
 }
 
 func (t *ToolSnapshot) RunDataSnapshot() {

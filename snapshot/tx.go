@@ -230,26 +230,33 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 		blockNumber := block.Header.Number
 		blockTimestamp := block.Header.Timestamp
 		//log.Info("parsingBlockData txHash:", txHash)
-
-		if builder, err := witness.ActionDataBuilderFromTx(tx); err != nil {
-			//log.Warn("ActionDataBuilderFromTx err:", err.Error())
+		action := ""
+		builder, err := witness.ActionDataBuilderFromTx(tx)
+		if err != nil {
+			if err == witness.ErrNotExistActionData {
+				if didCellAction, err := t.DasCore.TxToDidCellAction(tx); err == nil {
+					action = didCellAction
+				}
+			}
+			return nil
 		} else {
-			log.Info("parsingBlockData action:", builder.Action, txHash)
 			if ok, err := t.checkContractCodeHash(tx); err != nil {
 				return fmt.Errorf("checkContractCodeHash err: %s", err.Error())
-			} else if ok {
-				info := dao.TableSnapshotTxInfo{
-					BlockNumber:    blockNumber,
-					Hash:           txHash,
-					Action:         builder.Action,
-					BlockTimestamp: blockTimestamp,
-				}
-				if err := t.DbDao.CreateSnapshotTxInfo(info); err != nil {
-					return fmt.Errorf("CreateSnapshotTxInfo err: %s", err.Error())
-				}
-			} else {
-				log.Warn("parsingBlockData give up:", blockNumber, txHash, builder.Action, blockTimestamp)
+			} else if !ok {
+				return nil
 			}
+			action = builder.Action
+		}
+		log.Info("parsingBlockData action:", action, txHash)
+
+		info := dao.TableSnapshotTxInfo{
+			BlockNumber:    blockNumber,
+			Hash:           txHash,
+			Action:         action,
+			BlockTimestamp: blockTimestamp,
+		}
+		if err := t.DbDao.CreateSnapshotTxInfo(info); err != nil {
+			return fmt.Errorf("CreateSnapshotTxInfo err: %s", err.Error())
 		}
 	}
 	return nil

@@ -44,6 +44,7 @@ const (
 	AccountStatusOnLock    AccountStatus = 3
 	AccountStatusApproval  AccountStatus = 4
 	AccountStatusRecycle   AccountStatus = 99
+	AccountStatusOnUpgrade AccountStatus = 153
 
 	AccountEnableStatusOff EnableSubAccount = 0
 	AccountEnableStatusOn  EnableSubAccount = 1
