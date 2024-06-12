@@ -86,7 +86,6 @@ func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (boo
 		return false, fmt.Errorf("GetDasContractInfo err: %s", err.Error())
 	}
 	isCV := false
-	fmt.Println("bbbbb---------", contract.ContractTypeId.Hex())
 	for _, v := range tx.Outputs {
 		if v.Type == nil {
 			continue

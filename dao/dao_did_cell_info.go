@@ -2,6 +2,7 @@ package dao
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -26,7 +27,7 @@ func (t *TableDidCellInfo) TableName() string {
 	return TableNameDidCellInfo
 }
 
-func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidCellInfo, recordsInfos []TableRecordsInfo) error {
+func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidCellInfo, recordsInfos []TableRecordsInfo, txInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("account_id = ?", didCellInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
@@ -43,28 +44,43 @@ func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidC
 			Updates(didCellInfo).Error; err != nil {
 			return err
 		}
+
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&txInfo).Error; err != nil {
+			return err
+		}
 		return nil
 	})
 }
 
-func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo) error {
+func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo, txInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("outpoint", "block_number", "args", "lock_code_hash").
 			Where("outpoint = ?", outpoint).
 			Updates(didCellInfo).Error; err != nil {
 			return err
 		}
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&txInfo).Error; err != nil {
+			return err
+		}
 		return nil
-
 	})
 }
 
-func (d *DbDao) DidCellRecycle(outpoint, accountId string) error {
+func (d *DbDao) DidCellRecycle(outpoint, accountId string, txInfo TableTransactionInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("account_id=?", accountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 			return err
 		}
 		if err := tx.Where("outpoint = ? ", outpoint).Delete(&TableDidCellInfo{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&txInfo).Error; err != nil {
 			return err
 		}
 		return nil

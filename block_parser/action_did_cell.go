@@ -1,10 +1,12 @@
 package block_parser
 
 import (
+	"das_database/config"
 	"das_database/dao"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/witness"
+	"github.com/nervosnetwork/ckb-sdk-go/address"
 	"strconv"
 )
 
@@ -50,7 +52,30 @@ func (b *BlockParser) ActionEditDidCellRecords(req FuncTransactionHandleReq) (re
 	didCellInfo.AccountId = accountId
 	didCellInfo.BlockNumber = req.BlockNumber
 	didCellInfo.Outpoint = common.OutPoint2String(req.Tx.Hash.Hex(), uint(txDidEntity.Outputs[0].Target.Index))
-	if err := b.dbDao.CreateDidCellRecordsInfos(oldDidCellOutpoint, didCellInfo, recordsInfos); err != nil {
+
+	mode := address.Mainnet
+	if config.Cfg.Server.Net != common.DasNetTypeMainNet {
+		mode = address.Testnet
+	}
+	anyLockAddr, err := address.ConvertScriptToAddress(mode, req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock)
+	if err != nil {
+		resp.Err = fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
+		return
+	}
+	txInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
+		Account:        account,
+		Action:         common.DidCellActionEditRecords,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      common.ChainTypeAnyLock,
+		Address:        anyLockAddr,
+		Capacity:       0,
+		Outpoint:       didCellInfo.Outpoint,
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	if err := b.dbDao.CreateDidCellRecordsInfos(oldDidCellOutpoint, didCellInfo, recordsInfos, txInfo); err != nil {
 		log.Error("CreateDidCellRecordsInfos err:", err.Error())
 		resp.Err = fmt.Errorf("CreateDidCellRecordsInfos err: %s", err.Error())
 	}
@@ -67,8 +92,7 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 		return
 	}
 	log.Info("ActionEditDidCellOwner:", req.BlockNumber, req.TxHash, req.Action)
-	//transfer：获取output里didcell的args
-	//renew：获取input里的didcell的args（更新t_did_cell 的expired_at）
+
 	didEntity, err := witness.TxToOneDidEntity(req.Tx, witness.SourceTypeOutputs)
 	if err != nil {
 		resp.Err = fmt.Errorf("TxToOneDidEntity err: %s", err.Error())
@@ -92,7 +116,30 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 	}
 
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
-	if err := b.dbDao.EditDidCellOwner(oldOutpoint, didCellInfo); err != nil {
+
+	mode := address.Mainnet
+	if config.Cfg.Server.Net != common.DasNetTypeMainNet {
+		mode = address.Testnet
+	}
+	anyLockAddr, err := address.ConvertScriptToAddress(mode, req.Tx.Outputs[didEntity.Target.Index].Lock)
+	if err != nil {
+		resp.Err = fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
+		return
+	}
+	txInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
+		Account:        account,
+		Action:         common.DidCellActionEditOwner,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      common.ChainTypeAnyLock,
+		Address:        anyLockAddr,
+		Capacity:       0,
+		Outpoint:       didCellInfo.Outpoint,
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	if err := b.dbDao.EditDidCellOwner(oldOutpoint, didCellInfo, txInfo); err != nil {
 		log.Error("EditDidCellOwner err:", err.Error())
 		resp.Err = fmt.Errorf("EditDidCellOwner err: %s", err.Error())
 	}
@@ -119,9 +166,7 @@ func (b *BlockParser) ActionDidCellRecycle(req FuncTransactionHandleReq) (resp F
 		return
 	}
 	log.Info("ActionDidCellRecycle:", req.BlockNumber, req.TxHash, req.Action)
-	preTxDidEntity, err := witness.TxToOneDidEntity(preTx.Transaction, witness.SourceTypeOutputs)
-
-	account, _, err := witness.GetAccountAndExpireFromDidCellData(preTx.Transaction.OutputsData[preTxDidEntity.Target.Index])
+	account, _, err := witness.GetAccountAndExpireFromDidCellData(preTx.Transaction.OutputsData[req.Tx.Inputs[didEntity.Target.Index].PreviousOutput.Index])
 	if err != nil {
 		resp.Err = fmt.Errorf("config.GetDidCellAccountAndExpire err: %s", err.Error())
 		return
@@ -129,7 +174,30 @@ func (b *BlockParser) ActionDidCellRecycle(req FuncTransactionHandleReq) (resp F
 
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 	oldOutpoint := common.OutPointStruct2String(req.Tx.Inputs[0].PreviousOutput)
-	if err := b.dbDao.DidCellRecycle(oldOutpoint, accountId); err != nil {
+
+	mode := address.Mainnet
+	if config.Cfg.Server.Net != common.DasNetTypeMainNet {
+		mode = address.Testnet
+	}
+	anyLockAddr, err := address.ConvertScriptToAddress(mode, preTx.Transaction.Outputs[req.Tx.Inputs[didEntity.Target.Index].PreviousOutput.Index].Lock)
+	if err != nil {
+		resp.Err = fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
+		return
+	}
+	txInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
+		Account:        account,
+		Action:         common.DidCellActionRecycle,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      common.ChainTypeAnyLock,
+		Address:        anyLockAddr,
+		Capacity:       0,
+		Outpoint:       common.OutPoint2String(req.TxHash, 0),
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	if err := b.dbDao.DidCellRecycle(oldOutpoint, accountId, txInfo); err != nil {
 		log.Error("DidCellRecycle err:", err.Error())
 		resp.Err = fmt.Errorf("DidCellRecycle err: %s", err.Error())
 	}
