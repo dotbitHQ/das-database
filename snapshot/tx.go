@@ -233,17 +233,23 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 		action := ""
 		builder, err := witness.ActionDataBuilderFromTx(tx)
 		if err != nil {
-			if err == witness.ErrNotExistActionData {
-				if didCellAction, err := t.DasCore.TxToDidCellAction(tx); err == nil {
-					action = didCellAction
-				}
+			if err != witness.ErrNotExistActionData {
+				log.Debug("parsingBlockData witness.ActionDataBuilderFromTx err: ", err.Error())
+				continue
 			}
-			return nil
+			didCellAction, err := t.DasCore.TxToDidCellAction(tx)
+			if err != nil {
+				log.Debug("parsingBlockData TxToDidCellAction err: ", err.Error())
+				continue
+			}
+			action = didCellAction
 		} else {
-			if ok, err := t.checkContractCodeHash(tx); err != nil {
-				return fmt.Errorf("checkContractCodeHash err: %s", err.Error())
+			ok, err := t.checkContractCodeHash(tx)
+			if err != nil {
+				log.Debug("parsingBlockData checkContractCodeHash err:", err.Error())
+				continue
 			} else if !ok {
-				return nil
+				continue
 			}
 			action = builder.Action
 		}
