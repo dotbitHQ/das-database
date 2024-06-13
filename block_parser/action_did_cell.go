@@ -146,7 +146,21 @@ func (b *BlockParser) ActionEditDidCellOwner(req FuncTransactionHandleReq) (resp
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
-	if err := b.dbDao.EditDidCellOwner(oldOutpoint, didCellInfo, txInfo); err != nil {
+	var recordsInfos []dao.TableRecordsInfo
+	recordList := txDidEntity.Outputs[0].DidCellWitnessDataV0.Records
+	for _, v := range recordList {
+		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+			AccountId: accountId,
+			Account:   account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+		})
+	}
+
+	if err := b.dbDao.EditDidCellOwner(oldOutpoint, didCellInfo, txInfo, recordsInfos); err != nil {
 		log.Error("EditDidCellOwner err:", err.Error())
 		resp.Err = fmt.Errorf("EditDidCellOwner err: %s", err.Error())
 	}
