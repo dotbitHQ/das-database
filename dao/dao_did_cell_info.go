@@ -54,7 +54,7 @@ func (d *DbDao) CreateDidCellRecordsInfos(outpoint string, didCellInfo TableDidC
 	})
 }
 
-func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo, txInfo TableTransactionInfo) error {
+func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo, txInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Select("outpoint", "block_number", "args", "lock_code_hash").
 			Where("outpoint = ?", outpoint).
@@ -66,6 +66,17 @@ func (d *DbDao) EditDidCellOwner(outpoint string, didCellInfo TableDidCellInfo, 
 		}).Create(&txInfo).Error; err != nil {
 			return err
 		}
+
+		if err := tx.Where("account_id = ?", didCellInfo.AccountId).
+			Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+		if len(recordsInfos) > 0 {
+			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 }
