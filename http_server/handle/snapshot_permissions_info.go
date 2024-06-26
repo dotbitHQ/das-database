@@ -163,35 +163,45 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 		}
 	}
 
-	owner, err := h.dasCore.Daf().HexToNormal(core.DasAddressHex{
-		DasAlgorithmId:    info.OwnerAlgorithmId,
-		DasSubAlgorithmId: info.OwnerSubAid,
-		AddressHex:        info.Owner,
-		IsMulti:           false,
-		ChainType:         info.OwnerAlgorithmId.ToChainType(),
-	})
-	if err != nil {
-		apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")
-		return fmt.Errorf("HexToNormal err: %s", err.Error())
-	}
-	manager, err := h.dasCore.Daf().HexToNormal(core.DasAddressHex{
-		DasAlgorithmId:    info.ManagerAlgorithmId,
-		DasSubAlgorithmId: info.ManagerSubAid,
-		AddressHex:        info.Manager,
-		IsMulti:           false,
-		ChainType:         info.ManagerAlgorithmId.ToChainType(),
-	})
-	if err != nil {
-		apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")
-		return fmt.Errorf("HexToNormal err: %s", err.Error())
-	}
 	resp.Account = req.Account
 	resp.AccountId = accountId
 	resp.BlockNumber = info.BlockNumber
-	resp.Owner = owner.AddressNormal
 	resp.OwnerAlgorithmId = info.OwnerAlgorithmId
-	resp.Manager = manager.AddressNormal
 	resp.ManagerAlgorithmId = info.ManagerAlgorithmId
+
+	if info.OwnerAlgorithmId == common.DasAlgorithmIdAnyLock {
+		resp.Owner = info.Owner
+	} else {
+		owner, err := h.dasCore.Daf().HexToNormal(core.DasAddressHex{
+			DasAlgorithmId:    info.OwnerAlgorithmId,
+			DasSubAlgorithmId: info.OwnerSubAid,
+			AddressHex:        info.Owner,
+			IsMulti:           false,
+			ChainType:         info.OwnerAlgorithmId.ToChainType(),
+		})
+		if err != nil {
+			apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")
+			return fmt.Errorf("HexToNormal err: %s", err.Error())
+		}
+		resp.Owner = owner.AddressNormal
+	}
+
+	if info.ManagerAlgorithmId == common.DasAlgorithmIdAnyLock {
+		resp.Manager = info.Manager
+	} else {
+		manager, err := h.dasCore.Daf().HexToNormal(core.DasAddressHex{
+			DasAlgorithmId:    info.ManagerAlgorithmId,
+			DasSubAlgorithmId: info.ManagerSubAid,
+			AddressHex:        info.Manager,
+			IsMulti:           false,
+			ChainType:         info.ManagerAlgorithmId.ToChainType(),
+		})
+		if err != nil {
+			apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")
+			return fmt.Errorf("HexToNormal err: %s", err.Error())
+		}
+		resp.Manager = manager.AddressNormal
+	}
 
 	log.Info("doSnapshotPermissionsInfo:", resp)
 	apiResp.ApiRespOK(resp)
