@@ -123,21 +123,6 @@ did_register
 did_auction
 ```
 
-### Tables
-
-* t_account_info
-* t_trade_info
-* t_income_cell_info
-* t_block_info (Only store the latest 20 blocks in case of rollback)
-* t_trade_deal_info
-* t_rebate_info (Records of inviter/channel's rewards)
-* t_records_info
-* t_token_price_info
-* t_transaction_info 
-* t_reverse_records_info (All transactions on DAS)
-
-More details see [das_database.sql](https://github.com/dotbitHQ/das-database/blob/main/dao/das_database.sql)
-
 ## Others
-* [What is DAS](https://github.com/dotbitHQ/das-contracts/blob/master/docs/en/Overview-of-DAS.md)
-* [What is a DAS transaction on CKB](https://github.com/dotbitHQ/das-contracts/blob/master/docs/en/Data-Structure-and-Protocol/Transaction-Structure.md)
+* [What is DAS](https://github.com/dotbitHQ/did-contracts/blob/docs/docs/en/design/Overview-of-DAS.md)
+* [What is a DAS transaction on CKB](https://github.com/dotbitHQ/did-contracts/blob/docs/docs/en/developer/Transaction-Structure.md)

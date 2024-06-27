@@ -41,7 +41,7 @@ DasAlgorithmIdDogeChain DasAlgorithmId = 7 // Doge Sign
 ### Get Account History Permission
 
 **Request**
-
+/v1/snapshot/permissions/info
 * param:
 
 ```json
@@ -86,7 +86,7 @@ curl -X POST http://127.0.0.1:8118 -d'{"jsonrpc": "2.0","id": 1,"method": "snaps
 ### Get Address History Hold Accounts
 
 **Request**
-
+/v1/snapshot/address/accounts
 * param:
     * role_type: (permission role type) manager or owner
     * size: [1,100]
@@ -133,4 +133,66 @@ or json rpc style:
 
 ```shell
 curl -X POST http://127.0.0.1:8118 -d'{"jsonrpc": "2.0","id": 1,"method": "snapshot_address_accounts","params": [{"type":"blockchain","key_info":{"coin_type":"195","key":"41a2ac25bf43680c05abe82c7b1bcc1a779cff8d5d"},"block_number":1941502,"role_type":"manager"}]}'
+```
+
+### Get Snapshot Progress
+
+**Request**
+/v1/snapshot/progress
+* param:
+  * role_type: (permission role type) manager or owner
+  * size: [1,100]
+```json
+{
+  "block_number": 1941502
+}
+```
+
+**Response**
+
+```json
+{
+  "errno": 0,
+  "errmsg": "",
+  "data": {
+    "block_number": 1941502
+  }
+}
+```
+
+**Usage**
+
+```shell
+curl -X POST http://127.0.0.1:8118/v1/snapshot/progress -d'{"block_number": 1941502}'
+```
+
+### Get Snapshot Progress
+
+**Request**
+/v1/snapshot/register/history
+* param:
+  * role_type: (permission role type) manager or owner
+  * size: [1,100]
+```json
+{
+  "start_time": 0
+}
+```
+
+**Response**
+
+```json
+{
+  "errno": 0,
+  "errmsg": "",
+  "data": {
+    "result": ""
+  }
+}
+```
+
+**Usage**
+
+```shell
+curl -X POST http://127.0.0.1:8118/v1/snapshot/register/history -d'{"start_time": 0}'
 ```
