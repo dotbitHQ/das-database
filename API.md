@@ -1,6 +1,8 @@
 * [API List](#API-List)
     * [Get Account History Permission](#Get-Account-History-Permission)
     * [Get Address History Hold Accounts](#Get-Address-History-Hold-Accounts)
+    * [Get Snapshot Register Progress](Get-Snapshot-Register-Progress)
+    * [Get Snapshot Progress](#Get-Snapshot-Progress)
 
 ## API List
 
@@ -166,7 +168,7 @@ curl -X POST http://127.0.0.1:8118 -d'{"jsonrpc": "2.0","id": 1,"method": "snaps
 curl -X POST http://127.0.0.1:8118/v1/snapshot/progress -d'{"block_number": 1941502}'
 ```
 
-### Get Snapshot Progress
+### Get Snapshot Register Progress
 
 **Request**
 /v1/snapshot/register/history
