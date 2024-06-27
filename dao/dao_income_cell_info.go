@@ -104,7 +104,7 @@ func (d *DbDao) ConsolidateIncome(outpoints []string, incomeCellInfos []TableInc
 	})
 }
 
-func (d *DbDao) RenewAccount(outpoints []string, incomeCellInfos []TableIncomeCellInfo, accountInfo TableAccountInfo, transactionInfo TableTransactionInfo) error {
+func (d *DbDao) RenewAccount(outpoints []string, incomeCellInfos []TableIncomeCellInfo, accountInfo TableAccountInfo, transactionInfo TableTransactionInfo, oldDidCellOutpoint string, didCellInfo TableDidCellInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("outpoint IN ?", outpoints).Delete(&TableIncomeCellInfo{}).Error; err != nil {
 			return err
@@ -135,6 +135,13 @@ func (d *DbDao) RenewAccount(outpoints []string, incomeCellInfos []TableIncomeCe
 			return err
 		}
 
+		if oldDidCellOutpoint != "" {
+			if err := tx.Select("outpoint", "expired_at", "block_number").
+				Where("outpoint = ?", oldDidCellOutpoint).
+				Updates(didCellInfo).Error; err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 }

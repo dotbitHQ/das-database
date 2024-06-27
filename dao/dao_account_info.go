@@ -44,6 +44,7 @@ const (
 	AccountStatusOnLock    AccountStatus = 3
 	AccountStatusApproval  AccountStatus = 4
 	AccountStatusRecycle   AccountStatus = 99
+	AccountStatusOnUpgrade AccountStatus = 153
 
 	AccountEnableStatusOff EnableSubAccount = 0
 	AccountEnableStatusOn  EnableSubAccount = 1
@@ -116,6 +117,44 @@ func (d *DbDao) TransferAccount(accountInfo TableAccountInfo, transactionInfo Ta
 				return err
 			}
 		}
+		return nil
+	})
+}
+func (d *DbDao) TransferAccountToDid(accountInfo TableAccountInfo, didCellInfo TableDidCellInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint", "status").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("account_id = ?", didCellInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+		if len(recordsInfos) > 0 {
+			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"args", "account", "expired_at",
+				"created_at", "updated_at",
+			}),
+		}).Create(&didCellInfo).Error; err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
@@ -343,6 +382,44 @@ func (d *DbDao) AccountCrossChain(accountInfo TableAccountInfo, transactionInfo 
 			if err := tx.Where("account_id = ?", accountInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
 				return err
 			}
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) AccountUpgrade(accountInfo TableAccountInfo, didCellInfo TableDidCellInfo, transactionInfo TableTransactionInfo, recordsInfos []TableRecordsInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("status").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"account_id", "account", "service_type",
+				"chain_type", "address", "capacity", "status",
+			}),
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("account_id = ?", didCellInfo.AccountId).Delete(&TableRecordsInfo{}).Error; err != nil {
+			return err
+		}
+
+		if len(recordsInfos) > 0 {
+			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
+		}
+		if err := tx.Clauses(clause.OnConflict{
+			DoUpdates: clause.AssignmentColumns([]string{
+				"args", "account", "expired_at",
+				"created_at", "updated_at",
+			}),
+		}).Create(&didCellInfo).Error; err != nil {
+			return err
 		}
 
 		return nil

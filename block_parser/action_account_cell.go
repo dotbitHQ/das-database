@@ -209,7 +209,26 @@ func (b *BlockParser) ActionRenewAccount(req FuncTransactionHandleReq) (resp Fun
 
 	log.Info("ActionRenewAccount:", builder.Account, builder.ExpiredAt, transactionInfo.Capacity)
 
-	if err := b.dbDao.RenewAccount(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo); err != nil {
+	//renew did cell
+	var didCellInfo dao.TableDidCellInfo
+	var oldDidCellOutpoint string
+	if didCellAction, err := b.dasCore.TxToDidCellAction(req.Tx); err != nil {
+		if err != core.ErrorNotExistDidCell {
+			log.Error("TxToDidCellAction err :", err.Error())
+		}
+	} else if didCellAction == common.DidCellActionRenew {
+		txDidEntity, err := witness.TxToDidEntity(req.Tx)
+		if err != nil {
+			resp.Err = fmt.Errorf("witness.TxToDidEntity err: %s", err.Error())
+		} else {
+			oldDidCellOutpoint = common.OutPointStruct2String(req.Tx.Inputs[txDidEntity.Inputs[0].Target.Index].PreviousOutput)
+			didCellInfo.Outpoint = common.OutPoint2String(req.Tx.Hash.Hex(), uint(txDidEntity.Outputs[0].Target.Index))
+			didCellInfo.ExpiredAt = accountInfo.ExpiredAt
+			didCellInfo.BlockNumber = accountInfo.BlockNumber
+		}
+	}
+
+	if err := b.dbDao.RenewAccount(inputsOutpoints, incomeCellInfos, accountInfo, transactionInfo, oldDidCellOutpoint, didCellInfo); err != nil {
 		log.Error("RenewAccount err:", err.Error(), toolib.JsonString(transactionInfo))
 		resp.Err = fmt.Errorf("RenewAccount err: %s", err.Error())
 	}
@@ -358,6 +377,55 @@ func (b *BlockParser) ActionTransferAccount(req FuncTransactionHandleReq) (resp 
 		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
 		BlockTimestamp: req.BlockTimestamp,
 	}
+
+	// transfer accCell to didCell (for passkey)
+	if builder.Status == common.AccountStatusOnUpgrade {
+		txDidEntity, err := witness.TxToDidEntity(req.Tx)
+		if err != nil {
+			resp.Err = fmt.Errorf("witness.TxToDidEntity err: %s", err.Error())
+			return
+		}
+
+		if len(txDidEntity.Inputs) == 0 && len(txDidEntity.Outputs) == 1 {
+			didCellArgs := common.Bytes2Hex(req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.Args)
+			accountInfo := dao.TableAccountInfo{
+				BlockNumber: req.BlockNumber,
+				Outpoint:    common.OutPoint2String(req.TxHash, uint(builder.Index)),
+				AccountId:   builder.AccountId,
+				Status:      builder.Status,
+			}
+
+			didCellInfo := dao.TableDidCellInfo{
+				BlockNumber:  req.BlockNumber,
+				Outpoint:     common.OutPoint2String(req.TxHash, uint(txDidEntity.Outputs[0].Target.Index)),
+				AccountId:    builder.AccountId,
+				Account:      builder.Account,
+				Args:         didCellArgs,
+				ExpiredAt:    builder.ExpiredAt,
+				LockCodeHash: req.Tx.Outputs[txDidEntity.Outputs[0].Target.Index].Lock.CodeHash.Hex(),
+			}
+
+			var recordsInfos []dao.TableRecordsInfo
+			recordList := txDidEntity.Outputs[0].DidCellWitnessDataV0.Records
+			for _, v := range recordList {
+				recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+					AccountId: accountId,
+					Account:   account,
+					Key:       v.Key,
+					Type:      v.Type,
+					Label:     v.Label,
+					Value:     v.Value,
+					Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+				})
+			}
+			if err := b.dbDao.TransferAccountToDid(accountInfo, didCellInfo, transactionInfo, recordsInfos); err != nil {
+				log.Error("TransferAccountToDid err:", err.Error(), toolib.JsonString(transactionInfo))
+				resp.Err = fmt.Errorf("TransferAccountToDid err: %s", err.Error())
+			}
+			return
+		}
+	}
+
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(builder.Index)),
@@ -605,5 +673,81 @@ func (b *BlockParser) ActionAccountCrossChain(req FuncTransactionHandleReq) (res
 		return
 	}
 
+	return
+}
+
+func (b *BlockParser) ActionAccountUpgrade(req FuncTransactionHandleReq) (resp FuncTransactionHandleResp) {
+	if isCV, err := isCurrentVersionTx(req.Tx, common.DasContractNameAccountCellType); err != nil {
+		resp.Err = fmt.Errorf("isCurrentVersion err: %s", err.Error())
+		return
+	} else if !isCV {
+		log.Warn("not current version account cross chain tx")
+		return
+	}
+	fmt.Println("aaaaaaaaaaaaaaaaa")
+	log.Info("ActionAccountCrossChain:", req.BlockNumber, req.TxHash, req.Action)
+
+	builder, err := witness.AccountCellDataBuilderFromTx(req.Tx, common.DataTypeNew)
+	if err != nil {
+		resp.Err = fmt.Errorf("AccountCellDataBuilderFromTx err: %s", err.Error())
+		return
+	}
+	ownerHex, _, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[0].Lock.Args)
+	if err != nil {
+		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+		return
+	}
+	didEntity, err := witness.TxToOneDidEntity(req.Tx, witness.SourceTypeOutputs)
+	if err != nil {
+		resp.Err = fmt.Errorf("TxToOneDidEntity err: %s", err.Error())
+		return
+	}
+	didCellArgs := common.Bytes2Hex(req.Tx.Outputs[didEntity.Target.Index].Lock.Args)
+	accountInfo := dao.TableAccountInfo{
+		BlockNumber: req.BlockNumber,
+		Outpoint:    common.OutPoint2String(req.TxHash, 0),
+		AccountId:   builder.AccountId,
+		Status:      builder.Status,
+	}
+
+	didCellInfo := dao.TableDidCellInfo{
+		BlockNumber:  req.BlockNumber,
+		Outpoint:     common.OutPoint2String(req.TxHash, 0),
+		AccountId:    builder.AccountId,
+		Args:         didCellArgs,
+		LockCodeHash: req.Tx.Outputs[didEntity.Target.Index].Lock.CodeHash.Hex(),
+	}
+
+	transactionInfo := dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      builder.AccountId,
+		Account:        builder.Account,
+		Action:         req.Action,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      ownerHex.ChainType,
+		Address:        ownerHex.AddressHex,
+		Capacity:       0,
+		Outpoint:       common.OutPoint2String(req.TxHash, 0),
+		BlockTimestamp: req.BlockTimestamp,
+	}
+
+	var recordsInfos []dao.TableRecordsInfo
+	recordList := didEntity.DidCellWitnessDataV0.Records
+	for _, v := range recordList {
+		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+			AccountId: builder.AccountId,
+			Account:   builder.Account,
+			Key:       v.Key,
+			Type:      v.Type,
+			Label:     v.Label,
+			Value:     v.Value,
+			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+		})
+	}
+	if err = b.dbDao.AccountUpgrade(accountInfo, didCellInfo, transactionInfo, recordsInfos); err != nil {
+		log.Error("AccountCrossChain err:", err.Error(), req.TxHash, req.BlockNumber)
+		resp.Err = fmt.Errorf("AccountCrossChain err: %s ", err.Error())
+		return
+	}
 	return
 }

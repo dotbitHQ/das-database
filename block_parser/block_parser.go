@@ -92,7 +92,7 @@ func (b *BlockParser) RunParser() {
 				if err != nil {
 					log.Error("get latest block number err:", err.Error())
 				} else {
-					// async
+					// async  c -4-100
 					if b.concurrencyNum > 1 && b.currentBlockNumber < (latestBlockNumber-b.confirmNum-b.concurrencyNum) {
 						nowTime := time.Now()
 						if err = b.parserConcurrencyMode(); err != nil {
@@ -176,11 +176,28 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 		blockNumber := block.Header.Number
 		blockTimestamp := block.Header.Timestamp
 		//log.Info("parsingBlockData txHash:", txHash)
-
-		if builder, err := witness.ActionDataBuilderFromTx(tx); err != nil {
-			//log.Warn("ActionDataBuilderFromTx err:", err.Error())
+		//var builder *witness.ActionDataBuilder
+		builder, err := witness.ActionDataBuilderFromTx(tx)
+		action := ""
+		if err != nil {
+			//check didcellaction
+			//did cell : edit owner, recycle, edit record
+			if err == witness.ErrNotExistActionData {
+				if didCellAction, err := b.dasCore.TxToDidCellAction(tx); err != nil {
+					log.Error("TxToDidCellAction err :", blockNumber, txHash, err.Error())
+				} else {
+					action = didCellAction
+				}
+			} else {
+				log.Warn("ActionDataBuilderFromTx err:", err.Error())
+			}
 		} else {
-			if handle, ok := b.mapTransactionHandle[builder.Action]; ok {
+			//das action with did cell (renew didCell, upgrade didCell, transfer accCell to didCell, accCell operate with upgrade)
+			action = builder.Action
+		}
+
+		if action != "" {
+			if handle, ok := b.mapTransactionHandle[action]; ok {
 				// transaction parse by action
 				resp := handle(FuncTransactionHandleReq{
 					DbDao:          b.dbDao,
@@ -188,15 +205,15 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 					TxHash:         txHash,
 					BlockNumber:    blockNumber,
 					BlockTimestamp: blockTimestamp,
-					Action:         builder.Action,
+					Action:         action,
 				})
 				if resp.Err != nil {
-					log.Error("action handle resp:", builder.Action, blockNumber, txHash, resp.Err.Error())
+					log.Error("action handle resp:", action, blockNumber, txHash, resp.Err.Error())
 					b.errCountHandle++
 					if b.errCountHandle < 100 {
 						// notify
 						msg := "> Transaction hash：%s\n> Action：%s\n> Timestamp：%s\n> Error message：%s"
-						msg = fmt.Sprintf(msg, txHash, builder.Action, time.Now().Format("2006-01-02 15:04:05"), resp.Err.Error())
+						msg = fmt.Sprintf(msg, txHash, action, time.Now().Format("2006-01-02 15:04:05"), resp.Err.Error())
 						notify.SendLarkErrNotify("DasDatabase BlockParser", msg)
 					}
 					return resp.Err

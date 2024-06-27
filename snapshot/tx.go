@@ -230,26 +230,39 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 		blockNumber := block.Header.Number
 		blockTimestamp := block.Header.Timestamp
 		//log.Info("parsingBlockData txHash:", txHash)
-
-		if builder, err := witness.ActionDataBuilderFromTx(tx); err != nil {
-			//log.Warn("ActionDataBuilderFromTx err:", err.Error())
-		} else {
-			log.Info("parsingBlockData action:", builder.Action, txHash)
-			if ok, err := t.checkContractCodeHash(tx); err != nil {
-				return fmt.Errorf("checkContractCodeHash err: %s", err.Error())
-			} else if ok {
-				info := dao.TableSnapshotTxInfo{
-					BlockNumber:    blockNumber,
-					Hash:           txHash,
-					Action:         builder.Action,
-					BlockTimestamp: blockTimestamp,
-				}
-				if err := t.DbDao.CreateSnapshotTxInfo(info); err != nil {
-					return fmt.Errorf("CreateSnapshotTxInfo err: %s", err.Error())
-				}
-			} else {
-				log.Warn("parsingBlockData give up:", blockNumber, txHash, builder.Action, blockTimestamp)
+		action := ""
+		builder, err := witness.ActionDataBuilderFromTx(tx)
+		if err != nil {
+			if err != witness.ErrNotExistActionData {
+				log.Debug("parsingBlockData witness.ActionDataBuilderFromTx err: ", err.Error())
+				continue
 			}
+			didCellAction, err := t.DasCore.TxToDidCellAction(tx)
+			if err != nil {
+				log.Debug("parsingBlockData TxToDidCellAction err: ", err.Error())
+				continue
+			}
+			action = didCellAction
+		} else {
+			ok, err := t.checkContractCodeHash(tx)
+			if err != nil {
+				log.Debug("parsingBlockData checkContractCodeHash err:", err.Error())
+				continue
+			} else if !ok {
+				continue
+			}
+			action = builder.Action
+		}
+		log.Info("parsingBlockData action:", action, txHash)
+
+		info := dao.TableSnapshotTxInfo{
+			BlockNumber:    blockNumber,
+			Hash:           txHash,
+			Action:         action,
+			BlockTimestamp: blockTimestamp,
+		}
+		if err := t.DbDao.CreateSnapshotTxInfo(info); err != nil {
+			return fmt.Errorf("CreateSnapshotTxInfo err: %s", err.Error())
 		}
 	}
 	return nil
