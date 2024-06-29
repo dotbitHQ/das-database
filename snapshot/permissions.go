@@ -14,42 +14,53 @@ import (
 func (t *ToolSnapshot) addAccountPermissionsForDidCell(info dao.TableSnapshotTxInfo, tx *types.Transaction) error {
 	log.Info("addAccountPermissionsForDidCell:", info.Action, info.Hash)
 	var list []dao.TableSnapshotPermissionsInfo
-	switch info.Action {
-	case common.DidCellActionEditOwner:
-		didEntity, err := witness.TxToOneDidEntity(tx, witness.SourceTypeOutputs)
-		if err != nil {
-			return fmt.Errorf("TxToOneDidEntity err: %s", err.Error())
-		}
-		account, expiredAt, err := witness.GetAccountAndExpireFromDidCellData(tx.OutputsData[didEntity.Target.Index])
-		if err != nil {
-			return fmt.Errorf("config.GetDidCellAccountAndExpire err: %s", err.Error())
-		}
-		accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
 
-		mode := address.Mainnet
-		if config.Cfg.Server.Net != common.DasNetTypeMainNet {
-			mode = address.Testnet
-		}
-		addr, err := address.ConvertScriptToAddress(mode, tx.Outputs[didEntity.Target.Index].Lock)
-		if err != nil {
-			return fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
-		}
-
-		tmp := dao.TableSnapshotPermissionsInfo{
-			BlockNumber:        info.BlockNumber,
-			AccountId:          accountId,
-			Hash:               info.Hash,
-			Account:            account,
-			BlockTimestamp:     info.BlockTimestamp,
-			Owner:              addr,
-			Manager:            addr,
-			OwnerAlgorithmId:   common.DasAlgorithmIdAnyLock,
-			ManagerAlgorithmId: common.DasAlgorithmIdAnyLock,
-			Status:             dao.AccountStatusOnUpgrade,
-			ExpiredAt:          expiredAt,
-		}
-		list = append(list, tmp)
+	_, res, err := t.DasCore.TxToDidCellEntityAndAction(tx)
+	if err != nil {
+		return fmt.Errorf("TxToDidCellEntityAndAction err: %s", err.Error())
 	}
+	if len(res.Inputs) != len(res.Outputs) {
+		return fmt.Errorf("len(res.Inputs) != len(res.Outputs)")
+	}
+
+	for k, v := range res.Inputs {
+		n, ok := res.Outputs[k]
+		if !ok {
+			return fmt.Errorf("not exist did cell in outputs: %s", k)
+		}
+		_, cellDataNew, err := n.GetDataInfo()
+		if err != nil {
+			return fmt.Errorf("GetDataInfo err: %s", err.Error())
+		}
+		account := cellDataNew.Account
+		accountId := common.Bytes2Hex(common.GetAccountIdByAccount(account))
+		if !v.Lock.Equals(n.Lock) {
+			mode := address.Mainnet
+			if config.Cfg.Server.Net != common.DasNetTypeMainNet {
+				mode = address.Testnet
+			}
+			addr, err := address.ConvertScriptToAddress(mode, n.Lock)
+			if err != nil {
+				return fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
+			}
+
+			tmp := dao.TableSnapshotPermissionsInfo{
+				BlockNumber:        info.BlockNumber,
+				AccountId:          accountId,
+				Hash:               info.Hash,
+				Account:            account,
+				BlockTimestamp:     info.BlockTimestamp,
+				Owner:              addr,
+				Manager:            addr,
+				OwnerAlgorithmId:   common.DasAlgorithmIdAnyLock,
+				ManagerAlgorithmId: common.DasAlgorithmIdAnyLock,
+				Status:             dao.AccountStatusOnUpgrade,
+				ExpiredAt:          cellDataNew.ExpireAt,
+			}
+			list = append(list, tmp)
+		}
+	}
+
 	if err := t.DbDao.CreateSnapshotPermissions(list); err != nil {
 		return fmt.Errorf("CreateSnapshotPermissions err: %s", err.Error())
 	}
@@ -103,24 +114,28 @@ func (t *ToolSnapshot) addAccountPermissions(info dao.TableSnapshotTxInfo, tx *t
 				tmp.Manager = manager.AddressHex
 				tmp.ManagerAlgorithmId = manager.DasAlgorithmId
 			}
-		} else if (info.Action == common.DasActionTransferAccount || info.Action == common.DasActionRenewAccount) && v.Status == common.AccountStatusOnUpgrade {
-			didEntity, err := witness.TxToOneDidEntity(tx, witness.SourceTypeOutputs)
+		}
+
+		if v.Status == common.AccountStatusOnUpgrade {
+			_, res, err := t.DasCore.TxToDidCellEntityAndAction(tx)
 			if err != nil {
-				return fmt.Errorf("witness.TxToOneDidEntity err: %s", err.Error())
+				return fmt.Errorf("TxToDidCellEntityAndAction err: %s", err.Error())
 			}
-			mode := address.Mainnet
-			if config.Cfg.Server.Net != common.DasNetTypeMainNet {
-				mode = address.Testnet
-			}
-			addr, err := address.ConvertScriptToAddress(mode, tx.Outputs[didEntity.Target.Index].Lock)
-			if err != nil {
-				return fmt.Errorf("address.ConvertScriptToAddress err: %s", err.Error())
-			}
-			tmp.Owner = addr
 			tmp.OwnerAlgorithmId = common.DasAlgorithmIdAnyLock
-			tmp.Manager = addr
 			tmp.ManagerAlgorithmId = common.DasAlgorithmIdAnyLock
 			tmp.Status = dao.AccountStatusOnUpgrade
+			for k, c := range res.Outputs {
+				mode := address.Mainnet
+				if config.Cfg.Server.Net != common.DasNetTypeMainNet {
+					mode = address.Testnet
+				}
+				addr, err := address.ConvertScriptToAddress(mode, c.Lock)
+				if err != nil {
+					return fmt.Errorf("address.ConvertScriptToAddress err: %s[%s]", err.Error(), k)
+				}
+				tmp.Owner = addr
+				tmp.Manager = addr
+			}
 		}
 		list = append(list, tmp)
 	}

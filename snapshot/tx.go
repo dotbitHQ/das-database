@@ -237,9 +237,9 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 				log.Debug("parsingBlockData witness.ActionDataBuilderFromTx err: ", err.Error())
 				continue
 			}
-			didCellAction, err := t.DasCore.TxToDidCellAction(tx)
+			didCellAction, _, err := t.DasCore.TxToDidCellEntityAndAction(tx)
 			if err != nil {
-				log.Debug("parsingBlockData TxToDidCellAction err: ", err.Error())
+				log.Debug("parsingBlockData TxToDidCellEntityAndAction err: ", err.Error())
 				continue
 			}
 			action = didCellAction
