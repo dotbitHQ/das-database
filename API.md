@@ -8,12 +8,12 @@
 
 Please familiarize yourself with the meaning of some common parameters before reading the API list:
 
-| param                                                                                    | description                                        |
-| :-------------------------                                                               |:---------------------------------------------------|
-| type                                                                                     | Filled with "blockchain" for now                   |
-| coin\_type <sup>[1](https://github.com/satoshilabs/slips/blob/master/slip-0044.md)</sup> | 60: eth, 195: trx, 9006: bsc, 966: matic, 3: doge  |
-| account                                                                                  | Contains the suffix `.bit` in it                   |
-| key                                                                                      | Generally refers to the blockchain address for now |
+| param                                                                          | description                                        |
+|:-------------------------------------------------------------------------------|:---------------------------------------------------|
+| type                                                                           | Filled with "blockchain" for now                   |
+| [coin_type](https://github.com/satoshilabs/slips/blob/master/slip-0044.md)     | 60: eth, 195: trx, 9006: bsc, 966: matic, 3: doge  |
+| account                                                                        | Contains the suffix `.bit` in it                   |
+| key                                                                            | Generally refers to the blockchain address for now |
 
 ### Error Code
 
@@ -43,7 +43,7 @@ DasAlgorithmIdDogeChain DasAlgorithmId = 7 // Doge Sign
 ### Get Account History Permission
 
 **Request**
-/v1/snapshot/permissions/info
+* path: /v1/snapshot/permissions/info
 * param:
 
 ```json
@@ -88,7 +88,7 @@ curl -X POST http://127.0.0.1:8118 -d'{"jsonrpc": "2.0","id": 1,"method": "snaps
 ### Get Address History Hold Accounts
 
 **Request**
-/v1/snapshot/address/accounts
+* path: /v1/snapshot/address/accounts
 * param:
     * role_type: (permission role type) manager or owner
     * size: [1,100]
@@ -140,7 +140,7 @@ curl -X POST http://127.0.0.1:8118 -d'{"jsonrpc": "2.0","id": 1,"method": "snaps
 ### Get Snapshot Progress
 
 **Request**
-/v1/snapshot/progress
+* path: /v1/snapshot/progress
 * param:
   * role_type: (permission role type) manager or owner
   * size: [1,100]
@@ -171,7 +171,7 @@ curl -X POST http://127.0.0.1:8118/v1/snapshot/progress -d'{"block_number": 1941
 ### Get Snapshot Register Progress
 
 **Request**
-/v1/snapshot/register/history
+* path: /v1/snapshot/register/history
 * param:
   * role_type: (permission role type) manager or owner
   * size: [1,100]
