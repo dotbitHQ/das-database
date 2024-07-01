@@ -163,10 +163,12 @@ func (d *DbDao) DidCellUpdateList(oldOutpointList []string, list []TableDidCellI
 				return err
 			}
 		}
-		if err := tx.Clauses(clause.Insert{
-			Modifier: "IGNORE",
-		}).Create(&listTx).Error; err != nil {
-			return err
+		if len(listTx) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&listTx).Error; err != nil {
+				return err
+			}
 		}
 
 		return nil
