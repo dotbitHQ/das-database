@@ -73,11 +73,14 @@ func (b *BlockParser) registerTransactionHandle() {
 	b.mapTransactionHandle[common.DasActionFulfillApproval] = b.DasActionFulfillApproval
 	b.mapTransactionHandle[common.DasActionBidExpiredAccountAuction] = b.ActionBidExpiredAccountAuction
 
-	b.mapTransactionHandle[common.DasActionAccountCellUpgrade] = b.ActionAccountUpgrade // upgrade account cell
+	//b.mapTransactionHandle[common.DasActionAccountCellUpgrade] = b.ActionAccountUpgrade // upgrade account cell
 	//did cell
-	b.mapTransactionHandle[common.DidCellActionEditRecords] = b.ActionEditDidCellRecords // edit did cell record
-	b.mapTransactionHandle[common.DidCellActionEditOwner] = b.ActionEditDidCellOwner     // edit did cell owner
-	b.mapTransactionHandle[common.DidCellActionRecycle] = b.ActionDidCellRecycle         //  did cell recycle
+	b.mapTransactionHandle[common.DidCellActionUpdate] = b.DidCellActionUpdate
+	b.mapTransactionHandle[common.DidCellActionRecycle] = b.DidCellActionRecycle
+
+	//b.mapTransactionHandle[common.DidCellActionEditRecords] = b.ActionEditDidCellRecords // edit did cell record
+	//b.mapTransactionHandle[common.DidCellActionEditOwner] = b.ActionEditDidCellOwner     // edit did cell owner
+	//b.mapTransactionHandle[common.DidCellActionRecycle] = b.ActionDidCellRecycle         //  did cell recycle
 }
 
 func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {
@@ -126,6 +129,7 @@ type FuncTransactionHandleReq struct {
 	BlockNumber    uint64
 	BlockTimestamp uint64
 	Action         common.DasAction
+	TxDidCellMap   core.TxDidCellMap
 }
 
 type FuncTransactionHandleResp struct {

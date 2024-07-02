@@ -97,3 +97,106 @@ func (d *DbDao) DidCellRecycle(outpoint, accountId string, txInfo TableTransacti
 		return nil
 	})
 }
+
+func (d *DbDao) DidCellUpdateListWithAccountCell(transactionInfo TableTransactionInfo, didCellList []TableDidCellInfo, accountIds []string, records []TableRecordsInfo, accountInfo TableAccountInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Select("block_number", "outpoint", "status").
+			Where("account_id = ?", accountInfo.AccountId).
+			Updates(accountInfo).Error; err != nil {
+			return err
+		}
+
+		if len(didCellList) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&didCellList).Error; err != nil {
+				return err
+			}
+		}
+		if len(accountIds) > 0 {
+			if err := tx.Where("account_id IN(?)", accountIds).
+				Delete(&TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(records) > 0 {
+			if err := tx.Create(&records).Error; err != nil {
+				return err
+			}
+		}
+
+		if err := tx.Clauses(clause.Insert{
+			Modifier: "IGNORE",
+		}).Create(&transactionInfo).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) DidCellUpdateList(oldOutpointList []string, list []TableDidCellInfo, accountIds []string, records []TableRecordsInfo, listTx []TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if len(oldOutpointList) > 0 {
+			if err := tx.Where("outpoint IN(?) ", oldOutpointList).
+				Delete(&TableDidCellInfo{}).Error; err != nil {
+				return err
+			}
+		}
+		if len(list) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&list).Error; err != nil {
+				return err
+			}
+		}
+		if len(accountIds) > 0 {
+			if err := tx.Where("account_id IN(?)", accountIds).
+				Delete(&TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+		}
+
+		if len(records) > 0 {
+			if err := tx.Create(&records).Error; err != nil {
+				return err
+			}
+		}
+		if len(listTx) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&listTx).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+func (d *DbDao) DidCellRecycleList(oldOutpointList []string, accountIds []string, listTx []TableTransactionInfo) error {
+	return d.db.Transaction(func(tx *gorm.DB) error {
+		if len(accountIds) > 0 {
+			if err := tx.Where("account_id IN(?)", accountIds).
+				Delete(&TableRecordsInfo{}).Error; err != nil {
+				return err
+			}
+		}
+		if len(oldOutpointList) > 0 {
+			if err := tx.Where("outpoint IN(?) ", oldOutpointList).
+				Delete(&TableDidCellInfo{}).Error; err != nil {
+				return err
+			}
+		}
+		if len(listTx) > 0 {
+			if err := tx.Clauses(clause.Insert{
+				Modifier: "IGNORE",
+			}).Create(&listTx).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
