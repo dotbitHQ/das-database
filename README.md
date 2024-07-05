@@ -4,7 +4,7 @@ A block parser tool that allows extraction of various data types on DAS
 ## Prerequisites
 * Ubuntu 18.04 or newer
 * MYSQL >= 8.0
-* go version >= 1.17.10
+* go version >= 1.21.3
 * [ckb-node](https://github.com/nervosnetwork/ckb) (Must be synced to latest height and add `Indexer` module to ckb.toml)
 * If the version of the dependency package is too low, please install `gcc-multilib` (apt install gcc-multilib)
 * Machine configuration: 4c8g200G
@@ -59,11 +59,13 @@ All supported parsable transaction types as following:
 ```txt
 config              
 deploy              
-apply_register      
+apply_register
+refund_apply
 pre_register        
 propose             
 extend_proposal     
-confirm_proposal    
+confirm_proposal   
+recycle_proposal 
 edit_records        
 edit_manager        
 renew_account       
@@ -75,24 +77,52 @@ transfer_balance
 start_account_sale  
 edit_account_sale   
 cancel_account_sale 
-buy_account         
+buy_account
+declare_reverse_record
+redeclare_reverse_record
+retract_reverse_record
+transfer
+create_approval
+delay_approval
+revoke_approval
+fulfill_approval
+make_offer
+edit_offer
+cancel_offer
+accept_offer
+enable_sub_account
+create_sub_account
+edit_sub_account
+renew_sub_account
+recycle_sub_account
+lock_sub_account_for_cross_chain
+unlock_sub_account_for_cross_chain
+config_sub_account_custom_script
+config_sub_account
+collect_sub_account_profit
+update_sub_account
+collect_sub_account_channel_profit
+lock_account_for_cross_chain
+unlock_account_for_cross_chain
+force_recover_account_status
+recycle_expired_account
+update_reverse_record_root
+create_device_key_list
+update_device_key_list
+mint_dp
+transfer_dp
+burn_dp
+bid_expired_account_dutch_auction
+account_cell_upgrade
+did_edit_owner
+did_edit_records
+did_renew
+did_recycle
+did_upgrade
+did_register
+did_auction
 ```
 
-### Tables
-
-* t_account_info
-* t_trade_info
-* t_income_cell_info
-* t_block_info (Only store the latest 20 blocks in case of rollback)
-* t_trade_deal_info
-* t_rebate_info (Records of inviter/channel's rewards)
-* t_records_info
-* t_token_price_info
-* t_transaction_info 
-* t_reverse_records_info (All transactions on DAS)
-
-More details see [das_database.sql](https://github.com/dotbitHQ/das-database/blob/main/dao/das_database.sql)
-
 ## Others
-* [What is DAS](https://github.com/dotbitHQ/das-contracts/blob/master/docs/en/Overview-of-DAS.md)
-* [What is a DAS transaction on CKB](https://github.com/dotbitHQ/das-contracts/blob/master/docs/en/Data-Structure-and-Protocol/Transaction-Structure.md)
+* [What is DAS](https://github.com/dotbitHQ/did-contracts/blob/docs/docs/en/design/Overview-of-DAS.md)
+* [What is a DAS transaction on CKB](https://github.com/dotbitHQ/did-contracts/blob/docs/docs/en/developer/Transaction-Structure.md)

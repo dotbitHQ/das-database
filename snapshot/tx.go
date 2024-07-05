@@ -254,6 +254,9 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 			action = builder.Action
 		}
 		log.Info("parsingBlockData action:", action, txHash)
+		if action == "" {
+			continue
+		}
 
 		info := dao.TableSnapshotTxInfo{
 			BlockNumber:    blockNumber,

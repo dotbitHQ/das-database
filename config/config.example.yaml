@@ -1,35 +1,44 @@
 server:
   name: "database"
-  net: 1 # 1: mainnet 2: testnet
+  net: 2
   http_server_addr: ":8118"
-  prometheus_push_gateway: "http://127.0.0.1:9091"
+  fix_charset: true
+  prometheus_push_gateway: ""
 notice:
   webhook_lark_err: ""
+  sentry_dsn: ""
 chain:
-  # Use host.docker.internal instead if running with docker compose
-  ckb_url: "http://127.0.0.1:8114"
-  index_url: "http://127.0.0.1:8116"
-  current_block_number: 4872287 # 4872287: mainnet 1927285: testnet
+  ckb_url: "" #"https://testnet.ckb.dev/"
+  index_url: "" #"https://testnet.ckb.dev/indexer"
+  current_block_number: 1927285 # 4872287: mainnet 1927285: testnet
   confirm_num: 4 # confirm nums before written into DB
-  concurrency_num: 100
+  concurrency_num: 200
 origins:
-  - ""
+  - "localhost:3000"
 snapshot:
-  open: false
+  open: true
   concurrency_num: 100
   confirm_num: 4
-  snapshot_num: 1000
+  snapshot_num: 500
 db:
   mysql:
-    # Use mysql instead if running with docker compose
-    addr: "127.0.0.1"
-    user: "root"
-    password: "123456"
-    db_name: "das_database"
+    log_mode: true
+    addr: ""
+    user: ""
+    password: ""
+    db_name: ""
     max_open_conn: 100
     max_idle_conn: 50
 cache:
   redis:
-    addr: "127.0.0.1:6379"
+    addr: ""
     password: ""
-    db_num: 0
+    db_num: 17
+gecko_ids:
+  - "nervos-network"
+  - "ethereum"
+  - "bitcoin"
+  - "tron"
+  - "_wx_cny_"
+  - "binancecoin"
+  - "matic-network"
