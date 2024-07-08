@@ -99,8 +99,8 @@ github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8
 github.com/dlclark/regexp2 v1.2.0/go.mod h1:2pZnwuY/m+8K6iRw6wQdMtk+rH5tNGR1i55kozfMjCc=
 github.com/docker/docker v1.4.2-0.20180625184442-8e610b2b55bf/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/dop251/goja v0.0.0-20200219165308-d1232e640a87/go.mod h1:Mw6PkjjMXWbTj+nnj4s3QPXq1jaT0s5pC0iFD4+BOAA=
-github.com/dotbitHQ/das-lib v1.1.1-0.20240702022422-a10e4fc6b5e9 h1:10HKefbHkdJnYxKzUvZ2Wh7PSxHLNOPHjMqMoGphWMM=
-github.com/dotbitHQ/das-lib v1.1.1-0.20240702022422-a10e4fc6b5e9/go.mod h1:WgHO3ZBtA0JY3l5N2gqssPxwvzoRYf4JKpQT6zyLH4s=
+github.com/dotbitHQ/das-lib v1.1.1-0.20240708030808-05a81bf44632 h1:mL1cGpU7x8dvC+V9tXfHB9WXCG7DcWE6KANYWB2zOOg=
+github.com/dotbitHQ/das-lib v1.1.1-0.20240708030808-05a81bf44632/go.mod h1:WgHO3ZBtA0JY3l5N2gqssPxwvzoRYf4JKpQT6zyLH4s=
 github.com/edsrzf/mmap-go v0.0.0-20160512033002-935e0e8a636c/go.mod h1:YO35OhQPt3KJa3ryjFM5Bs14WD66h8eGKpfaBNrHW5M=
 github.com/elastic/gosigar v0.8.1-0.20180330100440-37f05ff46ffa/go.mod h1:cdorVVzy1fhmEqmtgqkoE3bYtCfSCkVyjTyCIo22xvs=
 github.com/elazarl/goproxy v0.0.0-20221015165544-a0805db90819 h1:RIB4cRk+lBqKK3Oy0r2gRX4ui7tuhiZq2SuTtTCi0/0=
