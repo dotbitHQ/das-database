@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
+	"github.com/dotbitHQ/das-lib/http_api"
 	"github.com/gin-gonic/gin"
 	"github.com/scorpiotzh/toolib"
 	"net/http"
@@ -21,17 +22,17 @@ type RespSnapshotRegisterHistory struct {
 	Result string `json:"result"`
 }
 
-func (h *HttpHandle) JsonRpcSnapshotRegisterHistory(p json.RawMessage, apiResp *api_code.ApiResp) {
+func (h *HttpHandle) JsonRpcSnapshotRegisterHistory(p json.RawMessage, apiResp *http_api.ApiResp) {
 	var req []ReqSnapshotRegisterHistory
 	err := json.Unmarshal(p, &req)
 	if err != nil {
 		log.Error("json.Unmarshal err:", err.Error())
-		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid")
+		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "params invalid")
 		return
 	}
 	if len(req) != 1 {
 		log.Error("len(req) is :", len(req))
-		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid")
+		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "params invalid")
 		return
 	}
 
@@ -44,7 +45,7 @@ func (h *HttpHandle) SnapshotRegisterHistory(ctx *gin.Context) {
 	var (
 		funcName = "SnapshotRegisterHistory"
 		req      ReqSnapshotRegisterHistory
-		apiResp  api_code.ApiResp
+		apiResp  http_api.ApiResp
 		err      error
 	)
 
@@ -70,7 +71,7 @@ type registerInfo struct {
 	countOwner uint64
 }
 
-func (h *HttpHandle) doSnapshotRegisterHistory(req *ReqSnapshotRegisterHistory, apiResp *api_code.ApiResp) error {
+func (h *HttpHandle) doSnapshotRegisterHistory(req *ReqSnapshotRegisterHistory, apiResp *http_api.ApiResp) error {
 	var resp RespSnapshotRegisterHistory
 
 	theTime, err := time.ParseInLocation("2006-01-02", req.StartTime, time.Local)

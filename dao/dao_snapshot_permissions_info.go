@@ -196,3 +196,14 @@ func (d *DbDao) GetSnapshotAddressAccountsTotal(addressHex string, roleType Role
 
 	return
 }
+
+func (d *DbDao) GetSnapshotDidList(addressHex string, blockNumber, accLen uint64) (list []TableSnapshotPermissionsInfo, err error) {
+	sql := fmt.Sprintf(" SELECT account_id,account FROM %s ", TableNameSnapshotPermissionsInfo)
+	sql += " WHERE parent_account_id='' AND owner=? AND block_number<=? AND (owner_block_number=0 OR owner_block_number>?) "
+	if accLen > 0 {
+		sql += fmt.Sprintf(" AND LENGTH(account)=%d ", accLen+4)
+	}
+	sql += " GROUP BY account_id,account "
+	err = d.db.Raw(sql, addressHex, blockNumber, blockNumber).Find(&list).Error
+	return
+}

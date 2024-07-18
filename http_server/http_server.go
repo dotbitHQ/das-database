@@ -77,6 +77,8 @@ func (h *HttpServer) Run() {
 		v1.POST("/snapshot/permissions/info", api_code.DoMonitorLog(api_code.MethodSnapshotPermissionsInfo), cacheHandle, h.h.SnapshotPermissionsInfo)
 		v1.POST("/snapshot/address/accounts", api_code.DoMonitorLog(api_code.MethodSnapshotAddressAccounts), cacheHandle, h.h.SnapshotAddressAccounts)
 		v1.POST("/snapshot/register/history", api_code.DoMonitorLog(api_code.MethodSnapshotRegisterHistory), cacheHandle, h.h.SnapshotRegisterHistory)
+
+		v1.POST("/snapshot/did/list", api_code.DoMonitorLog(api_code.MethodSnapshotDidList), cacheHandle, h.h.SnapshotDidList)
 	}
 
 	h.srv = &http.Server{
