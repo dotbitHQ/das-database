@@ -25,4 +25,5 @@ const (
 	MethodSnapshotPermissionsInfo JsonRpcMethod = "snapshot_permissions_info"
 	MethodSnapshotAddressAccounts JsonRpcMethod = "snapshot_address_accounts"
 	MethodSnapshotRegisterHistory JsonRpcMethod = "snapshot_register_history"
+	MethodSnapshotDidList         JsonRpcMethod = "snapshot_did_list"
 )

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/http_api"
 	"github.com/gin-gonic/gin"
 	"github.com/scorpiotzh/toolib"
 	"net/http"
@@ -27,7 +28,7 @@ type SnapshotAddressAccount struct {
 	Account string `json:"account"`
 }
 
-func (h *HttpHandle) JsonRpcSnapshotAddressAccounts(p json.RawMessage, apiResp *api_code.ApiResp) {
+func (h *HttpHandle) JsonRpcSnapshotAddressAccounts(p json.RawMessage, apiResp *http_api.ApiResp) {
 	var req []ReqSnapshotAddressAccounts
 	err := json.Unmarshal(p, &req)
 	if err != nil {
@@ -50,13 +51,13 @@ func (h *HttpHandle) SnapshotAddressAccounts(ctx *gin.Context) {
 	var (
 		funcName = "SnapshotAddressAccounts"
 		req      ReqSnapshotAddressAccounts
-		apiResp  api_code.ApiResp
+		apiResp  http_api.ApiResp
 		err      error
 	)
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error("ShouldBindJSON err: ", err.Error(), funcName)
-		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid")
+		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "params invalid")
 		ctx.JSON(http.StatusOK, apiResp)
 		return
 	}
@@ -69,7 +70,7 @@ func (h *HttpHandle) SnapshotAddressAccounts(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, apiResp)
 }
 
-func (h *HttpHandle) doSnapshotAddressAccounts(req *ReqSnapshotAddressAccounts, apiResp *api_code.ApiResp) error {
+func (h *HttpHandle) doSnapshotAddressAccounts(req *ReqSnapshotAddressAccounts, apiResp *http_api.ApiResp) error {
 	var resp RespSnapshotAddressAccounts
 	resp.Accounts = make([]SnapshotAddressAccount, 0)
 

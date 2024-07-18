@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
+	"github.com/dotbitHQ/das-lib/http_api"
 	"github.com/gin-gonic/gin"
 	"github.com/scorpiotzh/toolib"
 	"net/http"
@@ -28,17 +29,17 @@ type RespSnapshotPermissionsInfo struct {
 	ManagerAlgorithmId common.DasAlgorithmId `json:"manager_algorithm_id"`
 }
 
-func (h *HttpHandle) JsonRpcSnapshotPermissionsInfo(p json.RawMessage, apiResp *api_code.ApiResp) {
+func (h *HttpHandle) JsonRpcSnapshotPermissionsInfo(p json.RawMessage, apiResp *http_api.ApiResp) {
 	var req []ReqSnapshotPermissionsInfo
 	err := json.Unmarshal(p, &req)
 	if err != nil {
 		log.Error("json.Unmarshal err:", err.Error())
-		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid")
+		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "params invalid")
 		return
 	}
 	if len(req) != 1 {
 		log.Error("len(req) is :", len(req))
-		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid")
+		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "params invalid")
 		return
 	}
 
@@ -51,13 +52,13 @@ func (h *HttpHandle) SnapshotPermissionsInfo(ctx *gin.Context) {
 	var (
 		funcName = "SnapshotPermissionsInfo"
 		req      ReqSnapshotPermissionsInfo
-		apiResp  api_code.ApiResp
+		apiResp  http_api.ApiResp
 		err      error
 	)
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error("ShouldBindJSON err: ", err.Error(), funcName)
-		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "params invalid")
+		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "params invalid")
 		ctx.JSON(http.StatusOK, apiResp)
 		return
 	}
@@ -70,10 +71,10 @@ func (h *HttpHandle) SnapshotPermissionsInfo(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, apiResp)
 }
 
-func (h *HttpHandle) checkSnapshotProgress(blockNumber uint64, apiResp *api_code.ApiResp) (bool, error) {
+func (h *HttpHandle) checkSnapshotProgress(blockNumber uint64, apiResp *http_api.ApiResp) (bool, error) {
 	txS, err := h.dbDao.GetTxSnapshotSchedule()
 	if err != nil {
-		apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to query snapshot progress")
+		apiResp.ApiRespErr(http_api.ApiCodeDbError, "Failed to query snapshot progress")
 		return false, fmt.Errorf("GetTxSnapshotSchedule err: %s", err.Error())
 	} else if txS.Id > 0 {
 		if txS.BlockNumber >= blockNumber {
@@ -83,20 +84,20 @@ func (h *HttpHandle) checkSnapshotProgress(blockNumber uint64, apiResp *api_code
 	return false, nil
 }
 
-func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, apiResp *api_code.ApiResp) error {
+func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, apiResp *http_api.ApiResp) error {
 	var resp RespSnapshotPermissionsInfo
 
 	if req.Account == "" || !strings.HasSuffix(req.Account, common.DasAccountSuffix) {
-		apiResp.ApiRespErr(api_code.ApiCodeParamsInvalid, "Invalid account parameter")
+		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "Invalid account parameter")
 		return nil
 	}
 
 	// check
 	//ok, err := h.checkSnapshotProgress(req.BlockNumber, apiResp)
-	//if apiResp.ErrNo != api_code.ApiCodeSuccess {
+	//if apiResp.ErrNo != http_api.ApiCodeSuccess {
 	//	return err
 	//} else if !ok {
-	//	apiResp.ApiRespErr(api_code.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
+	//	apiResp.ApiRespErr(http_api.ApiCodeSnapshotBehindSchedule, "Snapshot behind schedule")
 	//	return nil
 	//}
 
@@ -104,7 +105,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 	accountId := common.Bytes2Hex(common.GetAccountIdByAccount(req.Account))
 	info, err := h.dbDao.GetSnapshotPermissionsInfo(accountId, req.BlockNumber)
 	if err != nil {
-		apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to find account permission information")
+		apiResp.ApiRespErr(http_api.ApiCodeDbError, "Failed to find account permission information")
 		return fmt.Errorf("GetSnapshotPermissionsInfo err: %s", err.Error())
 	}
 	if info.Id == 0 {
@@ -125,7 +126,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 		common.ConfigCellTypeArgsAccount,
 	)
 	if err != nil {
-		apiResp.ApiRespErr(api_code.ApiCodeError500, "Failed to get ExpirationGracePeriod")
+		apiResp.ApiRespErr(http_api.ApiCodeError500, "Failed to get ExpirationGracePeriod")
 		return fmt.Errorf("ConfigCellDataBuilderByTypeArgsList err: %s", err.Error())
 	}
 	expirationGracePeriod, _ := builder.ExpirationGracePeriod()
@@ -133,7 +134,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 	expiredAt := info.ExpiredAt + uint64(expirationGracePeriod)
 	block, err := h.dasCore.Client().GetBlockByNumber(h.ctx, req.BlockNumber)
 	if err != nil {
-		apiResp.ApiRespErr(api_code.ApiCodeError500, "Failed to get block")
+		apiResp.ApiRespErr(http_api.ApiCodeError500, "Failed to get block")
 		return fmt.Errorf("GetBlockByNumber err: %s", err.Error())
 	}
 	blockTimestamp := block.Header.Timestamp / 1000
@@ -147,13 +148,13 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 	if count := strings.Count(info.Account, "."); count > 1 {
 		acc, err := h.dbDao.GetAccountInfoByAccountId(info.AccountId)
 		if err != nil {
-			apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to find account information")
+			apiResp.ApiRespErr(http_api.ApiCodeDbError, "Failed to find account information")
 			return fmt.Errorf("GetAccountInfoByAccountId err: %s", err.Error())
 		}
 		if acc.ParentAccountId != "" {
 			recycleInfo, err := h.dbDao.GetRecycleInfo(acc.ParentAccountId, info.BlockNumber, req.BlockNumber)
 			if err != nil {
-				apiResp.ApiRespErr(api_code.ApiCodeDbError, "Failed to find parent account permissions information")
+				apiResp.ApiRespErr(http_api.ApiCodeDbError, "Failed to find parent account permissions information")
 				return fmt.Errorf("GetRecycleInfo err: %s", err.Error())
 			}
 			if recycleInfo.Id > 0 {
@@ -180,7 +181,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 			ChainType:         info.OwnerAlgorithmId.ToChainType(),
 		})
 		if err != nil {
-			apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")
+			apiResp.ApiRespErr(http_api.ApiCodeError500, "HexToNormal Err")
 			return fmt.Errorf("HexToNormal err: %s", err.Error())
 		}
 		resp.Owner = owner.AddressNormal
@@ -197,7 +198,7 @@ func (h *HttpHandle) doSnapshotPermissionsInfo(req *ReqSnapshotPermissionsInfo, 
 			ChainType:         info.ManagerAlgorithmId.ToChainType(),
 		})
 		if err != nil {
-			apiResp.ApiRespErr(api_code.ApiCodeError500, "HexToNormal Err")
+			apiResp.ApiRespErr(http_api.ApiCodeError500, "HexToNormal Err")
 			return fmt.Errorf("HexToNormal err: %s", err.Error())
 		}
 		resp.Manager = manager.AddressNormal

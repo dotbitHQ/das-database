@@ -4,6 +4,7 @@ import (
 	"das_database/http_server/api_code"
 	"das_database/prometheus"
 	"fmt"
+	"github.com/dotbitHQ/das-lib/http_api"
 	"github.com/gin-gonic/gin"
 	"github.com/scorpiotzh/toolib"
 	"net/http"
@@ -14,7 +15,7 @@ func (h *HttpHandle) JasonRpcHandle(ctx *gin.Context) {
 	var (
 		req      api_code.JsonRequest
 		resp     api_code.JsonResponse
-		apiResp  api_code.ApiResp
+		apiResp  http_api.ApiResp
 		clientIp = GetClientIp(ctx)
 	)
 	resp.Result = &apiResp
@@ -43,6 +44,8 @@ func (h *HttpHandle) JasonRpcHandle(ctx *gin.Context) {
 		h.JsonRpcSnapshotAddressAccounts(req.Params, &apiResp)
 	case api_code.MethodSnapshotRegisterHistory:
 		h.JsonRpcSnapshotRegisterHistory(req.Params, &apiResp)
+	case api_code.MethodSnapshotDidList:
+		h.JsonRpcSnapshotDidList(req.Params, &apiResp)
 	default:
 		log.Error("method not exist:", req.Method)
 		apiResp.ApiRespErr(api_code.ApiCodeMethodNotExist, fmt.Sprintf("method [%s] not exits", req.Method))
