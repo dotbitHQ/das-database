@@ -79,6 +79,7 @@ func (h *HttpServer) Run() {
 		v1.POST("/snapshot/register/history", api_code.DoMonitorLog(api_code.MethodSnapshotRegisterHistory), cacheHandle, h.h.SnapshotRegisterHistory)
 
 		v1.POST("/snapshot/did/list", api_code.DoMonitorLog(api_code.MethodSnapshotDidList), cacheHandle, h.h.SnapshotDidList)
+		v1.POST("/snapshot/verify", api_code.DoMonitorLog(api_code.MethodSnapshotVerify), cacheHandle, h.h.SnapshotVerify)
 	}
 
 	h.srv = &http.Server{

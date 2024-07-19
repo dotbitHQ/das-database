@@ -46,6 +46,8 @@ func (h *HttpHandle) JasonRpcHandle(ctx *gin.Context) {
 		h.JsonRpcSnapshotRegisterHistory(req.Params, &apiResp)
 	case api_code.MethodSnapshotDidList:
 		h.JsonRpcSnapshotDidList(req.Params, &apiResp)
+	case api_code.MethodSnapshotVerify:
+		h.JsonRpcSnapshotVerify(req.Params, &apiResp)
 	default:
 		log.Error("method not exist:", req.Method)
 		apiResp.ApiRespErr(api_code.ApiCodeMethodNotExist, fmt.Sprintf("method [%s] not exits", req.Method))
