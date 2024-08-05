@@ -66,7 +66,7 @@ func (h *HttpHandle) SnapshotVerify(ctx *gin.Context) {
 
 func (h *HttpHandle) doSnapshotVerify(req *ReqSnapshotVerify, apiResp *http_api.ApiResp) error {
 	var resp RespSnapshotVerify
-
+	log.Info("doSnapshotVerify:", req.Message, req.Signature)
 	addrHex, err := req.ChainTypeAddress.FormatChainTypeAddress(h.dasCore.NetType(), false)
 	if err != nil {
 		apiResp.ApiRespErr(http_api.ApiCodeParamsInvalid, "Invalid key info")
