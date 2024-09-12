@@ -273,6 +273,18 @@ var tokenList = []TableTokenPriceInfo{
 		DisplayName:   "DIDCredits",
 		Icon:          "didpoint",
 	},
+	{
+		TokenId:       "ckb_ccc",
+		ChainType:     0,
+		CoinType:      common.CoinTypeCKB,
+		GeckoId:       "ckb_ccc",
+		Name:          "Nervos Network",
+		Symbol:        "CKB",
+		Decimals:      8,
+		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "CKB",
+		Icon:          "ckbccc",
+	},
 }
 
 func (d *DbDao) Transaction(fn func(tx *gorm.DB) error) error {

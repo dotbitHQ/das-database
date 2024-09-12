@@ -64,24 +64,27 @@ type TokenPriceNew struct {
 	Price  decimal.Decimal `json:"price"`
 }
 
-var TokenIdMap = map[string]string{
-	"CKBUSDT":   "ckb_ckb",
-	"BTCUSDT":   "btc_btc",
-	"ETHUSDT":   "eth_eth",
-	"BNBUSDT":   "bsc_bnb",
-	"TRXUSDT":   "tron_trx",
-	"MATICUSDT": "polygon_matic",
-	"DOGEUSDT":  "doge_doge",
+var TokenIdMap = map[string][]string{
+	"CKBUSDT":   {"ckb_ckb", "ckb_ccc"},
+	"BTCUSDT":   {"btc_btc"},
+	"ETHUSDT":   {"eth_eth"},
+	"BNBUSDT":   {"bsc_bnb"},
+	"TRXUSDT":   {"tron_trx"},
+	"MATICUSDT": {"polygon_matic"},
+	"DOGEUSDT":  {"doge_doge"},
 }
 
 func TokenPriceNewToList(res []TokenPriceNew) []GeckoTokenInfo {
 	list := make([]GeckoTokenInfo, 0)
 	for _, v := range res {
-		gti := GeckoTokenInfo{}
-		gti.Id = TokenIdMap[v.Symbol]
-		gti.Price = v.Price
-		gti.LastUpdatedAt = time.Now().Unix()
-		list = append(list, gti)
+		now := time.Now().Unix()
+		for _, tokenId := range TokenIdMap[v.Symbol] {
+			list = append(list, GeckoTokenInfo{
+				Id:            tokenId,
+				Price:         v.Price,
+				LastUpdatedAt: now,
+			})
+		}
 	}
 	return list
 }
