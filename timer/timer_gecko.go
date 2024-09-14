@@ -33,7 +33,7 @@ type GeckoTokenInfo struct {
 // https://binance-docs.github.io/apidocs/spot/cn/#8ff46b58de
 func GetTokenPriceNew(ids []string) ([]GeckoTokenInfo, error) {
 	var symbols []string
-	symbols = append(symbols, "BTCUSDT", "CKBUSDT", "ETHUSDT", "TRXUSDT", "BNBUSDT", "MATICUSDT", "DOGEUSDT")
+	symbols = append(symbols, "BTCUSDT", "CKBUSDT", "ETHUSDT", "TRXUSDT", "BNBUSDT", "MATICUSDT", "DOGEUSDT", "POLUSDT")
 
 	symbolStr := ""
 	for _, v := range symbols {
@@ -72,6 +72,7 @@ var TokenIdMap = map[string][]string{
 	"TRXUSDT":   {"tron_trx"},
 	"MATICUSDT": {"polygon_matic"},
 	"DOGEUSDT":  {"doge_doge"},
+	"POLUSDT":   {"polygon_pol"},
 }
 
 func TokenPriceNewToList(res []TokenPriceNew) []GeckoTokenInfo {
