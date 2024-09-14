@@ -285,6 +285,19 @@ var tokenList = []TableTokenPriceInfo{
 		DisplayName:   "CKB",
 		Icon:          "ckbccc",
 	},
+	{
+		TokenId:       "polygon_pol",
+		ChainType:     1,
+		CoinType:      common.CoinTypeMatic,
+		GeckoId:       "polygon_pol",
+		Name:          "Polygon",
+		Symbol:        "POL",
+		Decimals:      18,
+		Logo:          "https://app.did.id/images/components/polygon.svg",
+		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Polygon",
+		Icon:          "polygon",
+	},
 }
 
 func (d *DbDao) Transaction(fn func(tx *gorm.DB) error) error {
