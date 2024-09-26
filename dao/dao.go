@@ -109,6 +109,11 @@ func Initialize(db *gorm.DB) (*DbDao, error) {
 		}
 	}
 
+	if err := db.Where("token_id='polygon_matic'").
+		Delete(&TableTokenPriceInfo{}).Error; err != nil {
+		log.Error("del polygon_matic err: %s", err.Error())
+	}
+
 	return &DbDao{db: db}, nil
 }
 
@@ -178,19 +183,19 @@ var tokenList = []TableTokenPriceInfo{
 		DisplayName:   "Binance",
 		Icon:          "binance-smart-chain",
 	},
-	{
-		TokenId:       "polygon_matic",
-		ChainType:     1,
-		CoinType:      common.CoinTypeMatic,
-		GeckoId:       "matic-network",
-		Name:          "Polygon",
-		Symbol:        "MATIC",
-		Decimals:      18,
-		Logo:          "https://app.did.id/images/components/polygon.svg",
-		LastUpdatedAt: time.Now().Unix(),
-		DisplayName:   "Polygon",
-		Icon:          "polygon",
-	},
+	//{
+	//	TokenId:       "polygon_matic",
+	//	ChainType:     1,
+	//	CoinType:      common.CoinTypeMatic,
+	//	GeckoId:       "matic-network",
+	//	Name:          "Polygon",
+	//	Symbol:        "MATIC",
+	//	Decimals:      18,
+	//	Logo:          "https://app.did.id/images/components/polygon.svg",
+	//	LastUpdatedAt: time.Now().Unix(),
+	//	DisplayName:   "Polygon",
+	//	Icon:          "polygon",
+	//},
 	{
 		TokenId:       "doge_doge",
 		ChainType:     7,
@@ -284,6 +289,19 @@ var tokenList = []TableTokenPriceInfo{
 		LastUpdatedAt: time.Now().Unix(),
 		DisplayName:   "CKB",
 		Icon:          "ckbccc",
+	},
+	{
+		TokenId:       "polygon_pol",
+		ChainType:     1,
+		CoinType:      common.CoinTypeMatic,
+		GeckoId:       "polygon_pol",
+		Name:          "Polygon",
+		Symbol:        "POL",
+		Decimals:      18,
+		Logo:          "https://app.did.id/images/components/polygon.svg",
+		LastUpdatedAt: time.Now().Unix(),
+		DisplayName:   "Polygon",
+		Icon:          "polygon",
 	},
 }
 
