@@ -80,6 +80,9 @@ func (h *HttpServer) Run() {
 
 		v1.POST("/snapshot/did/list", api_code.DoMonitorLog(api_code.MethodSnapshotDidList), cacheHandle, h.h.SnapshotDidList)
 		v1.POST("/snapshot/verify", api_code.DoMonitorLog(api_code.MethodSnapshotVerify), cacheHandle, h.h.SnapshotVerify)
+		v1.GET("/test/jenkins", func(c *gin.Context) {
+			c.JSON(200, "main--v1.0.0")
+		})
 	}
 
 	h.srv = &http.Server{
