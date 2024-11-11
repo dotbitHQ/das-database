@@ -159,7 +159,7 @@ func (d *DbDao) TransferAccountToDid(accountInfo TableAccountInfo, didCellInfo T
 	})
 }
 
-func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo, records []TableRecordsInfo, recordAccountIds []string, cidPks []TableCidPk) error {
+func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountInfos []TableAccountInfo, transactionInfos []TableTransactionInfo, rebateInfos []TableRebateInfo, records []TableRecordsInfo, recordAccountIds []string, cidPks []TableCidPk, didCellList []TableDidCellInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		if len(incomeCellInfos) > 0 {
 			if err := tx.Clauses(clause.OnConflict{
@@ -228,6 +228,12 @@ func (d *DbDao) ConfirmProposal(incomeCellInfos []TableIncomeCellInfo, accountIn
 			}
 		}
 
+		if len(didCellList) > 0 {
+			if err := tx.Create(&didCellList).Error; err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 }
@@ -285,7 +291,7 @@ func (d *DbDao) GetAccountInfoByParentAccountId(parentAccountId string) (account
 	return
 }
 
-func (d *DbDao) BidExpiredAccountAuction(accountInfo TableAccountInfo, recordsInfos []TableRecordsInfo, transactionInfos []TableTransactionInfo) error {
+func (d *DbDao) BidExpiredAccountAuction(accountInfo TableAccountInfo, recordsInfos []TableRecordsInfo, transactionInfos []TableTransactionInfo, didCellList []TableDidCellInfo) error {
 	return d.db.Transaction(func(tx *gorm.DB) error {
 		//update account_info
 		if err := tx.Select("status", "expired_at", "registered_at", "block_number", "outpoint", "owner_chain_type", "owner", "owner_algorithm_id", "owner_sub_aid", "manager_chain_type", "manager", "manager_algorithm_id", "manager_sub_aid").
@@ -310,6 +316,11 @@ func (d *DbDao) BidExpiredAccountAuction(accountInfo TableAccountInfo, recordsIn
 		//default record
 		if len(recordsInfos) > 0 {
 			if err := tx.Create(&recordsInfos).Error; err != nil {
+				return err
+			}
+		}
+		if len(didCellList) > 0 {
+			if err := tx.Create(&didCellList).Error; err != nil {
 				return err
 			}
 		}

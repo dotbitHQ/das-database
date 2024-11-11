@@ -7,6 +7,7 @@ import (
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
+	"github.com/nervosnetwork/ckb-sdk-go/address"
 	"github.com/scorpiotzh/toolib"
 	"strconv"
 )
@@ -277,33 +278,6 @@ func (b *BlockParser) ActionBidExpiredAccountAuction(req FuncTransactionHandleRe
 		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
 		return
 	}
-
-	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[builder.Index].PreviousOutput.TxHash)
-	if err != nil {
-		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
-		return
-	}
-
-	oldHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[builder.Index].PreviousOutput.Index].Lock.Args)
-	if err != nil {
-		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-		return
-	}
-	transactionInfos := make([]dao.TableTransactionInfo, 0)
-
-	transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
-		BlockNumber:    req.BlockNumber,
-		AccountId:      accountId,
-		Account:        account,
-		Action:         common.DasActionBidExpiredAccountAuction,
-		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oldHex.ChainType,
-		Address:        oldHex.AddressHex,
-		Capacity:       res.Transaction.Outputs[req.Tx.Inputs[builder.Index].PreviousOutput.Index].Capacity,
-		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
-		BlockTimestamp: req.BlockTimestamp,
-	})
-
 	accountInfo := dao.TableAccountInfo{
 		BlockNumber:        req.BlockNumber,
 		Outpoint:           common.OutPoint2String(req.TxHash, uint(builder.Index)),
@@ -321,24 +295,95 @@ func (b *BlockParser) ActionBidExpiredAccountAuction(req FuncTransactionHandleRe
 		RegisteredAt:       builder.RegisteredAt,
 		Status:             builder.Status,
 	}
-	log.Info("ActionBidExpiredAccountAuction:", accountInfo)
-
 	var recordsInfos []dao.TableRecordsInfo
+	var didCellList []dao.TableDidCellInfo
+	var txChainType common.ChainType
+	var txAddress string
+	txCapacity := req.Tx.Outputs[0].Capacity
+	if refundLock := builder.GetRefundLock(); refundLock != nil {
+		txCapacity += req.Tx.Outputs[1].Capacity
+		_, req.TxDidCellMap, err = b.dasCore.TxToDidCellEntityAndAction(req.Tx)
+		if err != nil {
+			resp.Err = fmt.Errorf("TxToDidCellEntityAndAction err: %s", err.Error())
+			return
+		}
+		txDidEntityWitness, err := witness.GetDidEntityFromTx(req.Tx)
+		if err != nil {
+			resp.Err = fmt.Errorf("witness.GetDidEntityFromTx err: %s", err.Error())
+			return
+		}
 
-	recordList := builder.Records
-	for _, v := range recordList {
-		recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
-			AccountId: accountId,
-			Account:   account,
-			Key:       v.Key,
-			Type:      v.Type,
-			Label:     v.Label,
-			Value:     v.Value,
-			Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
-		})
+		for k, v := range req.TxDidCellMap.Outputs {
+			_, cellDataNew, err := v.GetDataInfo()
+			if err != nil {
+				resp.Err = fmt.Errorf("GetDataInfo new err: %s[%s]", err.Error(), k)
+				return
+			}
+			acc := cellDataNew.Account
+			accId := common.Bytes2Hex(common.GetAccountIdByAccount(acc))
+			tmp := dao.TableDidCellInfo{
+				BlockNumber:  req.BlockNumber,
+				Outpoint:     common.OutPointStruct2String(v.OutPoint),
+				AccountId:    accId,
+				Account:      acc,
+				Args:         common.Bytes2Hex(v.Lock.Args),
+				LockCodeHash: v.Lock.CodeHash.Hex(),
+				ExpiredAt:    cellDataNew.ExpireAt,
+			}
+			didCellList = append(didCellList, tmp)
+			if w, yes := txDidEntityWitness.Outputs[v.Index]; yes {
+				for _, r := range w.DidCellWitnessDataV0.Records {
+					recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+						AccountId: accId,
+						Account:   acc,
+						Key:       r.Key,
+						Type:      r.Type,
+						Label:     r.Label,
+						Value:     r.Value,
+						Ttl:       strconv.FormatUint(uint64(r.TTL), 10),
+					})
+				}
+			}
+		}
+		txAddress, err = address.ConvertScriptToAddress(b.dasCore.GetCkbAddressMode(), refundLock)
+		if err != nil {
+			resp.Err = fmt.Errorf("ConvertScriptToAddress err: %s", err.Error())
+			return
+		}
+		txChainType = common.ChainTypeAnyLock
+	} else {
+		txChainType = oHex.ChainType
+		txAddress = oHex.AddressHex
+		for _, v := range builder.Records {
+			recordsInfos = append(recordsInfos, dao.TableRecordsInfo{
+				AccountId: accountId,
+				Account:   account,
+				Key:       v.Key,
+				Type:      v.Type,
+				Label:     v.Label,
+				Value:     v.Value,
+				Ttl:       strconv.FormatUint(uint64(v.TTL), 10),
+			})
+		}
 	}
 
-	if err := b.dbDao.BidExpiredAccountAuction(accountInfo, recordsInfos, transactionInfos); err != nil {
+	transactionInfos := make([]dao.TableTransactionInfo, 0)
+	transactionInfos = append(transactionInfos, dao.TableTransactionInfo{
+		BlockNumber:    req.BlockNumber,
+		AccountId:      accountId,
+		Account:        account,
+		Action:         common.DasActionBidExpiredAccountAuction,
+		ServiceType:    dao.ServiceTypeRegister,
+		ChainType:      txChainType,
+		Address:        txAddress,
+		Capacity:       txCapacity,
+		Outpoint:       common.OutPoint2String(req.TxHash, uint(builder.Index)),
+		BlockTimestamp: req.BlockTimestamp,
+	})
+
+	log.Info("ActionBidExpiredAccountAuction:", accountInfo)
+
+	if err := b.dbDao.BidExpiredAccountAuction(accountInfo, recordsInfos, transactionInfos, didCellList); err != nil {
 		log.Error("ActionBidExpiredAccountAuction err:", err.Error(), toolib.JsonString(accountInfo))
 		resp.Err = fmt.Errorf("ActionBidExpiredAccountAuction err: %s", err.Error())
 	}
@@ -588,26 +633,46 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		return
 	}
 
+	// builder.RefundLock
 	res, err := b.dasCore.Client().GetTransaction(b.ctx, req.Tx.Inputs[1].PreviousOutput.TxHash)
 	if err != nil {
 		resp.Err = fmt.Errorf("GetTransaction err: %s", err.Error())
 		return
 	}
-	oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
-	if err != nil {
-		resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
-		return
-	}
-	oArgs, err := b.dasCore.Daf().HexToArgs(oHex, oHex)
-	if err != nil {
-		resp.Err = fmt.Errorf("HexToArgs err: %s", err.Error())
-		return
-	}
 	var oCapacity uint64
-	for _, output := range req.Tx.Outputs[1:] {
-		if bytes.EqualFold(oArgs, output.Lock.Args) {
-			oCapacity += output.Capacity
+	var chainType common.ChainType
+	var addressHex string
+	if refundLock := builder.GetRefundLock(); refundLock != nil {
+		oArgs := refundLock.Args
+		for _, output := range req.Tx.Outputs[1:] {
+			if bytes.EqualFold(oArgs, output.Lock.Args) {
+				oCapacity += output.Capacity
+			}
 		}
+		addressHex, err = address.ConvertScriptToAddress(b.dasCore.GetCkbAddressMode(), refundLock)
+		if err != nil {
+			resp.Err = fmt.Errorf("ConvertScriptToAddress err: %s", err.Error())
+			return
+		}
+		chainType = common.ChainTypeAnyLock
+	} else {
+		oHex, _, err := b.dasCore.Daf().ArgsToHex(res.Transaction.Outputs[req.Tx.Inputs[1].PreviousOutput.Index].Lock.Args)
+		if err != nil {
+			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
+			return
+		}
+		oArgs, err := b.dasCore.Daf().HexToArgs(oHex, oHex)
+		if err != nil {
+			resp.Err = fmt.Errorf("HexToArgs err: %s", err.Error())
+			return
+		}
+		for _, output := range req.Tx.Outputs[1:] {
+			if bytes.EqualFold(oArgs, output.Lock.Args) {
+				oCapacity += output.Capacity
+			}
+		}
+		chainType = oHex.ChainType
+		addressHex = oHex.AddressHex
 	}
 
 	accountId, err := common.OutputDataToAccountId(req.Tx.OutputsData[0])
@@ -626,14 +691,14 @@ func (b *BlockParser) ActionRecycleExpiredAccount(req FuncTransactionHandleReq) 
 		Account:        builder.Account,
 		Action:         common.DasActionRecycleExpiredAccount,
 		ServiceType:    dao.ServiceTypeRegister,
-		ChainType:      oHex.ChainType,
-		Address:        oHex.AddressHex,
+		ChainType:      chainType,
+		Address:        addressHex,
 		Capacity:       oCapacity,
 		Outpoint:       common.OutPoint2String(req.TxHash, 0),
 		BlockTimestamp: req.BlockTimestamp,
 	}
 
-	log.Info("ActionRecycleExpiredAccount:", builder.Account, oHex.DasAlgorithmId, oHex.ChainType, oHex.AddressHex)
+	log.Info("ActionRecycleExpiredAccount:", builder.Account, chainType, addressHex)
 
 	if err = b.dbDao.RecycleExpiredAccount(accountInfo, transactionInfo, builder.AccountId, builder.EnableSubAccount); err != nil {
 		resp.Err = fmt.Errorf("RecycleExpiredAccount err: %s", err.Error())

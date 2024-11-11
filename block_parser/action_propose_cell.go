@@ -7,6 +7,7 @@ import (
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/molecule"
 	"github.com/dotbitHQ/das-lib/witness"
+	"github.com/nervosnetwork/ckb-sdk-go/address"
 	"github.com/shopspring/decimal"
 	"strconv"
 )
@@ -124,7 +125,6 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 	profitRateChannel, _ := configCell.ProfitRateChannel()
 
 	for _, v := range accMap {
-
 		ownerHex, managerHex, err := b.dasCore.Daf().ArgsToHex(req.Tx.Outputs[v.Index].Lock.Args)
 		if err != nil {
 			resp.Err = fmt.Errorf("ArgsToHex err: %s", err.Error())
@@ -251,10 +251,8 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 				InviterAddress:   channelHex.AddressHex,
 				BlockTimestamp:   req.BlockTimestamp,
 			})
-
-			recordList := v.Records
 			recordAccountIds = append(recordAccountIds, v.AccountId)
-			for _, record := range recordList {
+			for _, record := range v.Records {
 				records = append(records, dao.TableRecordsInfo{
 					AccountId: v.AccountId,
 					Account:   v.Account,
@@ -268,7 +266,75 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		}
 	}
 
-	if err = b.dbDao.ConfirmProposal(incomeCellInfos, accountInfos, transactionInfos, rebateInfos, records, recordAccountIds, cidPks); err != nil {
+	// did cell
+	_, req.TxDidCellMap, err = b.dasCore.TxToDidCellEntityAndAction(req.Tx)
+	if err != nil {
+		resp.Err = fmt.Errorf("TxToDidCellEntityAndAction err: %s", err.Error())
+		return
+	}
+	txDidEntityWitness, err := witness.GetDidEntityFromTx(req.Tx)
+	if err != nil {
+		resp.Err = fmt.Errorf("witness.GetDidEntityFromTx err: %s", err.Error())
+		return
+	}
+	var didCellList []dao.TableDidCellInfo
+	var didCellRecords []dao.TableRecordsInfo
+	var didCellTxs []dao.TableTransactionInfo
+	for k, v := range req.TxDidCellMap.Outputs {
+		_, cellDataNew, err := v.GetDataInfo()
+		if err != nil {
+			resp.Err = fmt.Errorf("GetDataInfo new err: %s[%s]", err.Error(), k)
+			return
+		}
+		acc := cellDataNew.Account
+		accId := common.Bytes2Hex(common.GetAccountIdByAccount(acc))
+		tmp := dao.TableDidCellInfo{
+			BlockNumber:  req.BlockNumber,
+			Outpoint:     common.OutPointStruct2String(v.OutPoint),
+			AccountId:    accId,
+			Account:      acc,
+			Args:         common.Bytes2Hex(v.Lock.Args),
+			LockCodeHash: v.Lock.CodeHash.Hex(),
+			ExpiredAt:    cellDataNew.ExpireAt,
+		}
+		didCellList = append(didCellList, tmp)
+		if w, yes := txDidEntityWitness.Outputs[v.Index]; yes {
+			for _, r := range w.DidCellWitnessDataV0.Records {
+				didCellRecords = append(didCellRecords, dao.TableRecordsInfo{
+					AccountId: accId,
+					Account:   acc,
+					Key:       r.Key,
+					Type:      r.Type,
+					Label:     r.Label,
+					Value:     r.Value,
+					Ttl:       strconv.FormatUint(uint64(r.TTL), 10),
+				})
+			}
+		}
+		txAddress, err := address.ConvertScriptToAddress(b.dasCore.GetCkbAddressMode(), v.Lock)
+		if err != nil {
+			resp.Err = fmt.Errorf("ConvertScriptToAddress err: %s", err.Error())
+			return
+		}
+		didCellTxs = append(didCellTxs, dao.TableTransactionInfo{
+			BlockNumber:    req.BlockNumber,
+			AccountId:      accId,
+			Account:        acc,
+			Action:         common.DasActionConfirmProposal,
+			ServiceType:    dao.ServiceTypeRegister,
+			ChainType:      common.ChainTypeAnyLock,
+			Address:        txAddress,
+			Capacity:       req.Tx.Outputs[v.Index].Capacity,
+			Outpoint:       common.OutPoint2String(req.TxHash, uint(v.Index)),
+			BlockTimestamp: req.BlockTimestamp,
+		})
+	}
+	if len(didCellList) > 0 {
+		records = didCellRecords
+		transactionInfos = didCellTxs
+	}
+
+	if err = b.dbDao.ConfirmProposal(incomeCellInfos, accountInfos, transactionInfos, rebateInfos, records, recordAccountIds, cidPks, didCellList); err != nil {
 		log.Error("ConfirmProposal err:", err.Error(), req.TxHash, req.BlockNumber)
 		resp.Err = fmt.Errorf("ConfirmProposal err: %s ", err.Error())
 		return
