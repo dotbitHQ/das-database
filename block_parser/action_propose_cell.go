@@ -99,7 +99,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 		resp.Err = fmt.Errorf("PreAccountCellDataBuilderMapFromTx err: %s", err.Error())
 		return
 	}
-	accMap, err := witness.AccountCellDataBuilderMapFromTx(req.Tx, common.DataTypeNew) //old+new account
+	accMap, err := witness.AccountIdCellDataBuilderFromTx(req.Tx, common.DataTypeNew) //old+new account
 	if err != nil {
 		resp.Err = fmt.Errorf("AccountCellDataBuilderMapFromTx err: %s", err.Error())
 		return
@@ -316,6 +316,10 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			resp.Err = fmt.Errorf("ConvertScriptToAddress err: %s", err.Error())
 			return
 		}
+		cellCapacity := req.Tx.Outputs[v.Index].Capacity
+		if accItem, ok := accMap[accId]; ok {
+			cellCapacity += req.Tx.Outputs[accItem.Index].Capacity
+		}
 		didCellTxs = append(didCellTxs, dao.TableTransactionInfo{
 			BlockNumber:    req.BlockNumber,
 			AccountId:      accId,
@@ -324,7 +328,7 @@ func (b *BlockParser) ActionConfirmProposal(req FuncTransactionHandleReq) (resp 
 			ServiceType:    dao.ServiceTypeRegister,
 			ChainType:      common.ChainTypeAnyLock,
 			Address:        txAddress,
-			Capacity:       req.Tx.Outputs[v.Index].Capacity,
+			Capacity:       cellCapacity,
 			Outpoint:       common.OutPoint2String(req.TxHash, uint(v.Index)),
 			BlockTimestamp: req.BlockTimestamp,
 		})

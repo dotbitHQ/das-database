@@ -124,7 +124,7 @@ func (t *ToolSnapshot) addAccountPermissions(info dao.TableSnapshotTxInfo, tx *t
 			tmp.OwnerAlgorithmId = common.DasAlgorithmIdAnyLock
 			tmp.ManagerAlgorithmId = common.DasAlgorithmIdAnyLock
 			tmp.Status = dao.AccountStatusOnUpgrade
-			for k, c := range res.Outputs {
+			for _, c := range res.Outputs {
 				mode := address.Mainnet
 				if config.Cfg.Server.Net != common.DasNetTypeMainNet {
 					mode = address.Testnet
