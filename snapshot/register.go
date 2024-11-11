@@ -6,6 +6,7 @@ import (
 	"github.com/dotbitHQ/das-lib/common"
 	"github.com/dotbitHQ/das-lib/core"
 	"github.com/dotbitHQ/das-lib/witness"
+	"github.com/nervosnetwork/ckb-sdk-go/address"
 	"github.com/nervosnetwork/ckb-sdk-go/types"
 )
 
@@ -23,28 +24,65 @@ func (t *ToolSnapshot) addAccountRegisterByDasActionConfirmProposal(info dao.Tab
 	}
 
 	var list []dao.TableSnapshotRegisterInfo
-	for k, v := range mapNewAcc {
-		if _, ok := mapOldAcc[k]; ok {
-			continue
-		}
 
-		owner, _, err := t.DasCore.Daf().ArgsToHex(tx.Outputs[v.Index].Lock.Args)
-		if err != nil {
-			return fmt.Errorf("ArgsToHex err: %s", err.Error())
+	// did cell
+	_, txDidCellMap, err := t.DasCore.TxToDidCellEntityAndAction(tx)
+	if err != nil {
+		return fmt.Errorf("TxToDidCellEntityAndAction err: %s", err.Error())
+	}
+	if len(txDidCellMap.Outputs) > 0 {
+		for _, v := range txDidCellMap.Outputs {
+			_, cellDataNew, err := v.GetDataInfo()
+			if err != nil {
+				return fmt.Errorf("GetDataInfo new err: %s", err.Error())
+			}
+			acc := cellDataNew.Account
+			accId := common.Bytes2Hex(common.GetAccountIdByAccount(acc))
+			registeredAt := uint64(0)
+			if accItem, ok := mapNewAcc[accId]; ok {
+				registeredAt = accItem.RegisteredAt
+			}
+			txAddress, err := address.ConvertScriptToAddress(t.DasCore.GetCkbAddressMode(), v.Lock)
+			if err != nil {
+				return fmt.Errorf("ConvertScriptToAddress err: %s", err.Error())
+			}
+			tmp := dao.TableSnapshotRegisterInfo{
+				BlockNumber:      info.BlockNumber,
+				AccountId:        accId,
+				Hash:             info.Hash,
+				Account:          acc,
+				BlockTimestamp:   info.BlockTimestamp,
+				Owner:            txAddress,
+				OwnerAlgorithmId: common.DasAlgorithmIdAnyLock,
+				RegisteredAt:     registeredAt,
+				ExpiredAt:        cellDataNew.ExpireAt,
+			}
+			list = append(list, tmp)
 		}
-		tmp := dao.TableSnapshotRegisterInfo{
-			BlockNumber:      info.BlockNumber,
-			AccountId:        k,
-			ParentAccountId:  "",
-			Hash:             info.Hash,
-			Account:          v.Account,
-			BlockTimestamp:   info.BlockTimestamp,
-			Owner:            owner.AddressHex,
-			OwnerAlgorithmId: owner.DasAlgorithmId,
-			RegisteredAt:     v.RegisteredAt,
-			ExpiredAt:        v.ExpiredAt,
+	} else {
+		for k, v := range mapNewAcc {
+			if _, ok := mapOldAcc[k]; ok {
+				continue
+			}
+
+			owner, _, err := t.DasCore.Daf().ArgsToHex(tx.Outputs[v.Index].Lock.Args)
+			if err != nil {
+				return fmt.Errorf("ArgsToHex err: %s", err.Error())
+			}
+			tmp := dao.TableSnapshotRegisterInfo{
+				BlockNumber:      info.BlockNumber,
+				AccountId:        k,
+				ParentAccountId:  "",
+				Hash:             info.Hash,
+				Account:          v.Account,
+				BlockTimestamp:   info.BlockTimestamp,
+				Owner:            owner.AddressHex,
+				OwnerAlgorithmId: owner.DasAlgorithmId,
+				RegisteredAt:     v.RegisteredAt,
+				ExpiredAt:        v.ExpiredAt,
+			}
+			list = append(list, tmp)
 		}
-		list = append(list, tmp)
 	}
 
 	if err := t.DbDao.CreateSnapshotRegister(list); err != nil {

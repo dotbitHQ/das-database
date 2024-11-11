@@ -325,29 +325,63 @@ func (t *ToolSnapshot) addAccountPermissionsByDasActionConfirmProposal(info dao.
 	}
 
 	var list []dao.TableSnapshotPermissionsInfo
-	for k, v := range mapNewAcc {
-		if _, ok := mapOldAcc[k]; ok {
-			continue
+	// did cell
+	_, txDidCellMap, err := t.DasCore.TxToDidCellEntityAndAction(tx)
+	if err != nil {
+		return fmt.Errorf("TxToDidCellEntityAndAction err: %s", err.Error())
+	}
+	if len(txDidCellMap.Outputs) > 0 {
+		for _, v := range txDidCellMap.Outputs {
+			_, cellDataNew, err := v.GetDataInfo()
+			if err != nil {
+				return fmt.Errorf("GetDataInfo new err: %s", err.Error())
+			}
+			acc := cellDataNew.Account
+			accId := common.Bytes2Hex(common.GetAccountIdByAccount(acc))
+			txAddress, err := address.ConvertScriptToAddress(t.DasCore.GetCkbAddressMode(), v.Lock)
+			if err != nil {
+				return fmt.Errorf("ConvertScriptToAddress err: %s", err.Error())
+			}
+			tmp := dao.TableSnapshotPermissionsInfo{
+				BlockNumber:        info.BlockNumber,
+				AccountId:          accId,
+				Hash:               info.Hash,
+				Account:            acc,
+				BlockTimestamp:     info.BlockTimestamp,
+				Owner:              txAddress,
+				Manager:            txAddress,
+				OwnerAlgorithmId:   common.DasAlgorithmIdAnyLock,
+				ManagerAlgorithmId: common.DasAlgorithmIdAnyLock,
+				Status:             dao.AccountStatusOnUpgrade,
+				ExpiredAt:          cellDataNew.ExpireAt,
+			}
+			list = append(list, tmp)
 		}
+	} else {
+		for k, v := range mapNewAcc {
+			if _, ok := mapOldAcc[k]; ok {
+				continue
+			}
 
-		owner, manager, err := t.DasCore.Daf().ArgsToHex(tx.Outputs[v.Index].Lock.Args)
-		if err != nil {
-			return fmt.Errorf("ArgsToHex err: %s", err.Error())
+			owner, manager, err := t.DasCore.Daf().ArgsToHex(tx.Outputs[v.Index].Lock.Args)
+			if err != nil {
+				return fmt.Errorf("ArgsToHex err: %s", err.Error())
+			}
+			tmp := dao.TableSnapshotPermissionsInfo{
+				BlockNumber:        info.BlockNumber,
+				AccountId:          k,
+				Hash:               info.Hash,
+				Account:            v.Account,
+				BlockTimestamp:     info.BlockTimestamp,
+				Owner:              owner.AddressHex,
+				Manager:            manager.AddressHex,
+				OwnerAlgorithmId:   owner.DasAlgorithmId,
+				ManagerAlgorithmId: manager.DasAlgorithmId,
+				Status:             dao.AccountStatusNormal,
+				ExpiredAt:          v.ExpiredAt,
+			}
+			list = append(list, tmp)
 		}
-		tmp := dao.TableSnapshotPermissionsInfo{
-			BlockNumber:        info.BlockNumber,
-			AccountId:          k,
-			Hash:               info.Hash,
-			Account:            v.Account,
-			BlockTimestamp:     info.BlockTimestamp,
-			Owner:              owner.AddressHex,
-			Manager:            manager.AddressHex,
-			OwnerAlgorithmId:   owner.DasAlgorithmId,
-			ManagerAlgorithmId: manager.DasAlgorithmId,
-			Status:             dao.AccountStatusNormal,
-			ExpiredAt:          v.ExpiredAt,
-		}
-		list = append(list, tmp)
 	}
 
 	if err := t.DbDao.CreateSnapshotPermissions(list); err != nil {
