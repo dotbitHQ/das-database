@@ -175,7 +175,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 		txHash := tx.Hash.Hex()
 		blockNumber := block.Header.Number
 		blockTimestamp := block.Header.Timestamp
-		builder, err := witness.ActionDataBuilderFromTx(tx)
+
 		req := FuncTransactionHandleReq{
 			DbDao:          b.dbDao,
 			Tx:             tx,
@@ -184,6 +184,7 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 			BlockTimestamp: blockTimestamp,
 		}
 
+		builder, err := witness.ActionDataBuilderFromTx(tx)
 		if err != nil {
 			didCellAction, res, err := b.dasCore.TxToDidCellEntityAndAction(tx)
 			if err != nil {
@@ -194,6 +195,17 @@ func (b *BlockParser) parsingBlockData(block *types.Block) error {
 			}
 		} else {
 			req.Action = builder.Action
+			if req.Action == common.DasActionWithdrawFromWallet {
+				if yes, _ := isCurrentVersionTx(tx, common.DasContractNameDidCellType); yes {
+					didCellAction, res, err := b.dasCore.TxToDidCellEntityAndAction(tx)
+					if err != nil {
+						return fmt.Errorf("TxToDidCellEntityAndAction err: %s", err.Error())
+					} else if didCellAction != "" {
+						req.Action = didCellAction
+						req.TxDidCellMap = res
+					}
+				}
+			}
 		}
 
 		if req.Action != "" {

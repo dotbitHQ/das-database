@@ -252,6 +252,16 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 				continue
 			}
 			action = builder.Action
+			if action == common.DasActionWithdrawFromWallet {
+				if yes, _ := isCurrentVersionTx(tx, common.DasContractNameDidCellType); yes {
+					didCellAction, _, err := t.DasCore.TxToDidCellEntityAndAction(tx)
+					if err != nil {
+						log.Debug("parsingBlockData TxToDidCellEntityAndAction err: ", err.Error())
+						continue
+					}
+					action = didCellAction
+				}
+			}
 		}
 		log.Info("parsingBlockData action:", action, txHash)
 		if action == "" {
@@ -269,4 +279,22 @@ func (t *ToolSnapshot) parsingBlockData(block *types.Block) error {
 		}
 	}
 	return nil
+}
+
+func isCurrentVersionTx(tx *types.Transaction, name common.DasContractName) (bool, error) {
+	contract, err := core.GetDasContractInfo(name)
+	if err != nil {
+		return false, fmt.Errorf("GetDasContractInfo err: %s", err.Error())
+	}
+	isCV := false
+	for _, v := range tx.Outputs {
+		if v.Type == nil {
+			continue
+		}
+		if contract.IsSameTypeId(v.Type.CodeHash) {
+			isCV = true
+			break
+		}
+	}
+	return isCV, nil
 }
